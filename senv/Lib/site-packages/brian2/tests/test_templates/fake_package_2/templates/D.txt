@@ -1,3 +1,0 @@
-{% block main %}
-D2
-{% endblock %}

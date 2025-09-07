@@ -1,7 +1,0 @@
-{% extends 'B.txt' %}
-{% block main %}
-A1
-{{ super() }}
-{{ f() }}
-{{ g() }}
-{% endblock %}
