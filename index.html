@@ -1,0 +1,359 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SNN Visualizer — SYNTHETIC-2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#0a0c12;--panel:#12151c;--text:#c4d1e0;--muted:#6b7280;--edge:#1e293b;--edgeHot:#3b82f6;--node:#60a5fa;--hot:#f59e0b;--pulse:#ef4444}
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,Helvetica,Arial;overflow:hidden}
+    canvas{display:block}
+    #overlay{pointer-events:none;position:fixed;inset:0;background:
+      radial-gradient(1400px 900px at 30% 0%, #1e293b22, transparent 70%),
+      radial-gradient(1000px 600px at 80% 100%, #1e1b4b22, transparent 60%);}    
+    #hud{position:fixed;left:20px;top:20px;display:flex;gap:14px;align-items:center;background:rgba(18,21,28,0.85);padding:12px 16px;border-radius:16px;border:1px solid #1e293b;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 8px 25px rgba(0,0,0,0.4)}
+    .btn{border:0;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,#1e293b,#0f172a);color:#c4d1e0;cursor:pointer;border:1px solid #334155;transition:all 0.2s}
+    .btn:hover{background:linear-gradient(135deg,#334155,#1e293b)}
+    .btn.on{background:linear-gradient(135deg,#1e40af,#1d4ed8);box-shadow:0 0 0 1px #3b82f6 inset;color:#fff}
+    .range{accent-color:#3b82f6}
+    #panel{position:fixed;right:20px;top:20px;width:300px;background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5)}
+    #panel h4{margin:0 0 8px;font-weight:600;color:#f1f5f9;font-size:15px}
+    #trace{width:100%;height:150px;background:#0f172a;border-radius:12px;border:1px solid #1e293b}
+    #err{position:fixed;left:20px;bottom:20px;background:#dc2626;color:#fff;padding:10px 14px;border-radius:12px;display:none}
+    .hint{position:fixed;left:20px;bottom:20px;color:var(--muted)}
+    #controls{position:fixed;left:20px;bottom:20px;width:300px;background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5);max-height:300px;overflow-y:auto}
+    .control-group{margin-bottom:12px}
+    .control-group label{display:block;margin-bottom:4px;font-size:13px;color:#94a3b8}
+    .control-group input[type="range"]{width:100%;accent-color:#3b82f6}
+    .control-group input[type="number"]{width:80px;padding:4px 8px;background:#0f172a;border:1px solid #1e293b;border-radius:6px;color:#c4d1e0}
+    .toggle{background:#1e293b;border:1px solid #334155;padding:6px 12px;border-radius:8px;cursor:pointer;display:inline-block;margin:2px}
+    .toggle.active{background:#1e40af;color:#fff}
+    #info{position:fixed;right:20px;bottom:20px;width:320px;background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5);font-size:13px;line-height:1.6}
+    .lesson{background:#0f172a;padding:12px;border-radius:8px;margin:8px 0;border-left:3px solid #3b82f6}
+  </style>
+</head>
+<body>
+<div id="overlay"></div>
+<div id="hud">
+  <div style="font-weight:600;color:#f1f5f9">SNN • Neural Network</div>
+  <button id="play" class="btn on">Pause</button>
+  <label style="color:#94a3b8">Speed <input id="speed" class="range" type="range" min="10" max="150" value="50"/></label>
+</div>
+<div id="panel">
+  <h4 id="sel">Select Neuron</h4>
+  <canvas id="trace" width="260" height="150"></canvas>
+</div>
+<div id="controls">
+  <h4 style="margin:0 0 12px;color:#f1f5f9">Learning Controls</h4>
+  
+  <div class="control-group">
+    <label>Lesson Mode:</label>
+    <div class="toggle active" id="lesson1">Basic Spikes</div>
+    <div class="toggle" id="lesson2">Synapses</div>
+    <div class="toggle" id="lesson3">Plasticity</div>
+  </div>
+  
+  <div class="control-group">
+    <label for="inputCurrent">Input Current: <span id="inputValue">0.5</span></label>
+    <input type="range" id="inputCurrent" min="0" max="2" step="0.1" value="0.5"/>
+  </div>
+  
+  <div class="control-group">
+    <label for="synapseWeight">Synaptic Weight: <span id="weightValue">0.2</span></label>
+    <input type="range" id="synapseWeight" min="0" max="1" step="0.05" value="0.2"/>
+  </div>
+  
+  <div class="control-group">
+    <label for="networkSize">Network Size: <span id="sizeValue">50</span></label>
+    <input type="range" id="networkSize" min="10" max="100" step="5" value="50"/>
+  </div>
+  
+  <div class="control-group">
+    <label for="connectionProb">Connection Probability: <span id="probValue">0.045</span></label>
+    <input type="range" id="connectionProb" min="0" max="0.2" step="0.005" value="0.045"/>
+  </div>
+  
+  <button id="resetNetwork" class="btn">Reset Network</button>
+  <button id="showWeights" class="btn">Show Weights</button>
+</div>
+
+<div id="info">
+  <h4 style="margin:0 0 8px;color:#f1f5f9">Learning Guide</h4>
+  <div id="lessonContent">
+    <div class="lesson">
+      <strong>Lesson 1: Basic Spikes</strong><br>
+      Each neuron accumulates voltage over time. When it reaches threshold (v=1), it fires a spike and resets to 0.
+      <br><br>
+      <strong>Try:</strong> Adjust input current and watch firing rates change.
+    </div>
+  </div>
+</div>
+<div id="err"></div>
+<script src="three.min.js"></script>
+<script>
+(function(){
+  const showErr=m=>{const e=document.getElementById('err');e.textContent=m;e.style.display='block'};
+  if(!window.THREE){showErr('Three.js missing (three.min.js)');return}
+
+  const DPR=Math.min(window.devicePixelRatio||1,2);
+
+  const NUM=50, R=38, PORT=8766, Y_OFFSET = -25;
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(0x080a10);
+  const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.1,2000); camera.position.set(0,-15,110);
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setPixelRatio(DPR); renderer.setSize(innerWidth,innerHeight); document.body.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0x1e293b, 0.3));
+  const key=new THREE.PointLight(0x60a5fa, 0.8); key.position.set(80, 100, 120); scene.add(key);
+  const fill=new THREE.PointLight(0x3b82f6, 0.4); fill.position.set(-80, -50, -30); scene.add(fill);
+  const accent=new THREE.PointLight(0xf59e0b, 0.2); accent.position.set(0, 50, 50); scene.add(accent);
+
+  const glowTex=(()=>{const s=128,c=document.createElement('canvas');c.width=c.height=s;const g=c.getContext('2d');const grd=g.createRadialGradient(s/2,s/2,1,s/2,s/2,s/2);grd.addColorStop(0,'rgba(96,165,250,0.9)');grd.addColorStop(0.4,'rgba(59,130,246,0.6)');grd.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=grd;g.fillRect(0,0,s,s);const t=new THREE.CanvasTexture(c);t.magFilter=THREE.LinearFilter;return t;})();
+
+  const neurons=[], glows=[], connIdx=[], outgoing=[];
+  const sphereGeo=new THREE.SphereGeometry(1.4, 32, 32);
+  const makeMat=()=>new THREE.MeshStandardMaterial({color:0x1e40af, emissive:0x0f172a, roughness:0.2, metalness:0.8});
+  
+  for(let i=0;i<NUM;i++){
+    const a=i/NUM*Math.PI*2;
+    const x=Math.cos(a)*R;
+    const y=Math.sin(a)*R + Y_OFFSET;
+    const z=(i-NUM/2)*0.25;
+    const m=new THREE.Mesh(sphereGeo,makeMat()); 
+    m.position.set(x,y,z); 
+    m.userData={i,pulse:0,volt:0}; 
+    scene.add(m); 
+    neurons.push(m);
+    
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0x3b82f6,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false})); 
+    s.position.copy(m.position); 
+    s.scale.set(8,8,1); 
+    scene.add(s); 
+    glows.push(s);
+  }
+
+  const pos=[]; 
+  for(let i=0;i<NUM;i++){
+    for(let j=0;j<NUM;j++){
+      if(i!==j && Math.random()<0.045){
+        const a=neurons[i].position,b=neurons[j].position;
+        pos.push(a.x,a.y,a.z,b.x,b.y,b.z);
+        connIdx.push([i,j]);
+      }
+    }
+  }
+  const connGeom=new THREE.BufferGeometry(); 
+  connGeom.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  const colors=new Float32Array(connIdx.length*2*3); 
+  for(let i=0;i<colors.length;i+=3){colors[i]=0.12;colors[i+1]=0.22;colors[i+2]=0.35;}
+  connGeom.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  const lineMat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.6,blending:THREE.AdditiveBlending});
+  const lines=new THREE.LineSegments(connGeom,lineMat); 
+  scene.add(lines);
+  for(let s=0;s<connIdx.length;s++){const [src]=connIdx[s];(outgoing[src]||(outgoing[src]=[])).push(s)}
+
+  // Controls with right-click drag
+  let isDragging=false, dragLastX=0, dragLastY=0;
+  let networkOffsetX=0, networkOffsetY=0;
+  let isDown=false,lastX=0,lastY=0,theta=1.0,phi=0.3,dist=110;
+  
+  function updateCam(){
+    const x=dist*Math.sin(theta)*Math.cos(phi);
+    const y=dist*Math.sin(theta)*Math.sin(phi) + Y_OFFSET;
+    const z=dist*Math.cos(theta);
+    camera.position.set(x,y,z);
+    camera.lookAt(networkOffsetX, networkOffsetY + Y_OFFSET, 0);
+  }
+  updateCam();
+  
+  document.addEventListener('mousedown',e=>{
+    if(e.button === 2) { // RIGHT CLICK
+      isDragging=true;
+      dragLastX=e.clientX;
+      dragLastY=e.clientY;
+      e.preventDefault();
+    } else if(e.button === 0) { // LEFT CLICK
+      isDown=true;
+      lastX=e.clientX;
+      lastY=e.clientY;
+    }
+  });
+  
+  document.addEventListener('mouseup',e=>{
+    if(e.button === 2) isDragging=false;
+    if(e.button === 0) isDown=false;
+  });
+  
+  document.addEventListener('mousemove',e=>{
+    if(isDragging) { // RIGHT DRAG - MOVE NETWORK
+      const dx=(e.clientX-dragLastX)*0.2;
+      const dy=-(e.clientY-dragLastY)*0.2;
+      
+      networkOffsetX += dx;
+      networkOffsetY += dy;
+      
+      for(let i=0;i<neurons.length;i++){
+        const angle = i/NUM*Math.PI*2;
+        const baseX = Math.cos(angle)*R + networkOffsetX;
+        const baseY = Math.sin(angle)*R + Y_OFFSET + networkOffsetY;
+        const baseZ = (i-NUM/2)*0.25;
+        
+        neurons[i].position.set(baseX, baseY, baseZ);
+        glows[i].position.set(baseX, baseY, baseZ);
+      }
+      
+      const positions=connGeom.getAttribute('position');
+      for(let s=0;s<connIdx.length;s++){
+        const [i,j]=connIdx[s];
+        const a=neurons[i].position,b=neurons[j].position;
+        const idx=s*6;
+        positions.array[idx]=a.x;
+        positions.array[idx+1]=a.y;
+        positions.array[idx+2]=a.z;
+        positions.array[idx+3]=b.x;
+        positions.array[idx+4]=b.y;
+        positions.array[idx+5]=b.z;
+      }
+      positions.needsUpdate=true;
+      
+      dragLastX=e.clientX;
+      dragLastY=e.clientY;
+      updateCam();
+    } else if(isDown) { // LEFT DRAG - ROTATE CAMERA
+      const dx=(e.clientX-lastX)/300, dy=(e.clientY-lastY)/300; 
+      phi+=dx; 
+      theta=Math.max(0.3,Math.min(Math.PI-0.3,theta+dy)); 
+      lastX=e.clientX; lastY=e.clientY; 
+      updateCam();
+    }
+  });
+  
+  document.addEventListener('contextmenu',e=>e.preventDefault());
+  
+  addEventListener('wheel',e=>{
+    dist=Math.max(60,Math.min(200,dist+e.deltaY*0.03)); 
+    updateCam()
+  },{passive:true});
+
+  // Neuron selection
+  let selected=null, traceBuf=[]; const hdr=document.getElementById('sel');
+  const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
+  addEventListener('click',e=>{
+    if(e.button === 0 && !isDragging) {
+      mouse.x=(e.clientX/innerWidth)*2-1; 
+      mouse.y=-(e.clientY/innerHeight)*2+1; 
+      ray.setFromCamera(mouse,camera); 
+      const hit=ray.intersectObjects(neurons)[0]; 
+      if(hit){
+        selected=hit.object.userData.i; 
+        traceBuf=[]; 
+        hdr.textContent='Neuron #'+selected
+      }
+    }
+  });
+  
+  const drawTrace=()=>{
+    const c=document.getElementById('trace').getContext('2d'); 
+    c.fillStyle='#0f172a'; 
+    c.fillRect(0,0,260,150); 
+    if(selected===null) return; 
+    c.strokeStyle='#f223e0'; 
+    c.lineWidth=2;
+    c.beginPath(); 
+    const L=traceBuf.length||1; 
+    for(let i=0;i<traceBuf.length;i++){
+      const x=i/(L-1)*256+2, y=148-traceBuf[i]*130; 
+      i?c.lineTo(x,y):c.moveTo(x,y)
+    } 
+    c.stroke()
+  };
+
+  // Animation
+  const col=connGeom.getAttribute('color'); 
+  const clock=new THREE.Clock();
+  (function loop(){ 
+    requestAnimationFrame(loop); 
+    const dt=clock.getDelta();
+    
+    for(let i=0;i<neurons.length;i++){
+      const n=neurons[i]; 
+      n.userData.pulse=Math.max(0,n.userData.pulse-dt*2.2);
+      const t=Math.min(1,Math.max(0,n.userData.volt*12));
+      
+      const base=new THREE.Color(0x1e40af);
+      const active=new THREE.Color(0x60a5fa);
+      const hot=new THREE.Color(0xf223e0);
+      
+      n.material.color.copy(base).lerp(active, t*0.7).lerp(hot, t*t);
+      n.scale.setScalar(1+0.4*n.userData.pulse); 
+      n.material.emissiveIntensity=0.4*n.userData.pulse;
+      
+      const g=glows[i]; 
+      g.material.opacity=0.3+0.7*n.userData.pulse; 
+      g.scale.set(8+3*n.userData.pulse,8+3*n.userData.pulse,1);
+    }
+    
+    for(let s=0;s<connIdx.length;s++){
+      for(let v=0;v<2;v++){
+        const i=(s*2+v)*3; 
+        col.array[i]=Math.max(0.12,col.array[i]-dt*1.5); 
+        col.array[i+1]=Math.max(0.22,col.array[i+1]-dt*1.5); 
+        col.array[i+2]=Math.max(0.35,col.array[i+2]-dt*1.5)
+      }
+    }
+    col.needsUpdate=true; 
+    renderer.render(scene,camera); 
+    drawTrace(); 
+  })();
+
+  addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)})
+
+  // WebSocket
+  const ws=new WebSocket('ws://localhost:'+PORT);
+  ws.onerror=()=>showErr('WebSocket error (is server.py running?)');
+  ws.onmessage=e=>{
+    const d=JSON.parse(e.data);
+    if(d.volt){ 
+      for(const k in d.volt){ 
+        const i=+k; 
+        if(neurons[i]){ 
+          const v=d.volt[k]; 
+          neurons[i].userData.volt=v; 
+          if(selected===i){ 
+            traceBuf.push(v); 
+            if(traceBuf.length>280) traceBuf.shift(); 
+          } 
+        } 
+      } 
+    }
+    if(d.spikes){ 
+      d.spikes.forEach(s=>{
+        const i=s.i; 
+        if(!neurons[i]) return; 
+        const n=neurons[i]; 
+        n.userData.pulse=1.2; 
+        (outgoing[i]||[]).forEach(seg=>{
+          const a=seg*2*3, b=(seg*2+1)*3; 
+          // Bright connection flash
+          col.array[a]=col.array[b]=0.9; 
+          col.array[a+1]=col.array[b+1]=0.95; 
+          col.array[a+2]=col.array[b+2]=1.0;
+        }); 
+        col.needsUpdate=true;
+      }); 
+    }
+  };
+
+  const btn=document.getElementById('play'), rng=document.getElementById('speed');
+  btn.onclick=()=>{
+    const playing=!btn.classList.toggle('on'); 
+    btn.textContent=playing?'Pause':'Play'; 
+    ws.send(JSON.stringify({cmd:playing?'play':'pause'}))
+  };
+  rng.oninput=()=>ws.send(JSON.stringify({cmd:'speed',dt_ms:parseInt(rng.value,10)}));
+})();
+</script>
+</body>
+</html>
