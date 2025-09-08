@@ -258,30 +258,155 @@
     }
   });
   
+  // Educational variables
+  let showWeights = false;
+  let currentLesson = 1;
+  let lessonContent = {
+    1: {
+      title: "Basic Spikes",
+      content: "Each neuron accumulates voltage over time. When it reaches threshold (v=1), it fires a spike and resets to 0.<br><br><strong>Try:</strong> Adjust input current and watch firing rates change."
+    },
+    2: {
+      title: "Synaptic Connections", 
+      content: "When a neuron spikes, it sends current to connected neurons through synapses. Stronger weights = bigger influence.<br><br><strong>Try:</strong> Increase synaptic weight and see how spikes spread through the network."
+    },
+    3: {
+      title: "Network Dynamics",
+      content: "The interplay between excitation, connectivity, and timing creates complex patterns. This is the basis of neural computation.<br><br><strong>Try:</strong> Change connection probability and observe emergent patterns."
+    }
+  };
+
+  // Educational controls
+  function setupEducationalControls() {
+    // Lesson switching
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLesson = parseInt(btn.id.replace('lesson', ''));
+        updateLessonContent();
+      });
+    });
+
+    // Input controls
+    const inputCurrent = document.getElementById('inputCurrent');
+    const inputValue = document.getElementById('inputValue');
+    if (inputCurrent && inputValue) {
+      inputCurrent.oninput = () => {
+        inputValue.textContent = inputCurrent.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
+        }
+      };
+    }
+
+    const synapseWeight = document.getElementById('synapseWeight');
+    const weightValue = document.getElementById('weightValue');
+    if (synapseWeight && weightValue) {
+      synapseWeight.oninput = () => {
+        weightValue.textContent = synapseWeight.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
+        }
+      };
+    }
+
+    const connectionProb = document.getElementById('connectionProb');
+    const probValue = document.getElementById('probValue');
+    if (connectionProb && probValue) {
+      connectionProb.oninput = () => {
+        probValue.textContent = connectionProb.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
+        }
+      };
+    }
+
+    // Reset and visualization buttons
+    const resetBtn = document.getElementById('resetNetwork');
+    if (resetBtn) {
+      resetBtn.onclick = () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'reset'}));
+        }
+      };
+    }
+
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.onclick = () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        visualizeWeights();
+      };
+    }
+  }
+
+  function updateLessonContent() {
+    const lesson = lessonContent[currentLesson];
+    const contentDiv = document.getElementById('lessonContent');
+    if (contentDiv) {
+      contentDiv.innerHTML = `
+        <div class="lesson">
+          <strong>Lesson ${currentLesson}: ${lesson.title}</strong><br>
+          ${lesson.content}
+        </div>
+      `;
+    }
+  }
+
+  function visualizeWeights() {
+    if (showWeights) {
+      const colors = connGeom.getAttribute('color');
+      for (let s = 0; s < connIdx.length; s++) {
+        const strength = Math.random() * 0.8 + 0.2;
+        colors.array[s*6] = 0.2 + strength * 0.8;
+        colors.array[s*6+1] = 0.3 + strength * 0.7;
+        colors.array[s*6+2] = 0.8 - strength * 0.6;
+        colors.array[s*6+3] = colors.array[s*6];
+        colors.array[s*6+4] = colors.array[s*6+1];
+        colors.array[s*6+5] = colors.array[s*6+2];
+      }
+      colors.needsUpdate = true;
+    } else {
+      const colors = connGeom.getAttribute('color');
+      for(let i=0;i<colors.array.length;i+=3){
+        colors.array[i]=0.12;
+        colors.array[i+1]=0.22;
+        colors.array[i+2]=0.35;
+      }
+      colors.needsUpdate = true;
+    }
+  }
+
   const drawTrace=()=>{
     const c=document.getElementById('trace').getContext('2d'); 
     c.fillStyle='#0f172a'; 
     c.fillRect(0,0,260,150); 
     
     if(selected===null) {
-      document.getElementById('voltageValue').textContent = '--';
+      const voltageValue = document.getElementById('voltageValue');
+      if (voltageValue) voltageValue.textContent = '--';
       return;
     }
     
     // Update voltage display
     const currentVoltage = neurons[selected].userData.volt;
-    document.getElementById('voltageValue').textContent = currentVoltage.toFixed(3);
+    const voltageValue = document.getElementById('voltageValue');
+    if (voltageValue) {
+      voltageValue.textContent = currentVoltage.toFixed(3);
+    }
     
     // Draw threshold line
     c.strokeStyle='#60a5fa'; 
     c.lineWidth=1;
     c.setLineDash([5, 5]);
-    const thresholdY = 148 - 1.0 * 130; // y position for voltage = 1.0
+    const thresholdY = 148 - 1.0 * 130;
     c.beginPath();
     c.moveTo(2, thresholdY);
     c.lineTo(258, thresholdY);
     c.stroke();
-    c.setLineDash([]); // Reset dash
+    c.setLineDash([]);
     
     // Draw voltage trace
     if(traceBuf.length < 2) return;
@@ -291,7 +416,7 @@
     const L=traceBuf.length; 
     for(let i=0;i<L;i++){
       const x=i/(L-1)*256+2;
-      const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65; // Scale: 0-2V maps to full height
+      const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65;
       i?c.lineTo(x,y):c.moveTo(x,y);
     } 
     c.stroke();
@@ -387,118 +512,11 @@
   };
   rng.oninput=()=>ws.send(JSON.stringify({cmd:'speed',dt_ms:parseInt(rng.value,10)}));
 
-  // Educational variables
-  let showWeights = false;
-  let currentLesson = 1;
-  let lessonContent = {
-    1: {
-      title: "Basic Spikes",
-      content: "Each neuron accumulates voltage over time. When it reaches threshold (v=1), it fires a spike and resets to 0.<br><br><strong>Try:</strong> Adjust input current and watch firing rates change."
-    },
-    2: {
-      title: "Synaptic Connections", 
-      content: "When a neuron spikes, it sends current to connected neurons through synapses. Stronger weights = bigger influence.<br><br><strong>Try:</strong> Increase synaptic weight and see how spikes spread through the network."
-    },
-    3: {
-      title: "Network Dynamics",
-      content: "The interplay between excitation, connectivity, and timing creates complex patterns. This is the basis of neural computation.<br><br><strong>Try:</strong> Change connection probability and observe emergent patterns."
-    }
-  };
-
-  // Educational controls
-  function setupEducationalControls() {
-    // Lesson switching
-    document.querySelectorAll('.toggle').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentLesson = parseInt(btn.id.replace('lesson', ''));
-        updateLessonContent();
-      });
-    });
-
-    // Input controls
-    const inputCurrent = document.getElementById('inputCurrent');
-    const inputValue = document.getElementById('inputValue');
-    inputCurrent.oninput = () => {
-      inputValue.textContent = inputCurrent.value;
-      ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
-    };
-
-    const synapseWeight = document.getElementById('synapseWeight');
-    const weightValue = document.getElementById('weightValue');
-    synapseWeight.oninput = () => {
-      weightValue.textContent = synapseWeight.value;
-      ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
-    };
-
-    const connectionProb = document.getElementById('connectionProb');
-    const probValue = document.getElementById('probValue');
-    connectionProb.oninput = () => {
-      probValue.textContent = connectionProb.value;
-      ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
-    };
-
-    // Reset and visualization buttons
-    document.getElementById('resetNetwork').onclick = () => {
-      ws.send(JSON.stringify({cmd:'reset'}));
-    };
-
-    document.getElementById('showWeights').onclick = () => {
-      showWeights = !showWeights;
-      document.getElementById('showWeights').textContent = showWeights ? 'Hide Weights' : 'Show Weights';
-      visualizeWeights();
-    };
-  }
-
-  function updateLessonContent() {
-    const lesson = lessonContent[currentLesson];
-    document.getElementById('lessonContent').innerHTML = `
-      <div class="lesson">
-        <strong>Lesson ${currentLesson}: ${lesson.title}</strong><br>
-        ${lesson.content}
-      </div>
-    `;
-  }
-
-  function visualizeWeights() {
-    if (showWeights) {
-      const colors = connGeom.getAttribute('color');
-      for (let s = 0; s < connIdx.length; s++) {
-        const strength = Math.random() * 0.8 + 0.2;
-        colors.array[s*6] = 0.2 + strength * 0.8;
-        colors.array[s*6+1] = 0.3 + strength * 0.7;
-        colors.array[s*6+2] = 0.8 - strength * 0.6;
-        colors.array[s*6+3] = colors.array[s*6];
-        colors.array[s*6+4] = colors.array[s*6+1];
-        colors.array[s*6+5] = colors.array[s*6+2];
-      }
-      colors.needsUpdate = true;
-    } else {
-      const colors = connGeom.getAttribute('color');
-      for(let i=0;i<colors.array.length;i+=3){
-        colors.array[i]=0.12;
-        colors.array[i+1]=0.22;
-        colors.array[i+2]=0.35;
-      }
-      colors.needsUpdate = true;
-    }
-  }
-
-  // Initialize educational features
-  setupEducationalControls();
-  updateLessonContent();
-})();
-</script>
-</body>
-</html>
-      colors.needsUpdate = true;
-    }
-  }
-
-  // Initialize educational features
-  setupEducationalControls();
-  updateLessonContent();
+  // Initialize educational features when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    setupEducationalControls();
+    updateLessonContent();
+  });
 })();
 </script>
 </body>
