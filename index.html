@@ -432,13 +432,6 @@
       ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
     };
 
-    const networkSize = document.getElementById('networkSize');
-    const sizeValue = document.getElementById('sizeValue');
-    networkSize.oninput = () => {
-      sizeValue.textContent = networkSize.value;
-      // Note: Network size change requires restart
-    };
-
     const connectionProb = document.getElementById('connectionProb');
     const probValue = document.getElementById('probValue');
     connectionProb.oninput = () => {
@@ -469,13 +462,10 @@
   }
 
   function visualizeWeights() {
-    // Toggle connection visibility based on weights
     if (showWeights) {
-      // Show thicker lines for stronger connections
       const colors = connGeom.getAttribute('color');
       for (let s = 0; s < connIdx.length; s++) {
-        const strength = Math.random() * 0.8 + 0.2; // Simulated weight for now
-        // Color code by strength: weak=blue, strong=yellow
+        const strength = Math.random() * 0.8 + 0.2;
         colors.array[s*6] = 0.2 + strength * 0.8;
         colors.array[s*6+1] = 0.3 + strength * 0.7;
         colors.array[s*6+2] = 0.8 - strength * 0.6;
@@ -485,13 +475,23 @@
       }
       colors.needsUpdate = true;
     } else {
-      // Reset to default colors
       const colors = connGeom.getAttribute('color');
       for(let i=0;i<colors.array.length;i+=3){
         colors.array[i]=0.12;
         colors.array[i+1]=0.22;
         colors.array[i+2]=0.35;
       }
+      colors.needsUpdate = true;
+    }
+  }
+
+  // Initialize educational features
+  setupEducationalControls();
+  updateLessonContent();
+})();
+</script>
+</body>
+</html>
       colors.needsUpdate = true;
     }
   }
