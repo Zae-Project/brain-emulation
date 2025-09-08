@@ -387,6 +387,24 @@
   };
   rng.oninput=()=>ws.send(JSON.stringify({cmd:'speed',dt_ms:parseInt(rng.value,10)}));
 
+  // Educational variables
+  let showWeights = false;
+  let currentLesson = 1;
+  let lessonContent = {
+    1: {
+      title: "Basic Spikes",
+      content: "Each neuron accumulates voltage over time. When it reaches threshold (v=1), it fires a spike and resets to 0.<br><br><strong>Try:</strong> Adjust input current and watch firing rates change."
+    },
+    2: {
+      title: "Synaptic Connections", 
+      content: "When a neuron spikes, it sends current to connected neurons through synapses. Stronger weights = bigger influence.<br><br><strong>Try:</strong> Increase synaptic weight and see how spikes spread through the network."
+    },
+    3: {
+      title: "Network Dynamics",
+      content: "The interplay between excitation, connectivity, and timing creates complex patterns. This is the basis of neural computation.<br><br><strong>Try:</strong> Change connection probability and observe emergent patterns."
+    }
+  };
+
   // Educational controls
   function setupEducationalControls() {
     // Lesson switching
@@ -438,6 +456,44 @@
       document.getElementById('showWeights').textContent = showWeights ? 'Hide Weights' : 'Show Weights';
       visualizeWeights();
     };
+  }
+
+  function updateLessonContent() {
+    const lesson = lessonContent[currentLesson];
+    document.getElementById('lessonContent').innerHTML = `
+      <div class="lesson">
+        <strong>Lesson ${currentLesson}: ${lesson.title}</strong><br>
+        ${lesson.content}
+      </div>
+    `;
+  }
+
+  function visualizeWeights() {
+    // Toggle connection visibility based on weights
+    if (showWeights) {
+      // Show thicker lines for stronger connections
+      const colors = connGeom.getAttribute('color');
+      for (let s = 0; s < connIdx.length; s++) {
+        const strength = Math.random() * 0.8 + 0.2; // Simulated weight for now
+        // Color code by strength: weak=blue, strong=yellow
+        colors.array[s*6] = 0.2 + strength * 0.8;
+        colors.array[s*6+1] = 0.3 + strength * 0.7;
+        colors.array[s*6+2] = 0.8 - strength * 0.6;
+        colors.array[s*6+3] = colors.array[s*6];
+        colors.array[s*6+4] = colors.array[s*6+1];
+        colors.array[s*6+5] = colors.array[s*6+2];
+      }
+      colors.needsUpdate = true;
+    } else {
+      // Reset to default colors
+      const colors = connGeom.getAttribute('color');
+      for(let i=0;i<colors.array.length;i+=3){
+        colors.array[i]=0.12;
+        colors.array[i+1]=0.22;
+        colors.array[i+2]=0.35;
+      }
+      colors.needsUpdate = true;
+    }
   }
 
   // Initialize educational features
