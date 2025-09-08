@@ -19,7 +19,8 @@ def recreate_network():
     
     start_scope()
     tau = PARAMS["tau"] * ms
-    eqs = "dv/dt=(-v + I_input)/tau : 1"
+    # Fixed: Declare I_input as a parameter in the equations
+    eqs = "dv/dt=(-v + I_input)/tau : 1\nI_input : 1"
     
     G = NeuronGroup(NUM, eqs, threshold='v>1', reset='v=0', method='euler')
     G.v = 'rand()*0.3'
@@ -28,20 +29,23 @@ def recreate_network():
     S = Synapses(G, G, on_pre=f'v+={PARAMS["synapse_weight"]}')
     S.connect(p=PARAMS["connection_prob"])
     
-    P = PoissonInput(G, 'I_input', 15, 3*Hz, weight=0.05)
+    # Remove PoissonInput since we're using direct current injection
     
     sm = SpikeMonitor(G)
     vm = StateMonitor(G, 'v', record=True)
     net = Network(collect())
 
+# Initial network setup - Fixed equation declaration
 start_scope()
-tau=8*ms; eqs="dv/dt=(-v + I_input)/tau : 1"  # Added external input
+tau=8*ms
+# Declare I_input as a parameter in the neuron equations
+eqs="dv/dt=(-v + I_input)/tau : 1\nI_input : 1"
 G=NeuronGroup(NUM,eqs,threshold='v>1',reset='v=0',method='euler'); 
 G.v='rand()*0.3'  # Lower initial voltages
-G.I_input = 0.1  # External input current
+G.I_input = 0.1  # External input current - now this works!
 
 S=Synapses(G,G,on_pre='v+=0.15'); S.connect(p=0.08)
-P=PoissonInput(G,'I_input',15,3*Hz,weight=0.08)  # More frequent, smaller inputs
+# Removed PoissonInput to use direct current control
 sm=SpikeMonitor(G); vm=StateMonitor(G,'v',record=True)
 net=Network(collect())
 
@@ -89,8 +93,8 @@ async def handler(ws,path):
                     print(f"Speed set to {CTRL['dt_ms']}ms")
                 elif d.get("cmd") == "setInput":
                     PARAMS["input_current"] = float(d["value"])
-                    if 'G' in globals():
-                        G.I_input = PARAMS["input_current"]
+                    # Update all neurons with new input current
+                    G.I_input = PARAMS["input_current"]
                     print(f"Input current set to {PARAMS['input_current']}")
                 elif d.get("cmd") == "setWeight":
                     PARAMS["synapse_weight"] = float(d["value"])
