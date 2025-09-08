@@ -353,6 +353,63 @@
     ws.send(JSON.stringify({cmd:playing?'play':'pause'}))
   };
   rng.oninput=()=>ws.send(JSON.stringify({cmd:'speed',dt_ms:parseInt(rng.value,10)}));
+
+  // Educational controls
+  function setupEducationalControls() {
+    // Lesson switching
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLesson = parseInt(btn.id.replace('lesson', ''));
+        updateLessonContent();
+      });
+    });
+
+    // Input controls
+    const inputCurrent = document.getElementById('inputCurrent');
+    const inputValue = document.getElementById('inputValue');
+    inputCurrent.oninput = () => {
+      inputValue.textContent = inputCurrent.value;
+      ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
+    };
+
+    const synapseWeight = document.getElementById('synapseWeight');
+    const weightValue = document.getElementById('weightValue');
+    synapseWeight.oninput = () => {
+      weightValue.textContent = synapseWeight.value;
+      ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
+    };
+
+    const networkSize = document.getElementById('networkSize');
+    const sizeValue = document.getElementById('sizeValue');
+    networkSize.oninput = () => {
+      sizeValue.textContent = networkSize.value;
+      // Note: Network size change requires restart
+    };
+
+    const connectionProb = document.getElementById('connectionProb');
+    const probValue = document.getElementById('probValue');
+    connectionProb.oninput = () => {
+      probValue.textContent = connectionProb.value;
+      ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
+    };
+
+    // Reset and visualization buttons
+    document.getElementById('resetNetwork').onclick = () => {
+      ws.send(JSON.stringify({cmd:'reset'}));
+    };
+
+    document.getElementById('showWeights').onclick = () => {
+      showWeights = !showWeights;
+      document.getElementById('showWeights').textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+      visualizeWeights();
+    };
+  }
+
+  // Initialize educational features
+  setupEducationalControls();
+  updateLessonContent();
 })();
 </script>
 </body>
