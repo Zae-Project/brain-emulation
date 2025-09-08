@@ -19,16 +19,16 @@ def recreate_network():
     
     start_scope()
     tau = PARAMS["tau"] * ms
-    eqs = "dv/dt=(-v + I_input)/tau : 1"  # Added external input
+    eqs = "dv/dt=(-v + I_input)/tau : 1"
     
     G = NeuronGroup(NUM, eqs, threshold='v>1', reset='v=0', method='euler')
-    G.v = 'rand()*0.3'  # Lower initial voltages
-    G.I_input = 0.1  # External input current
+    G.v = 'rand()*0.3'
+    G.I_input = PARAMS["input_current"]
     
     S = Synapses(G, G, on_pre=f'v+={PARAMS["synapse_weight"]}')
     S.connect(p=PARAMS["connection_prob"])
     
-    P = PoissonInput(G, 'I_input', 15, 3*Hz, weight=PARAMS["input_current"])  # More frequent, smaller inputs
+    P = PoissonInput(G, 'I_input', 15, 3*Hz, weight=0.05)
     
     sm = SpikeMonitor(G)
     vm = StateMonitor(G, 'v', record=True)
@@ -89,14 +89,16 @@ async def handler(ws,path):
                     print(f"Speed set to {CTRL['dt_ms']}ms")
                 elif d.get("cmd") == "setInput":
                     PARAMS["input_current"] = float(d["value"])
-                    G.I_input = PARAMS["input_current"]  # Update external input
+                    if 'G' in globals():
+                        G.I_input = PARAMS["input_current"]
                     print(f"Input current set to {PARAMS['input_current']}")
                 elif d.get("cmd") == "setWeight":
                     PARAMS["synapse_weight"] = float(d["value"])
-                    recreate_network()  # Recreate network for weight changes
+                    recreate_network()
                     print(f"Synapse weight set to {PARAMS['synapse_weight']}")
                 elif d.get("cmd") == "setConnectionProb":
                     PARAMS["connection_prob"] = float(d["value"])
+                    recreate_network()
                     print(f"Connection probability set to {PARAMS['connection_prob']}")
                 elif d.get("cmd") == "reset":
                     recreate_network()

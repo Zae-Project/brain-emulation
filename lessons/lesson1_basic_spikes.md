@@ -1,76 +1,14 @@
+# Lesson 1: Understanding Basic Spike Dynamics
 
-Where:
-- `v` = membrane potential (voltage)
-- `I` = input current (what you control)
-- `τ` = membrane time constant (8ms in our simulation)
+## Learning Objectives
+- Understand how neurons integrate input over time
+- Observe the relationship between input current and firing rate
+- Visualize membrane potential dynamics and threshold crossing
 
-### Key Concepts
-1. **Integration**: The neuron sums up all inputs over time
-2. **Leak**: Without input, voltage decays back to 0 with time constant τ
-3. **Threshold**: When voltage reaches 1.0, the neuron fires a spike
-4. **Reset**: After spiking, voltage immediately returns to 0
+## Theory
 
-## Interactive Experiments
-
-### Experiment 1.1: Single Neuron Dynamics
-1. **Select a neuron** by clicking on any blue sphere
-2. **Watch the voltage trace** in the right panel:
-   - Violet line shows voltage over time
-   - Blue dashed line shows threshold (1.0V)
-   - Numbers show current voltage value
-
-3. **Observe the pattern**:
-   - Voltage rises when neuron receives input
-   - Voltage decays when no input arrives
-   - Sharp drop to 0 when threshold is crossed
-
-### Experiment 1.2: Input Current Control
-Use the **Input Current** slider to control external stimulation:
-
-**Low Input (0.0 - 0.2)**:
-- Set slider to 0.1
-- Observe: Slow voltage rise, rare spikes
-- Why? Insufficient current to reach threshold quickly
-
-**Medium Input (0.3 - 0.7)**:
-- Set slider to 0.5
-- Observe: Regular, predictable spikes
-- Why? Balanced input creates steady firing
-
-**High Input (0.8 - 2.0)**:
-- Set slider to 1.2
-- Observe: Rapid, frequent spikes
-- Why? Strong input reaches threshold quickly
-
-### Experiment 1.3: Time Constant Effects
-The time constant (τ = 8ms) determines how fast the neuron responds:
-- **Fast integration**: Voltage changes quickly with input
-- **Slow leak**: Voltage doesn't decay too rapidly
-- **Balanced dynamics**: Allows for realistic neural behavior
-
-## Key Observations to Make
-
-1. **What happens when input = 0?**
-   - Voltage should decay exponentially toward 0
-   - No spikes should occur
-
-2. **What's the minimum input for spiking?**
-   - Try values around 0.2-0.3
-   - Find the threshold current for regular firing
-
-3. **How does firing rate change with input?**
-   - Higher input → Higher firing rate
-   - Relationship is roughly linear for moderate inputs
-
-## Questions to Explore
-
-1. Why doesn't the neuron fire immediately when input > 1.0?
-2. What would happen if the time constant was much larger?
-3. How would random input (noise) affect the firing pattern?
-
-## Mathematical Insight
-
-The voltage equation has an analytical solution:
+### The Leaky Integrate-and-Fire Model
+A spiking neuron accumulates voltage over time according to:
 
 dv/dt = (-v + I) / τ
 
