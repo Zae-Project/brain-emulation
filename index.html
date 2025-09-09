@@ -19,7 +19,7 @@
     <!-- TOP BAR -->
     <div id="hud">
       <div style="font-weight: 600; color: #f1f5f9">SNN • Neural Network</div>
-      <button id="play" class="btn on">Pause</button>
+      <button id="play" class="btn on">PLAY</button>
       <label style="color: #94a3b8"
         >Speed
         <input
@@ -115,6 +115,13 @@
           <strong>Lesson 1: Basic Spikes</strong><br />
           Each neuron accumulates voltage over time. When it reaches threshold
           (v=1), it fires a spike and resets to 0.
+          <button
+            class="btn"
+            style="margin-top: 8px; padding: 6px 12px; font-size: 12px"
+            onclick="window.snnVisualizer.showFullLesson(1)"
+          >
+            VIEW FULL LESSON
+          </button>
         </div>
       </div>
     </div>
