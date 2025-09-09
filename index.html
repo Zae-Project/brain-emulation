@@ -170,6 +170,7 @@
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         font-size: 13px;
         line-height: 1.6;
+        z-index: 100; /* Ensure it's on top */
       }
       .lesson {
         background: #0f172a;
@@ -185,47 +186,129 @@
       #controls,
       #info,
       #lessonPanel,
-      #lessonModal > div {
-        background: #0b0c0f;
-        border: 1px solid rgba(200, 200, 200, 0.06); /* very thin grey border */
-        z-index: 20; /* ensure UI panels sit above the 3D canvas */
+      #navControls,
+      #neuronInfo,
+      #zoomLevel,
+      #lessonModal {
+        position: fixed;
+        z-index: 10; /* Ensure all UI is on top */
       }
 
-      /* Neon buttons and active state */
-      .btn {
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        background: rgba(12, 8, 18, 0.9); /* dark base */
+      #lessonModal {
+        z-index: 20; /* Modal should be on top of everything */
+      }
+
+      #three-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0; /* Place canvas behind all UI */
+        background: #c00; /* Red background for debug */
+      }
+
+      /* Original styles for panels */
+      #hud {
+        left: 20px;
+        top: 20px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        background: rgba(18, 21, 28, 0.85);
+        padding: 12px 16px;
+        border-radius: 16px;
+        border: 1px solid #1e293b;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      }
+      #panel {
+        right: 20px;
+        top: 20px;
+        width: 300px;
+        background: var(--panel);
+        border: 1px solid #1e293b;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      }
+      #controls {
+        left: 20px;
+        bottom: 20px;
+        width: 300px;
+        background: var(--panel);
+        border: 1px solid #1e293b;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      #info {
+        right: 20px;
+        bottom: 20px;
+        width: 320px;
+        background: var(--panel);
+        border: 1px solid #1e293b;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        font-size: 13px;
+        line-height: 1.6;
+        z-index: 100; /* Ensure it's on top */
+      }
+      #lessonPanel {
+        left: 20px;
+        top: 80px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        background: rgba(18, 21, 28, 0.85);
+        padding: 10px 16px;
+        border-radius: 12px;
+        border: 1px solid #1e293b;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      }
+      #navControls {
+        right: 20px;
+        top: 200px;
+        background: rgba(12, 8, 18, 0.9);
+        border: 1px solid rgba(200, 200, 200, 0.06);
+        border-radius: 12px;
+        padding: 12px;
         color: #f3f2ff;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-        transition: all 0.12s ease;
+        font-size: 11px;
+        line-height: 1.4;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        max-width: 180px;
       }
-      .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      #neuronInfo {
+        left: 20px;
+        top: 300px;
+        width: 280px;
+        background: rgba(12, 8, 18, 0.95);
+        border: 1px solid rgba(200, 200, 200, 0.06);
+        border-radius: 12px;
+        padding: 14px;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        display: none;
+        z-index: 100;
       }
-      .btn.on {
-        background: #ff00d6; /* neon magenta */
-        color: #06010a;
-        border-color: rgba(255, 0, 214, 0.35);
-        box-shadow: 0 0 18px rgba(255, 0, 214, 0.12);
+      #zoomLevel {
+        right: 20px;
+        bottom: 120px;
+        background: rgba(12, 8, 18, 0.8);
+        border: 1px solid rgba(200, 200, 200, 0.06);
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 11px;
+        color: #94a3b8;
+        z-index: 100;
       }
 
-      /* Range neon accent (magenta) */
-      .range {
-        accent-color: #ff00d6;
-      }
-      input[type="range"]::-webkit-slider-thumb {
-        background: #ff00d6;
-        box-shadow: 0 0 8px rgba(255, 0, 214, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      input[type="range"]::-moz-range-thumb {
-        background: #ff00d6;
-        box-shadow: 0 0 8px rgba(255, 0, 214, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      /* Lesson full content: make text clear and ensure background transparent/dark + neon title */
+      /* Common styles for lesson content */
       #lessonFullContent {
         color: #e6e9ef;
         background: transparent;
@@ -302,6 +385,7 @@
         -webkit-backdrop-filter: blur(8px);
         backdrop-filter: blur(8px);
         display: none;
+        z-index: 100;
       }
 
       #neuronInfo h5 {
@@ -332,10 +416,23 @@
         padding: 6px 10px;
         font-size: 11px;
         color: #94a3b8;
+        z-index: 100;
       }
     </style>
   </head>
   <body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js"></script>
+    <canvas
+      id="three-canvas"
+      style="
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 0;
+        background: #c00;
+      "
+    ></canvas>
     <div id="overlay"></div>
     <div id="hud">
       <div style="font-weight: 600; color: #f1f5f9">SNN • Neural Network</div>
@@ -611,7 +708,6 @@
     </div>
     <div id="err"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js"></script>
     <script>
       // WebSocket connection
       let ws;
@@ -695,22 +791,26 @@
         camera.position.set(0, 0, 80);
         camera.lookAt(0, 0, 0);
 
-        const renderer = new THREE.WebGLRenderer({
-          antialias: true,
-          powerPreference: "high-performance",
-        });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        // Place the renderer canvas behind UI and make it cover the viewport
+        // Use the existing canvas instead of creating a new one
+        const canvas = document.getElementById("three-canvas");
+        let renderer;
+        if (!canvas._renderer) {
+          renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            antialias: true,
+            powerPreference: "high-performance",
+          });
+          renderer.setClearColor(0xc00, 1); // Red background for debug
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          canvas._renderer = renderer;
+        } else {
+          renderer = canvas._renderer;
+        }
+        // Assign ID for CSS styling and place in body
         renderer.domElement.id = "three-canvas";
-        renderer.domElement.style.position = "fixed";
-        renderer.domElement.style.inset = "0";
-        renderer.domElement.style.width = "100%";
-        renderer.domElement.style.height = "100%";
-        renderer.domElement.style.zIndex = "0";
-        renderer.domElement.style.pointerEvents = "none";
         document.body.appendChild(renderer.domElement);
 
         // Ensure the canvas resizes with the window
@@ -735,6 +835,14 @@
         const backLight = new THREE.PointLight(0x60ff60, 0.8, 100);
         backLight.position.set(0, 0, -50);
         scene.add(backLight);
+
+        // Add a large white test cube at the origin and rotate it
+        const testGeometry = new THREE.BoxGeometry(10, 10, 10);
+        const testMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const testCube = new THREE.Mesh(testGeometry, testMaterial);
+        testCube.position.set(0, 0, 0);
+        scene.add(testCube);
+        console.log("Test cube added at origin");
 
         // Global variables
         const neurons = [],
@@ -967,6 +1075,8 @@
         // Animation loop
         function animate() {
           requestAnimationFrame(animate);
+          testCube.rotation.x += 0.01;
+          testCube.rotation.y += 0.01;
 
           // Keep the camera positioned according to spherical coordinates
           camera.position.x =
@@ -1014,6 +1124,7 @@
           }
 
           renderer.render(scene, camera);
+          console.log("Rendering frame");
         }
 
         // Message handling (stub)
@@ -1023,17 +1134,6 @@
 
         // Initialize everything
         createNetworkTopology();
-
-        // Add a test cube to verify Three.js is working
-        const testGeometry = new THREE.BoxGeometry(5, 5, 5);
-        const testMaterial = new THREE.MeshBasicMaterial({
-          color: 0xff0000,
-          wireframe: true,
-        });
-        const testCube = new THREE.Mesh(testGeometry, testMaterial);
-        testCube.position.set(0, 0, 0);
-        scene.add(testCube);
-        console.log("Added test cube at origin");
 
         // Add mouse controls
         let mouseX = 0,
@@ -1063,6 +1163,14 @@
         }
 
         function onMouseDown(event) {
+          // Only start dragging if the click is not on a UI element
+          if (
+            event.target.closest(
+              "#hud, #panel, #controls, #info, #lessonPanel, #navControls, #neuronInfo, #lessonModal"
+            )
+          ) {
+            return;
+          }
           isMouseDown = true;
           mouseX = event.clientX;
           mouseY = event.clientY;
@@ -1090,7 +1198,7 @@
         window.addEventListener("mouseup", onMouseUp);
         window.addEventListener("wheel", onMouseWheel);
 
-        // UI controls
+        // UI controls - with robust null checks
         const playBtn = document.getElementById("play");
         const resetBtn = document.getElementById("resetNetwork");
         const showWeightsBtn = document.getElementById("showWeights");
@@ -1104,61 +1212,92 @@
         const lessonModal = document.getElementById("lessonModal");
         const closeModal = document.getElementById("closeModal");
 
-        playBtn.addEventListener("click", () => {
-          isRunning = !isRunning;
-          playBtn.classList.toggle("on", isRunning);
-          playBtn.textContent = isRunning ? "Pause" : "Play";
-        });
+        if (playBtn) {
+          playBtn.addEventListener("click", () => {
+            isRunning = !isRunning;
+            playBtn.classList.toggle("on", isRunning);
+            playBtn.textContent = isRunning ? "Pause" : "Play";
+          });
+        }
 
-        resetBtn.addEventListener("click", () => {
-          createNetworkTopology();
-        });
+        if (resetBtn) {
+          resetBtn.addEventListener("click", () => {
+            createNetworkTopology();
+          });
+        }
 
-        showWeightsBtn.addEventListener("click", () => {
-          showWeights = !showWeights;
-          if (lines && lines.material)
-            lines.material.opacity = showWeights ? 1.0 : 0.5;
-          showWeightsBtn.classList.toggle("on", showWeights);
-        });
+        if (showWeightsBtn) {
+          showWeightsBtn.addEventListener("click", () => {
+            showWeights = !showWeights;
+            if (lines && lines.material) {
+              lines.material.visible = showWeights;
+            }
+            showWeightsBtn.classList.toggle("on", showWeights);
+          });
+        }
 
-        networkSizeSlider.addEventListener("input", (e) => {
-          document.getElementById("sizeValue").textContent = e.target.value;
-        });
-        networkSizeSlider.addEventListener("change", () => {
-          createNetworkTopology();
-        });
+        if (networkSizeSlider) {
+          networkSizeSlider.addEventListener("input", (e) => {
+            const sizeValueEl = document.getElementById("sizeValue");
+            if (sizeValueEl) sizeValueEl.textContent = e.target.value;
+          });
+          networkSizeSlider.addEventListener("change", () => {
+            createNetworkTopology();
+          });
+        }
 
-        inputSlider.addEventListener("input", (e) => {
-          document.getElementById("inputValue").textContent = e.target.value;
-        });
-        weightSlider.addEventListener("input", (e) => {
-          document.getElementById("weightValue").textContent = e.target.value;
-        });
+        if (inputSlider) {
+          inputSlider.addEventListener("input", (e) => {
+            const inputValueEl = document.getElementById("inputValue");
+            if (inputValueEl) inputValueEl.textContent = e.target.value;
+          });
+        }
 
-        prevLesson.addEventListener("click", () => {
-          lessonSelect.selectedIndex = Math.max(
-            0,
-            lessonSelect.selectedIndex - 1
-          );
-        });
-        nextLesson.addEventListener("click", () => {
-          lessonSelect.selectedIndex = Math.min(
-            lessonSelect.options.length - 1,
-            lessonSelect.selectedIndex + 1
-          );
-        });
+        if (weightSlider) {
+          weightSlider.addEventListener("input", (e) => {
+            const weightValueEl = document.getElementById("weightValue");
+            if (weightValueEl) weightValueEl.textContent = e.target.value;
+          });
+        }
 
-        viewLesson.addEventListener("click", () => {
-          lessonModal.style.display = "block";
-          document.getElementById("lessonFrame").srcdoc =
-            "<h2>" +
-            lessonSelect.options[lessonSelect.selectedIndex].text +
-            "</h2>";
-        });
-        closeModal.addEventListener("click", () => {
-          lessonModal.style.display = "none";
-          document.getElementById("lessonFrame").src = "";
-        });
+        if (prevLesson && lessonSelect) {
+          prevLesson.addEventListener("click", () => {
+            lessonSelect.selectedIndex = Math.max(
+              0,
+              lessonSelect.selectedIndex - 1
+            );
+          });
+        }
+
+        if (nextLesson && lessonSelect) {
+          nextLesson.addEventListener("click", () => {
+            lessonSelect.selectedIndex = Math.min(
+              lessonSelect.options.length - 1,
+              lessonSelect.selectedIndex + 1
+            );
+          });
+        }
+
+        if (viewLesson && lessonModal && lessonSelect) {
+          viewLesson.addEventListener("click", () => {
+            const lessonFrame = document.getElementById("lessonFrame");
+            lessonModal.style.display = "block";
+            if (lessonFrame) {
+              lessonFrame.srcdoc =
+                "<h2>" +
+                lessonSelect.options[lessonSelect.selectedIndex].text +
+                "</h2>";
+            }
+          });
+        }
+
+        if (closeModal && lessonModal) {
+          closeModal.addEventListener("click", () => {
+            const lessonFrame = document.getElementById("lessonFrame");
+            lessonModal.style.display = "none";
+            if (lessonFrame) lessonFrame.src = "";
+          });
+        }
 
         connectWS();
         animate();
@@ -1167,11 +1306,7 @@
       }
 
       // Start when page loads
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initNeuralNetwork);
-      } else {
-        initNeuralNetwork();
-      }
+      document.addEventListener("DOMContentLoaded", initNeuralNetwork);
     </script>
   </body>
 </html>
