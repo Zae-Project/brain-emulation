@@ -1,97 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lesson 1: Basic Spike Dynamics</title>
     <style>
-        body {
-            font-family: Inter, system-ui, sans-serif;
-            background: #0f1419;
-            color: #e6e9ef;
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        h1, h2, h3 { color: #ff9bf0; margin-top: 24px; }
-        h1 { font-size: 28px; margin-bottom: 16px; }
-        h2 { font-size: 22px; margin-bottom: 12px; }
-        code { background: #1e293b; padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', monospace; }
-        ul, ol { margin-left: 20px; }
-        li { margin-bottom: 8px; }
-        strong { color: #ff9bf0; }
-        p { margin-bottom: 12px; }
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        background: #0f1419;
+        color: #e6e9ef;
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #ff9bf0;
+        margin-top: 24px;
+      }
+      h1 {
+        font-size: 28px;
+        margin-bottom: 16px;
+      }
+      h2 {
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+      code {
+        background: #1e293b;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+      }
+      ul,
+      ol {
+        margin-left: 20px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      strong {
+        color: #ff9bf0;
+      }
+      p {
+        margin-bottom: 12px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Lesson 1: Basic Spike Dynamics</h1>
-    
-    <h2>Overview</h2>
-    <p>Neural networks are built from individual neurons that integrate electrical signals and fire action potentials (spikes) when certain conditions are met. This lesson explores the fundamental dynamics of single neuron behavior.</p>
-    
-    <h2>The Integrate-and-Fire Model</h2>
-    <p>Each neuron in our simulation follows the leaky integrate-and-fire model, which captures the essential dynamics of real neurons:</p>
+
+    <p>
+      Spiking Neural Networks (SNNs) use discrete spikes to communicate
+      information, unlike traditional neural networks that use continuous
+      values. This fundamental difference makes SNNs more biologically realistic
+      and energy-efficient.
+    </p>
+
+    <h2>Key Concepts</h2>
+
+    <h3>Membrane Potential</h3>
+    <p>
+      The voltage inside a neuron that accumulates over time. In our simulation,
+      this is represented by the <code>voltage</code> property of each neuron.
+      As the neuron receives inputs from connected neurons, its membrane
+      potential increases.
+    </p>
+
+    <h3>Threshold</h3>
+    <p>
+      When the membrane potential reaches this critical level (typically 1.0 in
+      our simulation), the neuron fires a spike. This is the fundamental
+      mechanism that determines when information is transmitted.
+    </p>
+
+    <h3>Spike Generation</h3>
+    <p>
+      A brief electrical pulse sent to all connected neurons when the threshold
+      is reached. In our visualization, you can see this as the bright glow
+      effect around firing neurons.
+    </p>
+
+    <h3>Reset Mechanism</h3>
+    <p>
+      After firing, the membrane potential returns to 0, preparing the neuron
+      for the next accumulation cycle. This prevents continuous firing and
+      creates the discrete nature of spikes.
+    </p>
+
+    <h2>Interactive Exploration</h2>
+
+    <p>
+      Try adjusting the following parameters to see how they affect spike
+      dynamics:
+    </p>
     <ul>
-        <li><strong>Integration:</strong> The neuron accumulates incoming current over time, gradually increasing its membrane voltage</li>
-        <li><strong>Threshold:</strong> When voltage reaches v=1.0, the neuron fires a spike (action potential)</li>
-        <li><strong>Reset:</strong> After firing, voltage immediately resets to v=0.0</li>
-        <li><strong>Leak:</strong> Voltage naturally decays toward rest without input, preventing indefinite accumulation</li>
+      <li>
+        <strong>Network Size:</strong> More neurons create more complex spike
+        patterns
+      </li>
+      <li>
+        <strong>Connection Probability:</strong> Higher values create more
+        interconnected networks
+      </li>
+      <li>
+        <strong>Firing Rate:</strong> Controls how often neurons spontaneously
+        fire
+      </li>
+      <li>
+        <strong>Spike Threshold:</strong> Lower values make neurons fire more
+        easily
+      </li>
     </ul>
-    
-    <h2>Mathematical Model</h2>
-    <p>The mathematical model for each neuron follows the differential equation:</p>
-    <code>τ dV/dt = -V + I_input + I_noise + I_syn</code>
-    <p>Where:</p>
-    <ul>
-        <li><strong>τ (tau):</strong> Time constant controlling how fast voltage changes</li>
-        <li><strong>V:</strong> Membrane voltage of the neuron</li>
-        <li><strong>I_input:</strong> External input current (controlled by your slider)</li>
-        <li><strong>I_noise:</strong> Random background noise</li>
-        <li><strong>I_syn:</strong> Synaptic input from other neurons</li>
-    </ul>
-    
-    <h2>Experiment Steps</h2>
-    <p>Use the <strong>Input Current</strong> slider to see how external stimulation affects firing rates:</p>
-    <ol>
-        <li><strong>Low current (0.0-0.3):</strong> Sparse, irregular firing - neurons rarely reach threshold due to insufficient input</li>
-        <li><strong>Medium current (0.4-0.8):</strong> Regular firing patterns emerge - predictable spike timing with consistent intervals</li>
-        <li><strong>High current (0.9+):</strong> High-frequency bursting - rapid continuous firing as threshold is quickly reached</li>
-    </ol>
-    
-    <h2>What to Observe</h2>
-    <ul>
-        <li><strong>Visual feedback:</strong> Watch how individual neurons (colored spheres) brighten when they spike</li>
-        <li><strong>Voltage trace:</strong> Observe the voltage trace in the upper-right panel showing membrane potential over time</li>
-        <li><strong>Input-output relationship:</strong> Notice the relationship between input strength and firing frequency</li>
-        <li><strong>Noise effects:</strong> See how background noise affects spike timing precision and introduces variability</li>
-        <li><strong>Cluster behavior:</strong> Different colored clusters represent different neuron populations</li>
-    </ul>
-    
-    <h2>Biological Relevance</h2>
-    <p>Real neurons in the brain work similarly to this model:</p>
-    <ul>
-        <li>They integrate synaptic inputs from thousands of other neurons</li>
-        <li>They fire when a threshold is reached (typically around -55mV in biology)</li>
-        <li>They have refractory periods where they cannot fire again immediately</li>
-        <li>This simple model captures the essential dynamics of neural computation</li>
-    </ul>
-    
-    <h2>Advanced Concepts</h2>
-    <p>This basic model forms the foundation for understanding:</p>
-    <ul>
-        <li><strong>Rate coding:</strong> Information encoded in firing frequency</li>
-        <li><strong>Temporal coding:</strong> Information encoded in precise spike timing</li>
-        <li><strong>Neural oscillations:</strong> Rhythmic patterns of activity</li>
-        <li><strong>Synchronization:</strong> Coordinated firing across neuron populations</li>
-    </ul>
-    
-    <h2>Try This</h2>
-    <p>Experiment with different input levels and observe:</p>
-    <ul>
-        <li>How does the voltage trace change with different input currents?</li>
-        <li>What happens when you rapidly change the input level?</li>
-        <li>Can you find the minimum input needed for regular firing?</li>
-        <li>How does noise affect the regularity of spike timing?</li>
-    </ul>
-</body>
+
+    <p>
+      Watch how spikes propagate through the network and create cascading
+      patterns of activity!
+    </p>
+  </body>
 </html>
