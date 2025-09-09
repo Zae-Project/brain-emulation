@@ -24,20 +24,20 @@ class SNNVisualizer {
 
     this.CLUSTER_COLORS = [
       {
-        primary: { r: 0.08, g: 0.52, b: 0.29 }, // --accent-green
-        glow: { r: 0.19, g: 0.62, b: 0.39 },
+        primary: { r: 0.22, g: 0.31, b: 0.52 }, // Neural blue accent
+        glow: { r: 0.32, g: 0.41, b: 0.62 },
       },
       {
-        primary: { r: 0.35, g: 0.41, b: 0.79 }, // --accent-blue
-        glow: { r: 0.45, g: 0.51, b: 0.89 },
+        primary: { r: 0.53, g: 0.47, b: 0.56 }, // Pulse purple accent
+        glow: { r: 0.63, g: 0.57, b: 0.66 },
       },
       {
-        primary: { r: 0.72, g: 0.37, b: 0.13 }, // --accent-orange
-        glow: { r: 0.82, g: 0.47, b: 0.23 },
+        primary: { r: 0.54, g: 0.35, b: 0.45 }, // Highlight accent
+        glow: { r: 0.64, g: 0.45, b: 0.55 },
       },
       {
-        primary: { r: 0.84, g: 0.72, b: 0.62 }, // --accent-sand
-        glow: { r: 0.94, g: 0.82, b: 0.72 },
+        primary: { r: 0.29, g: 0.21, b: 0.32 }, // Deep purple accent
+        glow: { r: 0.39, g: 0.31, b: 0.42 },
       },
     ];
 
@@ -633,8 +633,8 @@ class SNNVisualizer {
 
     this.clearTrace();
 
-    // Draw voltage trace with premium green
-    this.traceCtx.strokeStyle = "#13854b"; // Premium green accent
+    // Draw voltage trace with neural accent
+    this.traceCtx.strokeStyle = "#374E84"; // Neural blue accent
     this.traceCtx.lineWidth = 2;
     this.traceCtx.beginPath();
 
@@ -651,8 +651,8 @@ class SNNVisualizer {
 
     this.traceCtx.stroke();
 
-    // Draw threshold line with premium blue
-    this.traceCtx.strokeStyle = "#5868c9"; // Premium blue accent
+    // Draw threshold line with pulse accent
+    this.traceCtx.strokeStyle = "#88778E"; // Pulse purple accent
     this.traceCtx.lineWidth = 1;
     this.traceCtx.setLineDash([5, 5]);
     this.traceCtx.beginPath();
@@ -664,13 +664,13 @@ class SNNVisualizer {
 
   clearTrace() {
     if (!this.traceCtx) return;
-    this.traceCtx.fillStyle = "#000000"; // Pure black background
+    this.traceCtx.fillStyle = "#060709"; // Sophisticated dark background
     this.traceCtx.fillRect(0, 0, 260, 150);
   }
 
   render() {
-    // Clear canvas with pure black background
-    this.ctx.fillStyle = "#000000";
+    // Clear canvas with sophisticated dark background
+    this.ctx.fillStyle = "#060709";
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
     // Render connections with extremely thin lines
@@ -704,8 +704,8 @@ class SNNVisualizer {
         )}, ${0.8 * intensity})`;
         this.ctx.lineWidth = 0.3; // Extremely thin active connections
       } else {
-        // Inactive connection - extremely thin grey line
-        this.ctx.strokeStyle = `rgba(100, 116, 139, 0.15)`;
+        // Inactive connection - extremely thin grey line with lighter color
+        this.ctx.strokeStyle = `rgba(189, 189, 189, 0.25)`; // #bdbdbd with transparency
         this.ctx.lineWidth = 0.2; // Ultra-thin inactive connections
       }
 
@@ -790,9 +790,9 @@ class SNNVisualizer {
       this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
       this.ctx.fill();
 
-      // Highlight selected neuron with premium accent color
+      // Highlight selected neuron with premium neural accent color
       if (neuron === this.state.selectedNeuron) {
-        this.ctx.strokeStyle = "#13854b"; // Use accent-green
+        this.ctx.strokeStyle = "#374E84"; // Use accent-neural
         this.ctx.lineWidth = Math.max(2, radius * 0.15);
         this.ctx.stroke();
       }
@@ -815,7 +815,7 @@ class SNNVisualizer {
     });
 
     // Debug info with premium styling
-    this.ctx.fillStyle = "#b3b1b1";
+    this.ctx.fillStyle = "#B5B7C3"; // Use text-2 color
     this.ctx.font = "11px Inter, monospace";
     const cameraDistance = Math.sqrt(
       this.camera.position.x * this.camera.position.x +
