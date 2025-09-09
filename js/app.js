@@ -24,20 +24,20 @@ class SNNVisualizer {
 
     this.CLUSTER_COLORS = [
       {
-        primary: new THREE.Color(0.0, 0.6, 0.8),
-        glow: new THREE.Color(0.2, 0.7, 0.9),
+        primary: { r: 0.08, g: 0.52, b: 0.29 }, // --accent-green
+        glow: { r: 0.19, g: 0.62, b: 0.39 },
       },
       {
-        primary: new THREE.Color(0.8, 0.2, 0.6),
-        glow: new THREE.Color(0.9, 0.4, 0.7),
+        primary: { r: 0.35, g: 0.41, b: 0.79 }, // --accent-blue
+        glow: { r: 0.45, g: 0.51, b: 0.89 },
       },
       {
-        primary: new THREE.Color(0.7, 0.8, 0.0),
-        glow: new THREE.Color(0.8, 0.9, 0.3),
+        primary: { r: 0.72, g: 0.37, b: 0.13 }, // --accent-orange
+        glow: { r: 0.82, g: 0.47, b: 0.23 },
       },
       {
-        primary: new THREE.Color(0.8, 0.4, 0.0),
-        glow: new THREE.Color(0.9, 0.6, 0.2),
+        primary: { r: 0.84, g: 0.72, b: 0.62 }, // --accent-sand
+        glow: { r: 0.94, g: 0.82, b: 0.72 },
       },
     ];
 
