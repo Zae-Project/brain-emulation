@@ -744,6 +744,15 @@
   let currentLesson = 1;
 
   // Updated: open full lesson from external file (fallback to inline snippet)
+  function extractBody(html) {
+    // If the fetched file is a full HTML page, extract <body> or <main> content
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    if (bodyMatch) return bodyMatch[1];
+    const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+    if (mainMatch) return mainMatch[1];
+    return html; // already a fragment
+  }
+
   function openLessonModal() {
     const modal = document.getElementById('lessonModal');
     const content = document.getElementById('lessonFullContent');
@@ -760,9 +769,8 @@
         return response.text();
       })
       .then(html => {
-        // If the external file is an entire HTML page, try to extract the main content region.
-        // Insert raw HTML into modal (trusted local files). If you prefer sanitization, add it here.
-        content.innerHTML = html;
+        // extract body/main if a full page was returned
+        content.innerHTML = extractBody(html);
       })
       .catch(() => {
         // fallback to pre-defined inline lesson snippet
@@ -835,14 +843,6 @@
 
 </body>
 </html>
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentLesson = parseInt(btn.id.replace('lesson','')) || 1;
-      updateLessonContent();
-      updateLessonControls();
-      updateNavigationButtons();
-    });
   });
 
   // ensure functions and animate call remain as before
