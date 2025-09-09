@@ -33,6 +33,7 @@
     .toggle.active{background:#1e40af;color:#fff}
     #info{position:fixed;right:20px;bottom:20px;width:320px;background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5);font-size:13px;line-height:1.6}
     .lesson{background:#0f172a;padding:12px;border-radius:8px;margin:8px 0;border-left:3px solid #3b82f6}
+    #lessonSelect{padding:6px 12px;background:#0f172a;border:1px solid #334155;color:#cbd5e1;border-radius:6px;min-width:200px;font-family:Inter,system-ui}
   </style>
 </head>
 <body>
@@ -45,8 +46,8 @@
 
 <!-- NEW LESSON DROPDOWN PANEL -->
 <div id="lessonPanel" style="position:fixed;left:20px;top:80px;display:flex;gap:12px;align-items:center;background:rgba(18,21,28,0.85);padding:10px 16px;border-radius:12px;border:1px solid #1e293b;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 8px 25px rgba(0,0,0,0.4)">
-  <label style="color:#94a3b8;font-weight:500;">Lesson:</label>
-  <select id="lessonSelect" style="padding:6px 12px;background:#0f172a;border:1px solid #334155;color:#cbd5e1;border-radius:6px;min-width:200px;font-family:Inter,system-ui;">
+  <label for="lessonSelect" style="color:#94a3b8;font-weight:500;">Lesson:</label>
+  <select id="lessonSelect">
     <option value="1">Lesson 1: Basic Spike Dynamics</option>
     <option value="2">Lesson 2: Synaptic Transmission</option>
     <option value="3">Lesson 3: Network Plasticity</option>
