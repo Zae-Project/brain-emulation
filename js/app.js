@@ -903,7 +903,7 @@ class SNNVisualizer {
 
   async showFullLesson(lessonNumber) {
     const lessons = {
-      1: { title: "Basic Spikes", file: "lessons/lesson1.html" },
+      1: { title: "Basic Spike Dynamics", file: "lessons/lesson1.html" },
       2: { title: "Synaptic Transmission", file: "lessons/lesson2.html" },
       3: { title: "Network Plasticity", file: "lessons/lesson3.html" },
       4: { title: "Pattern Recognition", file: "lessons/lesson4.html" },
@@ -914,6 +914,11 @@ class SNNVisualizer {
 
     try {
       const response = await fetch(lesson.file);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       const content = await response.text();
 
       // Create modal
@@ -925,6 +930,9 @@ class SNNVisualizer {
       modalContent.innerHTML = `
         <button class="close-btn">&times;</button>
         ${content}
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
+          <button class="btn" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
+        </div>
       `;
 
       modal.appendChild(modalContent);
@@ -933,7 +941,9 @@ class SNNVisualizer {
       // Close modal functionality
       const closeBtn = modalContent.querySelector(".close-btn");
       const closeModal = () => {
-        document.body.removeChild(modal);
+        if (document.body.contains(modal)) {
+          document.body.removeChild(modal);
+        }
       };
 
       closeBtn.addEventListener("click", closeModal);
@@ -951,23 +961,92 @@ class SNNVisualizer {
       document.addEventListener("keydown", handleKeydown);
     } catch (error) {
       console.error("Failed to load lesson:", error);
-      alert(
-        `Failed to load ${lesson.title}. Please check that the lesson file exists.`
-      );
+
+      // Show fallback content if file loading fails
+      const modal = document.createElement("div");
+      modal.className = "lesson-modal";
+
+      const modalContent = document.createElement("div");
+      modalContent.className = "lesson-modal-content";
+      modalContent.innerHTML = `
+        <button class="close-btn">&times;</button>
+        <h1>${lesson.title}</h1>
+        <p style="color: #fbbf24; margin-bottom: 16px;">
+          <strong>Note:</strong> Lesson file could not be loaded. Here's the basic content:
+        </p>
+        ${this.getFallbackContent(lessonNumber)}
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
+          <button class="btn" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
+        </div>
+      `;
+
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+
+      // Close functionality for fallback
+      const closeBtn = modalContent.querySelector(".close-btn");
+      closeBtn.addEventListener("click", () => {
+        if (document.body.contains(modal)) {
+          document.body.removeChild(modal);
+        }
+      });
     }
   }
 
-  animate() {
-    requestAnimationFrame(() => this.animate());
+  getFallbackContent(lessonNumber) {
+    const fallbackContent = {
+      1: `
+        <h2>Basic Spike Dynamics</h2>
+        <p>Spiking Neural Networks use discrete spikes to communicate information. Key concepts include:</p>
+        <ul>
+          <li><strong>Membrane Potential:</strong> Voltage that accumulates over time</li>
+          <li><strong>Threshold:</strong> Critical level that triggers spike firing</li>
+          <li><strong>Spike:</strong> Brief electrical pulse sent to connected neurons</li>
+          <li><strong>Reset:</strong> Return to baseline voltage after firing</li>
+        </ul>
+        <p>Experiment with the network parameters to see how these dynamics affect spike propagation!</p>
+      `,
+      2: `
+        <h2>Synaptic Transmission</h2>
+        <p>Spikes travel through synaptic connections between neurons:</p>
+        <ul>
+          <li><strong>Synapses:</strong> Connections visible as grey lines</li>
+          <li><strong>Weights:</strong> Connection strength affecting signal transmission</li>
+          <li><strong>Propagation:</strong> How spikes spread through the network</li>
+          <li><strong>Clustering:</strong> Groups of neurons that fire together</li>
+        </ul>
+        <p>Enable "Show Weights" to see detailed connection information for each neuron.</p>
+      `,
+      3: `
+        <h2>Network Plasticity</h2>
+        <p>Networks adapt and learn through connection modifications:</p>
+        <ul>
+          <li><strong>Hebbian Learning:</strong> "Neurons that fire together, wire together"</li>
+          <li><strong>Strengthening:</strong> Frequently used connections become stronger</li>
+          <li><strong>Weakening:</strong> Unused connections fade over time</li>
+          <li><strong>Homeostasis:</strong> Balance between stability and adaptability</li>
+        </ul>
+        <p>Watch how network patterns evolve as neurons interact over time.</p>
+      `,
+      4: `
+        <h2>Pattern Recognition</h2>
+        <p>SNNs excel at temporal pattern detection:</p>
+        <ul>
+          <li><strong>Temporal Coding:</strong> Information in spike timing</li>
+          <li><strong>Feature Detection:</strong> Specialized neural responses</li>
+          <li><strong>Competition:</strong> Winner-take-all mechanisms</li>
+          <li><strong>Real-time Processing:</strong> Event-driven computation</li>
+        </ul>
+        <p>Use "Inject Spike" to trigger patterns and observe how they propagate through different clusters.</p>
+      `,
+    };
 
-    this.updateCameraPosition();
-
-    if (this.state.isRunning) {
-      this.updateNetwork();
-    }
-
-    this.render();
+    return (
+      fallbackContent[lessonNumber] || "<p>Lesson content not available.</p>"
+    );
   }
+
+  // ...existing code...
 }
 
 // Initialize the application when DOM is loaded
