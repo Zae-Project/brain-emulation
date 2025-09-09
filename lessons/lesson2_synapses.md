@@ -16,18 +16,18 @@ Synapses are connections between neurons that allow communication:
 ### Network Architecture
 Our network has:
 - 50 neurons arranged in a circle
-- Random connections (8% probability)
-- Each connection has the same weight (adjustable)
+- Random connections based on connection probability
+- Each connection has adjustable synaptic weight
 
 ## Interactive Experiments
 
 ### Experiment 2.1: Watching Spikes Propagate
-1. **Set Input Current to 0.8** (medium-high stimulation)
+1. **Set Input Current to 0.5** (medium stimulation)
 2. **Watch the network**:
    - Blue neurons are at rest
-   - Bright/violet neurons are active (high voltage)
+   - Bright neurons are active (high voltage)
    - White flashes show spikes
-   - Bright lines show active connections
+   - Lines show connections when "Show Connections" is active
 
 3. **Observe the cascade**:
    - One neuron spikes
@@ -36,39 +36,39 @@ Our network has:
    - Creates spreading waves of activity
 
 ### Experiment 2.2: Synaptic Weight Effects
-Use the **Synaptic Weight** slider to see how connection strength affects network behavior:
+Use the **Synaptic Weight** slider to see how connection strength affects behavior:
 
 **Weak Synapses (0.0 - 0.1)**:
-- Set weight to 0.05
-- Observe: Isolated spikes, little interaction
-- Why? Not enough current to significantly influence other neurons
+- Isolated spikes, little interaction
+- Each neuron acts independently
 
 **Medium Synapses (0.1 - 0.3)**:
-- Set weight to 0.2
-- Observe: Some propagation, moderate interaction
-- Why? Balanced influence allows for realistic dynamics
+- Some propagation, moderate interaction
+- Balanced network dynamics
 
 **Strong Synapses (0.3 - 1.0)**:
-- Set weight to 0.8
-- Observe: Explosive activity, synchronized firing
-- Why? Strong influence can trigger avalanches
+- Explosive activity, synchronized firing
+- Network-wide avalanches
 
-### Experiment 2.3: Connection Probability
-Use the **Connection Probability** slider to change network density:
+## Key Concepts
 
-**Sparse Networks (0.0 - 0.05)**:
-- Low connectivity
-- Isolated activity islands
+### Signal Amplification
+- Single inputs can trigger multiple spikes
+- Network amplifies weak signals
+- Demonstrates computational power
 
-**Dense Networks (0.15 - 0.2)**:
-- High connectivity
-- Network-wide synchronization
+### Synchronization
+- Neurons start firing together
+- Creates rhythmic network activity
+- Important for brain function
 
-## Network Dynamics
+### Competition
+- Different activity patterns compete
+- Some patterns suppress others
+- Basis for decision-making
 
-### Key Phenomena to Observe
-
-1. **Excitation Propagation**:
+## Next Steps
+Ready for Lesson 3: Network Plasticity and Learning!
    - Spikes travel along connections
    - Create expanding waves of activity
 

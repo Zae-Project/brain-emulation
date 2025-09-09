@@ -98,9 +98,7 @@ async def handler(ws,path):
                     print(f"Speed set to {CTRL['dt_ms']}ms")
                 elif d.get("cmd") == "setInput":
                     PARAMS["input_current"] = float(d["value"])
-                    # Update all neurons with new input current
                     G.I_input = PARAMS["input_current"]
-                    # Also update noise level based on input
                     noise_level = max(0.02, 0.1 - PARAMS["input_current"]*0.05)
                     G.I_noise = f'{noise_level} + {noise_level*0.4}*randn()'
                     print(f"Input current set to {PARAMS['input_current']}")
@@ -115,7 +113,29 @@ async def handler(ws,path):
                 elif d.get("cmd") == "reset":
                     recreate_network()
                     print("Network reset with new parameters")
-                    
+                elif d.get("cmd") == "toggleWeights":
+                    # Send connection data for visualization
+                    connections = []
+                    if hasattr(S, 'i') and hasattr(S, 'j'):
+                        for i, j in zip(S.i, S.j):
+                            connections.append({"from": int(i), "to": int(j), "weight": PARAMS["synapse_weight"]})
+                    await ws.send(json.dumps({"connections": connections}))
+                    print("Sent connection data")
+                elif d.get("cmd") == "injectPattern":
+                    # Inject a specific pattern for lesson 4
+                    pattern_neurons = [0, 5, 10, 15, 20]  # Example pattern
+                    for neuron_id in pattern_neurons:
+                        if neuron_id < NUM:
+                            G.v[neuron_id] = 0.8  # Bring close to threshold
+                    print("Pattern injected")
+                elif d.get("cmd") == "testMemory":
+                    # Test pattern recall
+                    test_neurons = [0, 5]  # Partial pattern
+                    for neuron_id in test_neurons:
+                        if neuron_id < NUM:
+                            G.v[neuron_id] = 0.9
+                    print("Memory test initiated")
+
             except Exception as e:
                 print(f"Command error: {e}")
     
