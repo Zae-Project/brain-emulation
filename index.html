@@ -369,7 +369,7 @@
     console.log(`Created ${connections.length} connections`);
   }
 
-  // Animation loop
+  // Animation loop - FIXED to always show neurons and connections
   function animate() {
     requestAnimationFrame(animate);
     
@@ -378,53 +378,79 @@
     for (let i = 0; i < neurons.length; i++) {
       const n = neurons[i], g = glows[i], u = n.userData;
       
+      // ALWAYS show base neuron colors
+      const voltage = Math.max(0, Math.min(1, u.volt || 0));
+      const baseColor = u.originalColor.clone();
+      
       if (u.pulse > 0) {
         u.pulse *= 0.85;
         const intensity = u.pulse / 1.2;
         
         clusterActivity[u.cluster] += intensity;
         
-        const glowColor = u.glowColor.clone().multiplyScalar(intensity);
+        // BRIGHT firing effects ON TOP of base color
+        const glowColor = u.glowColor.clone().multiplyScalar(intensity * 2);
         n.material.emissive.copy(glowColor);
         n.scale.setScalar(1.0 + intensity * 0.4);
         
-        g.material.opacity = intensity * 0.8;
+        // Bright base color + firing intensity
+        baseColor.lerp(u.glowColor, 0.3 + intensity * 0.7);
+        
+        // Stunning glow expansion
+        g.material.opacity = 0.2 + intensity * 0.6;
         g.scale.setScalar(1.0 + intensity * 3.0);
         g.material.color.copy(u.glowColor);
+        
       } else {
-        n.material.emissive.copy(u.originalColor.clone().multiplyScalar(0.2));
+        // ALWAYS visible base state - not black!
+        n.material.emissive.copy(u.originalColor.clone().multiplyScalar(0.4));
         n.scale.setScalar(1.0);
-        g.material.opacity = 0.1;
+        
+        // Always show subtle glow
+        g.material.opacity = 0.15;
         g.scale.setScalar(1.0);
+        g.material.color.copy(u.originalColor);
+        
+        // Voltage-based brightness
+        baseColor.lerp(u.glowColor, voltage * 0.3);
       }
       
-      const voltage = Math.max(0, Math.min(1, u.volt || 0));
-      const baseColor = u.originalColor.clone();
-      baseColor.lerp(u.glowColor, voltage * 0.5);
+      // ALWAYS set the neuron color - never black
       n.material.color.copy(baseColor);
+      n.material.metalness = 0.7 + voltage * 0.3;
+      n.material.roughness = 0.2 - voltage * 0.1;
     }
     
-    // Update connection colors based on cluster activity
+    // ALWAYS visible connections with cluster activity enhancement
     if (connGeom && col && connections.length > 0) {
       for (let i = 0; i < connections.length; i++) {
         const conn = connections[i];
-        const activity = clusterActivity[conn.cluster];
         const baseIdx = i * 6;
         
         if (baseIdx + 5 < col.array.length) {
-          const clusterColor = CLUSTER_COLORS[conn.cluster].glow;
-          const intensity = Math.min(activity * 0.3, 1.0);
+          const clusterColor = CLUSTER_COLORS[conn.cluster].primary;
+          const activity = clusterActivity[conn.cluster];
           
-          col.array[baseIdx] = clusterColor.r * intensity;
-          col.array[baseIdx + 1] = clusterColor.g * intensity;
-          col.array[baseIdx + 2] = clusterColor.b * intensity;
-          col.array[baseIdx + 3] = clusterColor.r * intensity;
-          col.array[baseIdx + 4] = clusterColor.g * intensity;
-          col.array[baseIdx + 5] = clusterColor.b * intensity;
+          // ALWAYS visible base intensity + activity boost
+          const baseIntensity = 0.3; // Always visible
+          const activityBoost = Math.min(activity * 0.8, 1.0);
+          const totalIntensity = baseIntensity + activityBoost;
+          
+          col.array[baseIdx] = clusterColor.r * totalIntensity;
+          col.array[baseIdx + 1] = clusterColor.g * totalIntensity;
+          col.array[baseIdx + 2] = clusterColor.b * totalIntensity;
+          col.array[baseIdx + 3] = clusterColor.r * totalIntensity;
+          col.array[baseIdx + 4] = clusterColor.g * totalIntensity;
+          col.array[baseIdx + 5] = clusterColor.b * totalIntensity;
         }
       }
       col.needsUpdate = true;
     }
+    
+    // Fade accent lights back to normal
+    accentLights.forEach(light => {
+      light.intensity = Math.max(0.8, light.intensity * 0.95);
+    });
     
     drawTrace();
     renderer.render(scene, camera);
@@ -452,146 +478,6 @@
       
       d.spikes.forEach(spike => {
         const i = spike.i;
-        if (neurons[i]) {
-          const neuron = neurons[i];
-          const cluster = neuron.userData.cluster;
-          
-          neuron.userData.pulse = 1.2;
-          
-          if (!clusterSpikes[cluster]) clusterSpikes[cluster] = [];
-          clusterSpikes[cluster].push(neuron);
-        }
-      });
-      
-      Object.keys(clusterSpikes).forEach(clusterId => {
-        const spikes = clusterSpikes[clusterId];
-        if (spikes.length > 1) {
-          neurons.forEach(n => {
-            if (n.userData.cluster == clusterId) {
-              n.userData.pulse = Math.max(n.userData.pulse, 1.5);
-            }
-          });
-          
-          if (accentLights[clusterId]) {
-            accentLights[clusterId].intensity = 3.0;
-          }
-        }
-      });
-    }
-  }
-
-  // Trace drawing
-  function drawTrace() {
-    const c = document.getElementById('trace').getContext('2d');
-    c.fillStyle = '#0f172a';
-    c.fillRect(0, 0, 260, 150);
-    
-    if (selected === null) {
-      const voltageValue = document.getElementById('voltageValue');
-      if (voltageValue) voltageValue.textContent = '--';
-      return;
-    }
-    
-    const currentVoltage = neurons[selected] ? neurons[selected].userData.volt || 0 : 0;
-    const voltageValue = document.getElementById('voltageValue');
-    if (voltageValue) {
-      voltageValue.textContent = currentVoltage.toFixed(3);
-    }
-    
-    // Draw threshold line
-    c.strokeStyle = '#60a5fa';
-    c.lineWidth = 1;
-    c.setLineDash([5, 5]);
-    const thresholdY = 148 - 1.0 * 130;
-    c.beginPath();
-    c.moveTo(2, thresholdY);
-    c.lineTo(258, thresholdY);
-    c.stroke();
-    c.setLineDash([]);
-    
-    // Draw voltage trace
-    if (traceBuf.length >= 2) {
-      c.strokeStyle = '#f223e0';
-      c.lineWidth = 2;
-      c.beginPath();
-      const L = traceBuf.length;
-      for (let i = 0; i < L; i++) {
-        const x = i / (L - 1) * 256 + 2;
-        const y = 148 - Math.max(0, Math.min(2, traceBuf[i])) * 65;
-        i ? c.lineTo(x, y) : c.moveTo(x, y);
-      }
-      c.stroke();
-    }
-    
-    // Add voltage scale labels
-    c.fillStyle = '#94a3b8';
-    c.font = '10px Inter';
-    c.fillText('2.0V', 5, 15);
-    c.fillText('1.0V', 5, 83);
-    c.fillText('0.0V', 5, 145);
-  }
-
-  // Click handling for neuron selection
-  const ray = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
-  
-  addEventListener('click', e => {
-    if (e.button === 0) {
-      mouse.x = (e.clientX / innerWidth) * 2 - 1;
-      mouse.y = -(e.clientY / innerHeight) * 2 + 1;
-      ray.setFromCamera(mouse, camera);
-      const hit = ray.intersectObjects(neurons)[0];
-      if (hit) {
-        selected = hit.object.userData.id;
-        traceBuf = [];
-        document.getElementById('sel').textContent = 'Neuron #' + selected;
-      }
-    }
-  });
-
-  // Controls
-  const btn = document.getElementById('play');
-  const rng = document.getElementById('speed');
-  
-  btn.onclick = () => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    
-    const isCurrentlyPaused = btn.classList.contains('on');
-    
-    if (isCurrentlyPaused) {
-      btn.classList.remove('on');
-      btn.textContent = 'Play';
-      ws.send(JSON.stringify({cmd:'pause'}));
-    } else {
-      btn.classList.add('on');
-      btn.textContent = 'Pause';
-      ws.send(JSON.stringify({cmd:'play'}));
-    }
-  };
-  
-  rng.oninput = () => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    const speed = parseInt(rng.value, 10);
-    const dt_ms = Math.max(5, 200 - speed);
-    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
-  };
-
-  // Initialize
-  createStunningNetworkTopology();
-  connectWS();
-  animate();
-
-  // Handle window resize
-  addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
-  });
-
-})();
-</script>
-</body>
-</html>
         if (neurons[i]) {
           const neuron = neurons[i];
           const cluster = neuron.userData.cluster;
@@ -933,619 +819,60 @@
     c.fillText('0.0V', 5, 145);
   };
 
-  // FIXED: Add missing updateConnectionVisualization function
-  function updateConnectionVisualization(connectionsData) {
-    // Clear existing connection labels
-    connectionLabels.forEach(label => {
-      if (label.parent) label.parent.remove(label);
-    });
-    connectionLabels.length = 0;
-
-    if (!showWeights || !connectionsData || connectionsData.length === 0) return;
-
-    connections = connectionsData;
-
-    // Create beautiful connection lines
-    const positions = [];
-    const colors = [];
-    
-    connections.forEach((conn, index) => {
-      if (conn.from < neurons.length && conn.to < neurons.length) {
-        const fromPos = neurons[conn.from].position;
-        const toPos = neurons[conn.to].position;
-        
-        positions.push(fromPos.x, fromPos.y, fromPos.z);
-        positions.push(toPos.x, toPos.y, toPos.z);
-        
-        // Color based on connection type and strength
-        const color = conn.type === 'excitatory' ? 
-          new THREE.Color(0.2, 0.8, 1.0) : 
-          new THREE.Color(1.0, 0.2, 0.2);
-        
-        const intensity = Math.min(conn.weight * 3, 1.0);
-        color.multiplyScalar(intensity);
-        
-        colors.push(color.r, color.g, color.b);
-        colors.push(color.r, color.g, color.b);
-
-        // Store connection info for outgoing array
-        const fromId = conn.from;
-        if (!outgoing[fromId]) outgoing[fromId] = [];
-        outgoing[fromId].push(index);
-      }
-    });
-    
-    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    col = connGeom.getAttribute('color');
-
-    console.log(`Visualized ${connections.length} stunning connections`);
-  }
-
-  // FIXED: Add missing educational control functions
-  function updateNavigationButtons() {
-    const prevBtn = document.getElementById('prevLesson');
-    const nextBtn = document.getElementById('nextLesson');
-    
-    if (prevBtn) {
-      prevBtn.disabled = currentLesson === 1;
-      prevBtn.style.opacity = currentLesson === 1 ? '0.5' : '1';
-    }
-    
-    if (nextBtn) {
-      nextBtn.disabled = currentLesson === 4;
-      nextBtn.style.opacity = currentLesson === 4 ? '0.5' : '1';
-    }
-  }
-
-  function updateLessonControls() {
-    // Show/hide controls based on current lesson
-    const patternControls = document.getElementById('patternControls');
-    const allControls = ['inputCurrent', 'synapseWeight', 'connectionProb', 'showWeights', 'resetNetwork'];
-    
-    // Show relevant controls for each lesson
-    const lessonControlsMap = {
-      1: ['inputCurrent', 'resetNetwork'],
-      2: ['inputCurrent', 'synapseWeight', 'showWeights', 'resetNetwork'], 
-      3: ['inputCurrent', 'synapseWeight', 'connectionProb', 'resetNetwork'],
-      4: ['inputCurrent', 'synapseWeight', 'resetNetwork']
-    };
-
-    // Hide all controls first
-    allControls.forEach(id => {
-      const element = document.getElementById(id);
-      if (element && element.closest('.control-group')) {
-        element.closest('.control-group').style.display = 'none';
-      }
-    });
-
-    // Show relevant controls
-    lessonControlsMap[currentLesson].forEach(id => {
-      const element = document.getElementById(id);
-      if (element && element.closest('.control-group')) {
-        element.closest('.control-group').style.display = 'block';
-      }
-    });
-
-    // Show pattern controls only for lesson 4
-    if (patternControls) {
-      patternControls.style.display = currentLesson === 4 ? 'block' : 'none';
-    }
-
-    // Update toggle buttons
-    document.querySelectorAll('.toggle').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    const activeToggle = document.getElementById(`lesson${currentLesson}`);
-    if (activeToggle) {
-      activeToggle.classList.add('active');
-    }
-  }
-
-  function updateLessonContent() {
-    const lessons = {
-      1: "Learn how individual neurons integrate input and generate spikes when reaching threshold. Click a neuron to see its voltage trace.",
-      2: "Explore how neurons communicate through synaptic connections and network interactions. Adjust weights to see propagation effects.",
-      3: "Understand how networks adapt and learn through activity-dependent changes. Experiment with connection density.",
-      4: "Discover how spiking networks can detect and learn temporal patterns. Use pattern injection and memory testing."
-    };
-    
-    const contentDiv = document.getElementById('lessonContent');
-    if (contentDiv && lessons[currentLesson]) {
-      contentDiv.innerHTML = `
-        <div class="lesson">
-          <strong>Lesson ${currentLesson}</strong><br>
-          ${lessons[currentLesson]}
-          <br><br>
-          <button onclick="document.getElementById('viewLesson').click()" style="background:#f223e0;border:none;color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">
-            📖 View Full Lesson
-          </button>
-        </div>
-      `;
-    }
-  }
-
-  // FIXED: Complete setupEducationalControls function
-  function setupEducationalControls() {
-    // Show weights button
-    const showWeightsBtn = document.getElementById('showWeights');
-    if (showWeightsBtn) {
-      showWeightsBtn.addEventListener('click', () => {
-        showWeights = !showWeights;
-        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
-        showWeightsBtn.classList.toggle('on', showWeights);
-        
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'toggleWeights'}));
-        }
-        
-        if (!showWeights) {
-          connectionLabels.forEach(label => {
-            if (label.parent) label.parent.remove(label);
-          });
-          connectionLabels.length = 0;
-        }
-      });
-    }
-
-    // View lesson button
-    const viewBtn = document.getElementById('viewLesson');
-    if (viewBtn) {
-      viewBtn.addEventListener('click', () => {
-        openLessonModal();
-      });
-    }
-
-    // Modal close
-    const closeModal = document.getElementById('closeModal');
-    const modal = document.getElementById('lessonModal');
-    
-    if (closeModal) {
-      closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-      });
-    }
-
-    if (modal) {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.style.display = 'none';
-        }
-      });
-    }
-
-    // Lesson dropdown functionality
-    const lessonSelect = document.getElementById('lessonSelect');
-    const prevBtn = document.getElementById('prevLesson');
-    const nextBtn = document.getElementById('nextLesson');
-    
-    if (lessonSelect) {
-      lessonSelect.addEventListener('change', (e) => {
-        currentLesson = parseInt(e.target.value);
-        updateLessonContent();
-        updateLessonControls();
-        updateNavigationButtons();
-      });
-    }
-    
-    if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
-        if (currentLesson > 1) {
-          currentLesson--;
-          lessonSelect.value = currentLesson;
-          updateLessonContent();
-          updateLessonControls();
-          updateNavigationButtons();
-        }
-      });
-    }
-    
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => {
-        if (currentLesson < 4) {
-          currentLesson++;
-          lessonSelect.value = currentLesson;
-          updateLessonContent();
-          updateLessonControls();
-          updateNavigationButtons();
-        }
-      });
-    }
-
-    // Input controls
-    const inputCurrent = document.getElementById('inputCurrent');
-    const inputValue = document.getElementById('inputValue');
-    if (inputCurrent && inputValue) {
-      inputCurrent.addEventListener('input', () => {
-        inputValue.textContent = inputCurrent.value;
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
-        }
-      });
-    }
-
-    const synapseWeight = document.getElementById('synapseWeight');
-    const weightValue = document.getElementById('weightValue');
-    if (synapseWeight && weightValue) {
-      synapseWeight.addEventListener('input', () => {
-        weightValue.textContent = synapseWeight.value;
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
-        }
-      });
-    }
-
-    const connectionProb = document.getElementById('connectionProb');
-    const probValue = document.getElementById('probValue');
-    if (connectionProb && probValue) {
-      connectionProb.addEventListener('input', () => {
-        probValue.textContent = connectionProb.value;
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
-        }
-      });
-    }
-
-    // Buttons
-    const resetBtn = document.getElementById('resetNetwork');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'reset'}));
-        }
-      });
-    }
-
-    const showWeightsBtn = document.getElementById('showWeights');
-    if (showWeightsBtn) {
-      showWeightsBtn.addEventListener('click', () => {
-        showWeights = !showWeights;
-        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
-        showWeightsBtn.classList.toggle('on', showWeights);
-        
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'toggleWeights'}));
-        }
-        
-        // If hiding weights, clear labels immediately
-        if (!showWeights) {
-          connectionLabels.forEach(label => {
-            if (label.parent) label.parent.remove(label);
-          });
-          connectionLabels = [];
-          
-          // Reset connection line colors to subtle
-          if (connGeom && col) {
-            const colors = connGeom.getAttribute('color');
-            for(let i = 0; i < colors.array.length; i += 3) {
-              colors.array[i] = 0.05;
-              colors.array[i+1] = 0.08;
-              colors.array[i+2] = 0.12;
-            }
-            colors.needsUpdate = true;
-          }
-        }
-        
-        console.log(`Weights visibility: ${showWeights}`);
-      });
-    }
-
-    // Pattern controls for lesson 4
-    const injectBtn = document.getElementById('injectPattern');
-    const testBtn = document.getElementById('testMemory');
-    
-    if (injectBtn) {
-      injectBtn.addEventListener('click', () => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'injectPattern'}));
-        }
-      });
-    }
-
-    if (testBtn) {
-      testBtn.addEventListener('click', () => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'testMemory'}));
-        }
-      });
-    }
-  }
-
-  // UI Controls - FIXED pause and speed functionality
-  const btn=document.getElementById('play'), rng=document.getElementById('speed');
-  
-  // FIXED: Proper pause/play toggle
-  btn.onclick=()=>{
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    
-    // Toggle the button state first
-    const isCurrentlyPaused = btn.classList.contains('on');
-    
-    if (isCurrentlyPaused) {
-      // Currently showing "Pause" (running), so pause it
-      btn.classList.remove('on');
-      btn.textContent = 'Play';
-      ws.send(JSON.stringify({cmd:'pause'}));
-      console.log('Pausing simulation');
-    } else {
-      // Currently showing "Play" (paused), so resume it
-      btn.classList.add('on');
-      btn.textContent = 'Pause';
-      ws.send(JSON.stringify({cmd:'play'}));
-      console.log('Resuming simulation');
-    }
-  };
-  
-  // FIXED: Speed control that actually affects simulation speed
-  rng.oninput=()=>{
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    const speed = parseInt(rng.value, 10);
-    // Invert the scale: higher slider value = faster simulation = lower dt_ms
-    const dt_ms = Math.max(5, 200 - speed); // 10-150 becomes 195-50ms
-    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
-    console.log(`Speed set to ${speed} (${dt_ms}ms timestep)`);
-  };
-
-  // Initialize everything
-  console.log('Initializing educational controls...');
-  setupEducationalControls();
-  updateLessonContent();
-  updateLessonControls();
-  updateNavigationButtons();
-  
-  console.log('Connecting to WebSocket...');
-  connectWS();
-  
-  console.log('Starting animation loop...');
-  animate();
-
-  // Handle window resize
-  addEventListener('resize',()=>{
-    camera.aspect=innerWidth/innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth,innerHeight);
-  });
-
-})();
-</script>
-</body>
-</html>
-      });
-    }
-
-    // Buttons
-    const resetBtn = document.getElementById('resetNetwork');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'reset'}));
-        }
-      });
-    }
-
-    const showWeightsBtn = document.getElementById('showWeights');
-    if (showWeightsBtn) {
-      showWeightsBtn.addEventListener('click', () => {
-        showWeights = !showWeights;
-        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
-        showWeightsBtn.classList.toggle('on', showWeights);
-        
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'toggleWeights'}));
-        }
-        
-        // If hiding weights, clear labels immediately
-        if (!showWeights) {
-          connectionLabels.forEach(label => {
-            if (label.parent) label.parent.remove(label);
-          });
-          connectionLabels = [];
-          
-          // Reset connection line colors to subtle
-          if (connGeom && col) {
-            const colors = connGeom.getAttribute('color');
-            for(let i = 0; i < colors.array.length; i += 3) {
-              colors.array[i] = 0.05;
-              colors.array[i+1] = 0.08;
-              colors.array[i+2] = 0.12;
-            }
-            colors.needsUpdate = true;
-          }
-        }
-        
-        console.log(`Weights visibility: ${showWeights}`);
-      });
-    }
-
-    // Pattern controls for lesson 4
-    const injectBtn = document.getElementById('injectPattern');
-    const testBtn = document.getElementById('testMemory');
-    
-    if (injectBtn) {
-      injectBtn.addEventListener('click', () => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'injectPattern'}));
-        }
-      });
-    }
-
-    if (testBtn) {
-      testBtn.addEventListener('click', () => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'testMemory'}));
-        }
-      });
-    }
-  }
-
-  function updateNavigationButtons() {
-    const prevBtn = document.getElementById('prevLesson');
-    const nextBtn = document.getElementById('nextLesson');
-    
-    if (prevBtn) {
-      prevBtn.disabled = currentLesson === 1;
-      prevBtn.style.opacity = currentLesson === 1 ? '0.5' : '1';
-    }
-    
-    if (nextBtn) {
-      nextBtn.disabled = currentLesson === 4;
-      nextBtn.style.opacity = currentLesson === 4 ? '0.5' : '1';
-    }
-  }
-
-  function updateLessonControls() {
-    // Show/hide controls based on current lesson
-    const patternControls = document.getElementById('patternControls');
-    const allControls = ['inputCurrent', 'synapseWeight', 'connectionProb', 'showWeights', 'resetNetwork'];
-    
-    // Show relevant controls for each lesson
-    const lessonControlsMap = {
-      1: ['inputCurrent', 'resetNetwork'],
-      2: ['inputCurrent', 'synapseWeight', 'showWeights', 'resetNetwork'], 
-      3: ['inputCurrent', 'synapseWeight', 'connectionProb', 'resetNetwork'],
-      4: ['inputCurrent', 'synapseWeight', 'resetNetwork']
-    };
-
-    // Hide all controls first
-    allControls.forEach(id => {
-      const element = document.getElementById(id);
-      if (element && element.closest('.control-group')) {
-        element.closest('.control-group').style.display = 'none';
-      }
-    });
-
-    // Show relevant controls
-    lessonControlsMap[currentLesson].forEach(id => {
-      const element = document.getElementById(id);
-      if (element && element.closest('.control-group')) {
-        element.closest('.control-group').style.display = 'block';
-      }
-    });
-
-    // Show pattern controls only for lesson 4
-    if (patternControls) {
-      patternControls.style.display = currentLesson === 4 ? 'block' : 'none';
-    }
-
-    // Update toggle buttons
-    document.querySelectorAll('.toggle').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    const activeToggle = document.getElementById(`lesson${currentLesson}`);
-    if (activeToggle) {
-      activeToggle.classList.add('active');
-    }
-  }
-
-  function updateLessonContent() {
-    const lessons = {
-      1: "Learn how individual neurons integrate input and generate spikes when reaching threshold. Click a neuron to see its voltage trace.",
-      2: "Explore how neurons communicate through synaptic connections and network interactions. Adjust weights to see propagation effects.",
-      3: "Understand how networks adapt and learn through activity-dependent changes. Experiment with connection density.",
-      4: "Discover how spiking networks can detect and learn temporal patterns. Use pattern injection and memory testing."
-    };
-    
-    const contentDiv = document.getElementById('lessonContent');
-    if (contentDiv && lessons[currentLesson]) {
-      contentDiv.innerHTML = `
-        <div class="lesson">
-          <strong>Lesson ${currentLesson}</strong><br>
-          ${lessons[currentLesson]}
-          <br><br>
-          <button onclick="document.getElementById('viewLesson').click()" style="background:#f223e0;border:none;color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">
-            📖 View Full Lesson
-          </button>
-        </div>
-      `;
-    }
-  }
-
-  const drawTrace=()=>{
-    const c=document.getElementById('trace').getContext('2d'); 
-    c.fillStyle='#0f172a'; 
-    c.fillRect(0,0,260,150); 
-    
-    if(selected===null) {
-      const voltageValue = document.getElementById('voltageValue');
-      if (voltageValue) voltageValue.textContent = '--';
-      return;
-    }
-    
-    // Update voltage display
-    const currentVoltage = neurons[selected].userData.volt || 0;
-    const voltageValue = document.getElementById('voltageValue');
-    if (voltageValue) {
-      voltageValue.textContent = currentVoltage.toFixed(3);
-    }
-    
-    // Draw threshold line
-    c.strokeStyle='#60a5fa'; 
-    c.lineWidth=1;
-    c.setLineDash([5, 5]);
-    const thresholdY = 148 - 1.0 * 130;
-    c.beginPath();
-    c.moveTo(2, thresholdY);
-    c.lineTo(258, thresholdY);
-    c.stroke();
-    c.setLineDash([]);
-    
-    // Draw voltage trace
-    if(traceBuf.length >= 2) {
-      c.strokeStyle='#f223e0'; 
-      c.lineWidth=2;
-      c.beginPath(); 
-      const L=traceBuf.length; 
-      for(let i=0;i<L;i++){
-        const x=i/(L-1)*256+2;
-        const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65;
-        i?c.lineTo(x,y):c.moveTo(x,y);
-      } 
-      c.stroke();
-    }
-    
-    // Add voltage scale labels
-    c.fillStyle='#94a3b8';
-    c.font='10px Inter';
-    c.fillText('2.0V', 5, 15);
-    c.fillText('1.0V', 5, 83);
-    c.fillText('0.0V', 5, 145);
-  };
-
   // WebSocket message handler
   function handleMessage(e) {
-    const d=JSON.parse(e.data);
-    if(d.volt){ 
-      for(const k in d.volt){ 
-        const i=+k; 
-        if(neurons[i]){ 
-          const v=d.volt[k]; 
-          neurons[i].userData.volt=v; 
-          if(selected===i){ 
-            traceBuf.push(v); 
-            if(traceBuf.length>200) traceBuf.shift();
-          } 
-        } 
-      } 
+    const d = JSON.parse(e.data);
+    if (d.volt) {
+      for (const k in d.volt) {
+        const i = +k;
+        if (neurons[i]) {
+          neurons[i].userData.volt = d.volt[k];
+          if (selected === i) {
+            traceBuf.push(d.volt[k]);
+            if (traceBuf.length > 200) traceBuf.shift();
+          }
+        }
+      }
     }
-    if(d.spikes){ 
-      d.spikes.forEach(s=>{
-        const i=s.i; 
-        if(!neurons[i]) return; 
-        const n=neurons[i]; 
-        n.userData.pulse=1.2; 
-        
-        (outgoing[i]||[]).forEach(seg=>{
-          const a=seg*2*3, b=(seg*2+1)*3; 
-          col.array[a]=col.array[b]=0.9; 
-          col.array[a+1]=col.array[b+1]=0.95; 
-          col.array[a+2]=col.array[b+2]=1.0;
-        }); 
-        col.needsUpdate=true;
-      }); 
+    
+    if (d.spikes) {
+      const clusterSpikes = {};
+      
+      d.spikes.forEach(spike => {
+        const i = spike.i;
+        if (neurons[i]) {
+          const neuron = neurons[i];
+          const cluster = neuron.userData.cluster;
+          
+          // Set individual pulse
+          neuron.userData.pulse = 1.2;
+          
+          // Track cluster spikes
+          if (!clusterSpikes[cluster]) clusterSpikes[cluster] = [];
+          clusterSpikes[cluster].push(neuron);
+        }
+      });
+      
+      // CLUSTER BURST EFFECTS - when multiple neurons in same cluster fire
+      Object.keys(clusterSpikes).forEach(clusterId => {
+        const spikes = clusterSpikes[clusterId];
+        if (spikes.length > 1) {
+          // Amplify all neurons in this cluster
+          neurons.forEach(n => {
+            if (n.userData.cluster == clusterId) {
+              n.userData.pulse = Math.max(n.userData.pulse, 1.5);
+            }
+          });
+          
+          // Intensify accent light for this cluster
+          if (accentLights[clusterId]) {
+            accentLights[clusterId].intensity = 3.0;
+          }
+        }
+      });
     }
-    // FIXED: Handle connection visualization
-    if(d.cmd === "showConnections" && d.connections) {
-      console.log(`Received ${d.connections.length} connections`);
+    
+    if (d.cmd === "showConnections" && d.connections) {
       updateConnectionVisualization(d.connections);
     }
   }
@@ -1795,109 +1122,72 @@
     }
   }
 
-  function updateNavigationButtons() {
-    const prevBtn = document.getElementById('prevLesson');
-    const nextBtn = document.getElementById('nextLesson');
-    
-    if (prevBtn) {
-      prevBtn.disabled = currentLesson === 1;
-      prevBtn.style.opacity = currentLesson === 1 ? '0.5' : '1';
+  // FIXED: Add missing lessonContent definition
+  const lessonContent = {
+    1: {
+      title: "Basic Spike Dynamics",
+      content: `
+        <h1>Lesson 1: Basic Spike Dynamics</h1>
+        <h2>Learning Objectives</h2>
+        <p>Understand how individual neurons integrate input current and generate action potentials (spikes) when reaching threshold voltage.</p>
+        
+        <h2>Theory</h2>
+        <p><strong>Leaky Integrate-and-Fire Model:</strong></p>
+        <p>Each neuron follows the equation: <code>dv/dt = (-v + I_input)/tau</code></p>
+        <ul>
+          <li><strong>v</strong>: membrane voltage</li>
+          <li><strong>I_input</strong>: input current</li>
+          <li><strong>tau</strong>: time constant (8ms)</li>
+          <li><strong>Threshold</strong>: v = 1.0</li>
+          <li><strong>Reset</strong>: v = 0 after spike</li>
+        </ul>
+
+        <h2>Interactive Experiments</h2>
+        <h3>Experiment 1.1: Single Neuron Response</h3>
+        <ol>
+          <li><strong>Click on any neuron</strong> to select it</li>
+          <li><strong>Observe the voltage trace</strong> in the right panel</li>
+          <li><strong>Adjust Input Current</strong> using the slider (try 0.1 to 1.0)</li>
+          <li><strong>Watch how voltage accumulates</strong> toward threshold</li>
+        </ol>
+      `
+    },
+    2: {
+      title: "Synaptic Transmission",
+      content: `<h1>Lesson 2: Synaptic Transmission</h1><p>Explore how neurons communicate through synaptic connections.</p>`
+    },
+    3: {
+      title: "Network Plasticity", 
+      content: `<h1>Lesson 3: Network Plasticity</h1><p>Understand how neural networks adapt and self-organize.</p>`
+    },
+    4: {
+      title: "Pattern Recognition",
+      content: `<h1>Lesson 4: Pattern Recognition</h1><p>Explore how spiking networks can detect and learn temporal patterns.</p>`
     }
+  };
+
+  // FIXED: Add missing drawTrace function
+  const drawTrace = () => {
+    const c = document.getElementById('trace').getContext('2d');
+    c.fillStyle = '#0f172a';
+    c.fillRect(0, 0, 260, 150);
     
-    if (nextBtn) {
-      nextBtn.disabled = currentLesson === 4;
-      nextBtn.style.opacity = currentLesson === 4 ? '0.5' : '1';
-    }
-  }
-
-  function updateLessonControls() {
-    // Show/hide controls based on current lesson
-    const patternControls = document.getElementById('patternControls');
-    const allControls = ['inputCurrent', 'synapseWeight', 'connectionProb', 'showWeights', 'resetNetwork'];
-    
-    // Show relevant controls for each lesson
-    const lessonControlsMap = {
-      1: ['inputCurrent', 'resetNetwork'],
-      2: ['inputCurrent', 'synapseWeight', 'showWeights', 'resetNetwork'], 
-      3: ['inputCurrent', 'synapseWeight', 'connectionProb', 'resetNetwork'],
-      4: ['inputCurrent', 'synapseWeight', 'resetNetwork']
-    };
-
-    // Hide all controls first
-    allControls.forEach(id => {
-      const element = document.getElementById(id);
-      if (element && element.closest('.control-group')) {
-        element.closest('.control-group').style.display = 'none';
-      }
-    });
-
-    // Show relevant controls
-    lessonControlsMap[currentLesson].forEach(id => {
-      const element = document.getElementById(id);
-      if (element && element.closest('.control-group')) {
-        element.closest('.control-group').style.display = 'block';
-      }
-    });
-
-    // Show pattern controls only for lesson 4
-    if (patternControls) {
-      patternControls.style.display = currentLesson === 4 ? 'block' : 'none';
-    }
-
-    // Update toggle buttons
-    document.querySelectorAll('.toggle').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    const activeToggle = document.getElementById(`lesson${currentLesson}`);
-    if (activeToggle) {
-      activeToggle.classList.add('active');
-    }
-  }
-
-  function updateLessonContent() {
-    const lessons = {
-      1: "Learn how individual neurons integrate input and generate spikes when reaching threshold. Click a neuron to see its voltage trace.",
-      2: "Explore how neurons communicate through synaptic connections and network interactions. Adjust weights to see propagation effects.",
-      3: "Understand how networks adapt and learn through activity-dependent changes. Experiment with connection density.",
-      4: "Discover how spiking networks can detect and learn temporal patterns. Use pattern injection and memory testing."
-    };
-    
-    const contentDiv = document.getElementById('lessonContent');
-    if (contentDiv && lessons[currentLesson]) {
-      contentDiv.innerHTML = `
-        <div class="lesson">
-          <strong>Lesson ${currentLesson}</strong><br>
-          ${lessons[currentLesson]}
-          <br><br>
-          <button onclick="document.getElementById('viewLesson').click()" style="background:#f223e0;border:none;color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">
-            📖 View Full Lesson
-          </button>
-        </div>
-      `;
-    }
-  }
-
-  const drawTrace=()=>{
-    const c=document.getElementById('trace').getContext('2d'); 
-    c.fillStyle='#0f172a'; 
-    c.fillRect(0,0,260,150); 
-    
-    if(selected===null) {
+    if (selected === null) {
       const voltageValue = document.getElementById('voltageValue');
       if (voltageValue) voltageValue.textContent = '--';
       return;
     }
     
     // Update voltage display
-    const currentVoltage = neurons[selected].userData.volt || 0;
+    const currentVoltage = neurons[selected] ? neurons[selected].userData.volt || 0 : 0;
     const voltageValue = document.getElementById('voltageValue');
     if (voltageValue) {
       voltageValue.textContent = currentVoltage.toFixed(3);
     }
     
     // Draw threshold line
-    c.strokeStyle='#60a5fa'; 
-    c.lineWidth=1;
+    c.strokeStyle = '#60a5fa';
+    c.lineWidth = 1;
     c.setLineDash([5, 5]);
     const thresholdY = 148 - 1.0 * 130;
     c.beginPath();
@@ -1907,22 +1197,22 @@
     c.setLineDash([]);
     
     // Draw voltage trace
-    if(traceBuf.length >= 2) {
-      c.strokeStyle='#f223e0'; 
-      c.lineWidth=2;
-      c.beginPath(); 
-      const L=traceBuf.length; 
-      for(let i=0;i<L;i++){
-        const x=i/(L-1)*256+2;
-        const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65;
-        i?c.lineTo(x,y):c.moveTo(x,y);
-      } 
+    if (traceBuf.length >= 2) {
+      c.strokeStyle = '#f223e0';
+      c.lineWidth = 2;
+      c.beginPath();
+      const L = traceBuf.length;
+      for (let i = 0; i < L; i++) {
+        const x = i / (L - 1) * 256 + 2;
+        const y = 148 - Math.max(0, Math.min(2, traceBuf[i])) * 65;
+        i ? c.lineTo(x, y) : c.moveTo(x, y);
+      }
       c.stroke();
     }
     
     // Add voltage scale labels
-    c.fillStyle='#94a3b8';
-    c.font='10px Inter';
+    c.fillStyle = '#94a3b8';
+    c.font = '10px Inter';
     c.fillText('2.0V', 5, 15);
     c.fillText('1.0V', 5, 83);
     c.fillText('0.0V', 5, 145);
@@ -1930,39 +1220,58 @@
 
   // WebSocket message handler
   function handleMessage(e) {
-    const d=JSON.parse(e.data);
-    if(d.volt){ 
-      for(const k in d.volt){ 
-        const i=+k; 
-        if(neurons[i]){ 
-          const v=d.volt[k]; 
-          neurons[i].userData.volt=v; 
-          if(selected===i){ 
-            traceBuf.push(v); 
-            if(traceBuf.length>200) traceBuf.shift();
-          } 
-        } 
-      } 
+    const d = JSON.parse(e.data);
+    if (d.volt) {
+      for (const k in d.volt) {
+        const i = +k;
+        if (neurons[i]) {
+          neurons[i].userData.volt = d.volt[k];
+          if (selected === i) {
+            traceBuf.push(d.volt[k]);
+            if (traceBuf.length > 200) traceBuf.shift();
+          }
+        }
+      }
     }
-    if(d.spikes){ 
-      d.spikes.forEach(s=>{
-        const i=s.i; 
-        if(!neurons[i]) return; 
-        const n=neurons[i]; 
-        n.userData.pulse=1.2; 
-        
-        (outgoing[i]||[]).forEach(seg=>{
-          const a=seg*2*3, b=(seg*2+1)*3; 
-          col.array[a]=col.array[b]=0.9; 
-          col.array[a+1]=col.array[b+1]=0.95; 
-          col.array[a+2]=col.array[b+2]=1.0;
-        }); 
-        col.needsUpdate=true;
-      }); 
+    
+    if (d.spikes) {
+      const clusterSpikes = {};
+      
+      d.spikes.forEach(spike => {
+        const i = spike.i;
+        if (neurons[i]) {
+          const neuron = neurons[i];
+          const cluster = neuron.userData.cluster;
+          
+          // Set individual pulse
+          neuron.userData.pulse = 1.2;
+          
+          // Track cluster spikes
+          if (!clusterSpikes[cluster]) clusterSpikes[cluster] = [];
+          clusterSpikes[cluster].push(neuron);
+        }
+      });
+      
+      // CLUSTER BURST EFFECTS - when multiple neurons in same cluster fire
+      Object.keys(clusterSpikes).forEach(clusterId => {
+        const spikes = clusterSpikes[clusterId];
+        if (spikes.length > 1) {
+          // Amplify all neurons in this cluster
+          neurons.forEach(n => {
+            if (n.userData.cluster == clusterId) {
+              n.userData.pulse = Math.max(n.userData.pulse, 1.5);
+            }
+          });
+          
+          // Intensify accent light for this cluster
+          if (accentLights[clusterId]) {
+            accentLights[clusterId].intensity = 3.0;
+          }
+        }
+      });
     }
-    // FIXED: Handle connection visualization
-    if(d.cmd === "showConnections" && d.connections) {
-      console.log(`Received ${d.connections.length} connections`);
+    
+    if (d.cmd === "showConnections" && d.connections) {
       updateConnectionVisualization(d.connections);
     }
   }
@@ -2023,6 +1332,697 @@
         sprite.position.copy(midPoint);
         sprite.scale.set(3, 1.5, 1);
         
+        scene.add(sprite);
+        connectionLabels.push(sprite);
+      }
+    });
+    
+    // Update geometry
+    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    console.log(`Visualized ${connections.length} realistic connections`);
+  }
+
+  // Educational controls setup
+  function setupEducationalControls() {
+    // Lesson dropdown functionality
+    const lessonSelect = document.getElementById('lessonSelect');
+    const prevBtn = document.getElementById('prevLesson');
+    const nextBtn = document.getElementById('nextLesson');
+    const viewBtn = document.getElementById('viewLesson');
+    
+    if (lessonSelect) {
+      lessonSelect.addEventListener('change', (e) => {
+        currentLesson = parseInt(e.target.value);
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    }
+    
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (currentLesson > 1) {
+          currentLesson--;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+    
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (currentLesson < 4) {
+          currentLesson++;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        openLessonModal();
+      });
+    }
+
+    // Modal controls
+    const closeModal = document.getElementById('closeModal');
+    const modal = document.getElementById('lessonModal');
+    
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    // Legacy lesson toggle buttons (keep for backwards compatibility)
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLesson = parseInt(btn.id.replace('lesson', ''));
+        lessonSelect.value = currentLesson;
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    });
+
+    // Input controls
+    const inputCurrent = document.getElementById('inputCurrent');
+    const inputValue = document.getElementById('inputValue');
+    if (inputCurrent && inputValue) {
+      inputCurrent.addEventListener('input', () => {
+        inputValue.textContent = inputCurrent.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
+        }
+      });
+    }
+
+    const synapseWeight = document.getElementById('synapseWeight');
+    const weightValue = document.getElementById('weightValue');
+    if (synapseWeight && weightValue) {
+      synapseWeight.addEventListener('input', () => {
+        weightValue.textContent = synapseWeight.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
+        }
+      });
+    }
+
+    const connectionProb = document.getElementById('connectionProb');
+    const probValue = document.getElementById('probValue');
+    if (connectionProb && probValue) {
+      connectionProb.addEventListener('input', () => {
+        probValue.textContent = connectionProb.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
+        }
+      });
+    }
+
+    // Buttons
+    const resetBtn = document.getElementById('resetNetwork');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'reset'}));
+        }
+      });
+    }
+
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
+        
+        // If hiding weights, clear labels immediately
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels = [];
+          
+          // Reset connection line colors to subtle
+          if (connGeom && col) {
+            const colors = connGeom.getAttribute('color');
+            for(let i = 0; i < colors.array.length; i += 3) {
+              colors.array[i] = 0.05;
+              colors.array[i+1] = 0.08;
+              colors.array[i+2] = 0.12;
+            }
+            colors.needsUpdate = true;
+          }
+        }
+        
+        console.log(`Weights visibility: ${showWeights}`);
+      });
+    }
+
+    // Pattern controls for lesson 4
+    const injectBtn = document.getElementById('injectPattern');
+    const testBtn = document.getElementById('testMemory');
+    
+    if (injectBtn) {
+      injectBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'injectPattern'}));
+        }
+      });
+    }
+
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'testMemory'}));
+        }
+      });
+    }
+  }
+
+  // FIXED: Add missing lessonContent definition
+  const lessonContent = {
+    1: {
+      title: "Basic Spike Dynamics",
+      content: `
+        <h1>Lesson 1: Basic Spike Dynamics</h1>
+        <h2>Learning Objectives</h2>
+        <p>Understand how individual neurons integrate input current and generate action potentials (spikes) when reaching threshold voltage.</p>
+        
+        <h2>Theory</h2>
+        <p><strong>Leaky Integrate-and-Fire Model:</strong></p>
+        <p>Each neuron follows the equation: <code>dv/dt = (-v + I_input)/tau</code></p>
+        <ul>
+          <li><strong>v</strong>: membrane voltage</li>
+          <li><strong>I_input</strong>: input current</li>
+          <li><strong>tau</strong>: time constant (8ms)</li>
+          <li><strong>Threshold</strong>: v = 1.0</li>
+          <li><strong>Reset</strong>: v = 0 after spike</li>
+        </ul>
+
+        <h2>Interactive Experiments</h2>
+        <h3>Experiment 1.1: Single Neuron Response</h3>
+        <ol>
+          <li><strong>Click on any neuron</strong> to select it</li>
+          <li><strong>Observe the voltage trace</strong> in the right panel</li>
+          <li><strong>Adjust Input Current</strong> using the slider (try 0.1 to 1.0)</li>
+          <li><strong>Watch how voltage accumulates</strong> toward threshold</li>
+        </ol>
+      `
+    },
+    2: {
+      title: "Synaptic Transmission",
+      content: `<h1>Lesson 2: Synaptic Transmission</h1><p>Explore how neurons communicate through synaptic connections.</p>`
+    },
+    3: {
+      title: "Network Plasticity", 
+      content: `<h1>Lesson 3: Network Plasticity</h1><p>Understand how neural networks adapt and self-organize.</p>`
+    },
+    4: {
+      title: "Pattern Recognition",
+      content: `<h1>Lesson 4: Pattern Recognition</h1><p>Explore how spiking networks can detect and learn temporal patterns.</p>`
+    }
+  };
+
+  // FIXED: Add missing drawTrace function
+  const drawTrace = () => {
+    const c = document.getElementById('trace').getContext('2d');
+    c.fillStyle = '#0f172a';
+    c.fillRect(0, 0, 260, 150);
+    
+    if (selected === null) {
+      const voltageValue = document.getElementById('voltageValue');
+      if (voltageValue) voltageValue.textContent = '--';
+      return;
+    }
+    
+    // Update voltage display
+    const currentVoltage = neurons[selected] ? neurons[selected].userData.volt || 0 : 0;
+    const voltageValue = document.getElementById('voltageValue');
+    if (voltageValue) {
+      voltageValue.textContent = currentVoltage.toFixed(3);
+    }
+    
+    // Draw threshold line
+    c.strokeStyle = '#60a5fa';
+    c.lineWidth = 1;
+    c.setLineDash([5, 5]);
+    const thresholdY = 148 - 1.0 * 130;
+    c.beginPath();
+    c.moveTo(2, thresholdY);
+    c.lineTo(258, thresholdY);
+    c.stroke();
+    c.setLineDash([]);
+    
+    // Draw voltage trace
+    if (traceBuf.length >= 2) {
+      c.strokeStyle = '#f223e0';
+      c.lineWidth = 2;
+      c.beginPath();
+      const L = traceBuf.length;
+      for (let i = 0; i < L; i++) {
+        const x = i / (L - 1) * 256 + 2;
+        const y = 148 - Math.max(0, Math.min(2, traceBuf[i])) * 65;
+        i ? c.lineTo(x, y) : c.moveTo(x, y);
+      }
+      c.stroke();
+    }
+    
+    // Add voltage scale labels
+    c.fillStyle = '#94a3b8';
+    c.font = '10px Inter';
+    c.fillText('2.0V', 5, 15);
+    c.fillText('1.0V', 5, 83);
+    c.fillText('0.0V', 5, 145);
+  };
+
+  // WebSocket message handler
+  function handleMessage(e) {
+    const d = JSON.parse(e.data);
+    if (d.volt) {
+      for (const k in d.volt) {
+        const i = +k;
+        if (neurons[i]) {
+          neurons[i].userData.volt = d.volt[k];
+          if (selected === i) {
+            traceBuf.push(d.volt[k]);
+            if (traceBuf.length > 200) traceBuf.shift();
+          }
+        }
+      }
+    }
+    
+    if (d.spikes) {
+      const clusterSpikes = {};
+      
+      d.spikes.forEach(spike => {
+        const i = spike.i;
+        if (neurons[i]) {
+          const neuron = neurons[i];
+          const cluster = neuron.userData.cluster;
+          
+          // Set individual pulse
+          neuron.userData.pulse = 1.2;
+          
+          // Track cluster spikes
+          if (!clusterSpikes[cluster]) clusterSpikes[cluster] = [];
+          clusterSpikes[cluster].push(neuron);
+        }
+      });
+      
+      // CLUSTER BURST EFFECTS - when multiple neurons in same cluster fire
+      Object.keys(clusterSpikes).forEach(clusterId => {
+        const spikes = clusterSpikes[clusterId];
+        if (spikes.length > 1) {
+          // Amplify all neurons in this cluster
+          neurons.forEach(n => {
+            if (n.userData.cluster == clusterId) {
+              n.userData.pulse = Math.max(n.userData.pulse, 1.5);
+            }
+          });
+          
+          // Intensify accent light for this cluster
+          if (accentLights[clusterId]) {
+            accentLights[clusterId].intensity = 3.0;
+          }
+        }
+      });
+    }
+    
+    if (d.cmd === "showConnections" && d.connections) {
+      updateConnectionVisualization(d.connections);
+    }
+  }
+
+  // FIXED: Add connection visualization function
+  function updateConnectionVisualization(connections) {
+    // Clear existing visualization
+    connectionLabels.forEach(label => {
+      if (label.parent) label.parent.remove(label);
+    });
+    connectionLabels = [];
+
+    if (!showWeights || connections.length === 0) return;
+
+    // Create new connection geometry
+    const positions = [];
+    const colors = [];
+    
+    connections.forEach(conn => {
+      if (conn.from < neurons.length && conn.to < neurons.length) {
+        const fromPos = neurons[conn.from].position;
+        const toPos = neurons[conn.to].position;
+        
+        positions.push(fromPos.x, fromPos.y, fromPos.z);
+        positions.push(toPos.x, toPos.y, toPos.z);
+        
+        // Color based on connection type
+        if (conn.type === 'excitatory') {
+          colors.push(0.2, 0.6, 1.0, 0.2, 0.6, 1.0);  // Blue
+        } else {
+          colors.push(1.0, 0.3, 0.3, 1.0, 0.3, 0.3);  // Red for inhibitory
+        }
+        
+        // Add weight label at midpoint
+        const midPoint = new THREE.Vector3(
+          (fromPos.x + toPos.x) / 2,
+          (fromPos.y + toPos.y) / 2,
+          (fromPos.z + toPos.z) / 2
+        );
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 32;
+        
+        context.fillStyle = conn.type === 'excitatory' ? '#60a5fa' : '#ef4444';
+        context.font = '10px Inter';
+        context.textAlign = 'center';
+        context.fillText(conn.weight.toFixed(3), 32, 20);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+          map: texture, 
+          transparent: true,
+          opacity: 0.7
+        });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.copy(midPoint);
+        sprite.scale.set(3, 1.5, 1);
+        
+        scene.add(sprite);
+        connectionLabels.push(sprite);
+      }
+    });
+    
+    // Update geometry
+    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    console.log(`Visualized ${connections.length} realistic connections`);
+  }
+
+  // Educational controls setup
+  function setupEducationalControls() {
+    // Lesson dropdown functionality
+    const lessonSelect = document.getElementById('lessonSelect');
+    const prevBtn = document.getElementById('prevLesson');
+    const nextBtn = document.getElementById('nextLesson');
+    const viewBtn = document.getElementById('viewLesson');
+    
+    if (lessonSelect) {
+      lessonSelect.addEventListener('change', (e) => {
+        currentLesson = parseInt(e.target.value);
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    }
+    
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (currentLesson > 1) {
+          currentLesson--;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+    
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (currentLesson < 4) {
+          currentLesson++;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        openLessonModal();
+      });
+    }
+
+    // Modal controls
+    const closeModal = document.getElementById('closeModal');
+    const modal = document.getElementById('lessonModal');
+    
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    // Legacy lesson toggle buttons (keep for backwards compatibility)
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLesson = parseInt(btn.id.replace('lesson', ''));
+        lessonSelect.value = currentLesson;
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    });
+
+    // Input controls
+    const inputCurrent = document.getElementById('inputCurrent');
+    const inputValue = document.getElementById('inputValue');
+    if (inputCurrent && inputValue) {
+      inputCurrent.addEventListener('input', () => {
+        inputValue.textContent = inputCurrent.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
+        }
+      });
+    }
+
+    const synapseWeight = document.getElementById('synapseWeight');
+    const weightValue = document.getElementById('weightValue');
+    if (synapseWeight && weightValue) {
+      synapseWeight.addEventListener('input', () => {
+        weightValue.textContent = synapseWeight.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
+        }
+      });
+    }
+
+    const connectionProb = document.getElementById('connectionProb');
+    const probValue = document.getElementById('probValue');
+    if (connectionProb && probValue) {
+      connectionProb.addEventListener('input', () => {
+        probValue.textContent = connectionProb.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
+        }
+      });
+    }
+
+    // Buttons
+    const resetBtn = document.getElementById('resetNetwork');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'reset'}));
+        }
+      });
+    }
+
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
+        
+        // If hiding weights, clear labels immediately
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels = [];
+          
+          // Reset connection line colors to subtle
+          if (connGeom && col) {
+            const colors = connGeom.getAttribute('color');
+            for(let i = 0; i < colors.array.length; i += 3) {
+              colors.array[i] = 0.05;
+              colors.array[i+1] = 0.08;
+              colors.array[i+2] = 0.12;
+            }
+            colors.needsUpdate = true;
+          }
+        }
+        
+        console.log(`Weights visibility: ${showWeights}`);
+      });
+    }
+
+    // Pattern controls for lesson 4
+    const injectBtn = document.getElementById('injectPattern');
+    const testBtn = document.getElementById('testMemory');
+    
+    if (injectBtn) {
+      injectBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'injectPattern'}));
+        }
+      });
+    }
+
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'testMemory'}));
+        }
+      });
+    }
+  }
+
+  // Animation loop - FIXED to always show neurons and connections
+  function animate() {
+    requestAnimationFrame(animate);
+    
+    const clusterActivity = [0, 0, 0, 0, 0];
+    
+    for (let i = 0; i < neurons.length; i++) {
+      const n = neurons[i], g = glows[i], u = n.userData;
+      
+      // ALWAYS show base neuron colors
+      const voltage = Math.max(0, Math.min(1, u.volt || 0));
+      const baseColor = u.originalColor.clone();
+      
+      if (u.pulse > 0) {
+        u.pulse *= 0.85;
+        const intensity = u.pulse / 1.2;
+        
+        clusterActivity[u.cluster] += intensity;
+        
+        // BRIGHT firing effects ON TOP of base color
+        const glowColor = u.glowColor.clone().multiplyScalar(intensity * 2);
+        n.material.emissive.copy(glowColor);
+        n.scale.setScalar(1.0 + intensity * 0.4);
+        
+        // Bright base color + firing intensity
+        baseColor.lerp(u.glowColor, 0.3 + intensity * 0.7);
+        
+        // Stunning glow expansion
+        g.material.opacity = 0.2 + intensity * 0.6;
+        g.scale.setScalar(1.0 + intensity * 3.0);
+        g.material.color.copy(u.glowColor);
+        
+      } else {
+        // ALWAYS visible base state - not black!
+        n.material.emissive.copy(u.originalColor.clone().multiplyScalar(0.4));
+        n.scale.setScalar(1.0);
+        
+        // Always show subtle glow
+        g.material.opacity = 0.15;
+        g.scale.setScalar(1.0);
+        g.material.color.copy(u.originalColor);
+        
+        // Voltage-based brightness
+        baseColor.lerp(u.glowColor, voltage * 0.3);
+      }
+      
+      // ALWAYS set the neuron color - never black
+      n.material.color.copy(baseColor);
+      n.material.metalness = 0.7 + voltage * 0.3;
+      n.material.roughness = 0.2 - voltage * 0.1;
+    }
+    
+    // ALWAYS visible connections with cluster activity enhancement
+    if (connGeom && col && connections.length > 0) {
+      for (let i = 0; i < connections.length; i++) {
+        const conn = connections[i];
+        const baseIdx = i * 6;
+        
+        if (baseIdx + 5 < col.array.length) {
+          const clusterColor = CLUSTER_COLORS[conn.cluster].primary;
+          const activity = clusterActivity[conn.cluster];
+          
+          // ALWAYS visible base intensity + activity boost
+          const baseIntensity = 0.3; // Always visible
+          const activityBoost = Math.min(activity * 0.8, 1.0);
+          const totalIntensity = baseIntensity + activityBoost;
+          
+          col.array[baseIdx] = clusterColor.r * totalIntensity;
+          col.array[baseIdx + 1] = clusterColor.g * totalIntensity;
+          col.array[baseIdx + 2] = clusterColor.b * totalIntensity;
+          col.array[baseIdx + 3] = clusterColor.r * totalIntensity;
+          col.array[baseIdx + 4] = clusterColor.g * totalIntensity;
+          col.array[baseIdx + 5] = clusterColor.b * totalIntensity;
+        }
+      }
+      col.needsUpdate = true;
+    }
+    
+    // Fade accent lights back to normal
+    accentLights.forEach(light => {
+      light.intensity = Math.max(0.8, light.intensity * 0.95);
+    });
+    
+    drawTrace();
+    renderer.render(scene, camera);
+  }
+
+  // Initialize
+  createStunningNetworkTopology();
+  connectWS();
+  animate();
+
+  // Handle window resize
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+})();
+</script>
+</body>
+</html>
         scene.add(sprite);
         connectionLabels.push(sprite);
       }
