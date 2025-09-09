@@ -121,50 +121,21 @@ async def handler(ws,path):
                     recreate_network()
                     print("Network reset with new parameters")
                 elif d.get("cmd") == "toggleWeights":
-                    # FIXED: Send realistic connection data with clusters
+                    # FIXED: Send simple connection data that works with current setup
                     connections = []
                     
-                    # Add E->E connections with cluster info
-                    if hasattr(S_ee, 'i') and len(S_ee.i) > 0:
-                        for idx in range(len(S_ee.i)):
-                            from_cluster = int(G_exc.cluster[S_ee.i[idx]])
-                            to_cluster = int(G_exc.cluster[S_ee.j[idx]])
+                    if hasattr(S, 'i') and len(S.i) > 0:
+                        for idx in range(len(S.i)):
                             connections.append({
-                                "from": int(S_ee.i[idx]), 
-                                "to": int(S_ee.j[idx]), 
-                                "weight": float(S_ee.w[idx]),
-                                "type": "excitatory",
-                                "from_cluster": from_cluster,
-                                "to_cluster": to_cluster
+                                "from": int(S.i[idx]), 
+                                "to": int(S.j[idx]), 
+                                "weight": 0.15,  # Use fixed weight for now
+                                "type": "excitatory"
                             })
-                    
-                    # Add I->E connections
-                    if hasattr(S_ie, 'i') and len(S_ie.i) > 0:
-                        for idx in range(len(S_ie.i)):
-                            connections.append({
-                                "from": int(S_ie.i[idx]) + N_exc,
-                                "to": int(S_ie.j[idx]), 
-                                "weight": float(S_ie.w[idx]),
-                                "type": "inhibitory",
-                                "from_cluster": 4,  # Inhibitory cluster
-                                "to_cluster": int(G_exc.cluster[S_ie.j[idx]])
-                            })
-                    
-                    # Send cluster information too
-                    cluster_info = {
-                        "clusters": [
-                            {"id": 0, "color": [0.2, 0.8, 1.0], "name": "Sensory"},
-                            {"id": 1, "color": [1.0, 0.4, 0.8], "name": "Motor"}, 
-                            {"id": 2, "color": [0.8, 1.0, 0.2], "name": "Memory"},
-                            {"id": 3, "color": [1.0, 0.8, 0.2], "name": "Control"},
-                            {"id": 4, "color": [1.0, 0.2, 0.2], "name": "Inhibitory"}
-                        ]
-                    }
                     
                     await ws.send(json.dumps({
                         "cmd": "showConnections", 
-                        "connections": connections,
-                        "clusters": cluster_info
+                        "connections": connections
                     }))
                 elif d.get("cmd") == "injectPattern":
                     # Inject a specific pattern for lesson 4
@@ -302,6 +273,35 @@ def create_realistic_network():
     
     # Apply structured connectivity
     connect_clustered(S_ee, G_exc, G_exc, prob_local=0.6, prob_distant=0.1)
+    connect_clustered(S_ei, G_exc, G_inh, prob_local=0.0, prob_distant=0.5)
+    connect_clustered(S_ie, G_inh, G_exc, prob_local=0.0, prob_distant=0.8)
+    connect_clustered(S_ii, G_inh, G_inh, prob_local=0.0, prob_distant=0.3)
+    
+    # Set synaptic weights
+    S_ee.w = PARAMS["synapse_weight"]
+    S_ei.w = PARAMS["synapse_weight"] * 1.5
+    S_ie.w = PARAMS["inhibition_strength"]
+    S_ii.w = PARAMS["inhibition_strength"] * 0.8
+    
+    # SPARSE EXTERNAL INPUT - stimulate one cluster at a time
+    cluster_to_stimulate = np.random.randint(0, 4)
+    for i in range(N_exc):
+        if G_exc.cluster[i] == cluster_to_stimulate:
+            G_exc.I_input[i] = PARAMS["input_current"] * 2
+    
+    # Poisson input
+    P = PoissonInput(G_exc, 'I_input', N_exc, 1*Hz, weight=0.01)
+    
+    # Monitors
+    sm = SpikeMonitor(G_exc + G_inh)
+    vm = StateMonitor(G_exc, 'v', record=True)
+    
+    net = Network(collect())
+    
+    return N_exc, N_inh
+
+if __name__=="__main__": 
+    asyncio.run(main())
     connect_clustered(S_ei, G_exc, G_inh, prob_local=0.0, prob_distant=0.5)
     connect_clustered(S_ie, G_inh, G_exc, prob_local=0.0, prob_distant=0.8)
     connect_clustered(S_ii, G_inh, G_inh, prob_local=0.0, prob_distant=0.3)
