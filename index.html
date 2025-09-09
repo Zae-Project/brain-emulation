@@ -175,7 +175,8 @@
   }
 
   const DPR=Math.min(window.devicePixelRatio||1,2);
-  const NUM=50, R=38, Y_OFFSET = -25;
+  const NUM=50, R=45, Y_OFFSET = -25;
+  const N_EXC = 40, N_INH = 10;  // 80% excitatory, 20% inhibitory
   
   // Initialize Three.js scene ONCE
   console.log('Initializing Three.js scene...');
@@ -229,77 +230,111 @@
   const neurons=[], glows=[], connIdx=[], outgoing=[];
   let connGeom, col, lines;
 
-  // Create HIGH QUALITY neurons for premium look
-  console.log('Creating neurons...');
-  const sphereGeo=new THREE.SphereGeometry(1.6, 64, 64); // High detail geometry
-  const makeMat=()=>new THREE.MeshStandardMaterial({
-    color:0x1e40af, 
-    emissive:0x0f172a, 
-    roughness:0.1,  // More polished
-    metalness:0.9,  // More metallic/premium
-    envMapIntensity: 1.0
+  // Create REALISTIC neural network topology
+  console.log('Creating realistic neural network...');
+  
+  // Different geometries for different neuron types
+  const excGeo = new THREE.SphereGeometry(1.4, 32, 32);
+  const inhGeo = new THREE.SphereGeometry(1.0, 24, 24);  // Smaller inhibitory neurons
+  
+  // Materials for different neuron types
+  const excMat = () => new THREE.MeshStandardMaterial({
+    color: 0x1e40af,  // Blue for excitatory
+    emissive: 0x0f172a,
+    roughness: 0.1,
+    metalness: 0.9
   });
   
-  for(let i=0;i<NUM;i++){
-    const a=i/NUM*Math.PI*2;
-    const x=Math.cos(a)*R;
-    const y=Math.sin(a)*R + Y_OFFSET;
-    const z=(i-NUM/2)*0.25;
+  const inhMat = () => new THREE.MeshStandardMaterial({
+    color: 0xef4444,  // Red for inhibitory
+    emissive: 0x2d1b1b,
+    roughness: 0.2,
+    metalness: 0.8
+  });
+  
+  // REALISTIC SPATIAL ARRANGEMENT
+  function createRealisticTopology() {
+    // Create excitatory neurons in clustered groups
+    for(let i = 0; i < N_EXC; i++){
+      // Create 4 clusters of excitatory neurons
+      const cluster = Math.floor(i / (N_EXC / 4));
+      const clusterAngle = (cluster / 4) * Math.PI * 2;
+      const withinCluster = i % (N_EXC / 4);
+      
+      // Position within cluster
+      const localAngle = (withinCluster / (N_EXC / 4)) * Math.PI * 0.5;
+      const localRadius = R * 0.7;
+      
+      const x = Math.cos(clusterAngle) * R + Math.cos(localAngle) * localRadius * 0.3;
+      const y = Math.sin(clusterAngle) * R + Math.sin(localAngle) * localRadius * 0.3 + Y_OFFSET;
+      const z = (i - N_EXC/2) * 0.15 + (Math.random() - 0.5) * 2;  // Add some depth variation
+      
+      const m = new THREE.Mesh(excGeo, excMat());
+      m.position.set(x, y, z);
+      m.userData = {i, pulse: 0, volt: 0, type: 'excitatory'};
+      m.castShadow = true;
+      m.receiveShadow = true;
+      scene.add(m);
+      neurons.push(m);
+      
+      // Blue glow for excitatory
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: glowTex,
+        color: 0x3b82f6,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      }));
+      s.position.copy(m.position);
+      s.scale.set(5, 5, 1);
+      scene.add(s);
+      glows.push(s);
+    }
     
-    const m=new THREE.Mesh(sphereGeo,makeMat()); 
-    m.position.set(x,y,z); 
-    m.userData={i,pulse:0,volt:0}; 
-    m.castShadow = true;  // Premium shadows
-    m.receiveShadow = true;
-    scene.add(m); 
-    neurons.push(m);
-    
-    // Enhanced glow effect for premium look
-    const s=new THREE.Sprite(new THREE.SpriteMaterial({
-      map:glowTex,
-      color:0x3b82f6,
-      transparent:true,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })); 
-    s.position.copy(m.position); 
-    s.scale.set(6,6,1); // Slightly smaller, more refined glow
-    scene.add(s); 
-    glows.push(s);
-  }
-
-  console.log(`Created ${neurons.length} neurons`);
-
-  // Create connections AFTER neurons exist
-  const pos=[]; 
-  for(let i=0;i<NUM;i++){
-    for(let j=0;j<NUM;j++){
-      if(i!==j && Math.random()<0.045){
-        const a=neurons[i].position,b=neurons[j].position;
-        pos.push(a.x,a.y,a.z,b.x,b.y,b.z);
-        connIdx.push([i,j]);
-      }
+    // Create inhibitory neurons distributed between clusters
+    for(let i = 0; i < N_INH; i++){
+      const angle = (i / N_INH) * Math.PI * 2;
+      const radius = R * 1.2;  // Outside the excitatory clusters
+      
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius + Y_OFFSET;
+      const z = (i - N_INH/2) * 0.3;
+      
+      const m = new THREE.Mesh(inhGeo, inhMat());
+      m.position.set(x, y, z);
+      m.userData = {i: i + N_EXC, pulse: 0, volt: 0, type: 'inhibitory'};
+      m.castShadow = true;
+      m.receiveShadow = true;
+      scene.add(m);
+      neurons.push(m);
+      
+      // Red glow for inhibitory
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: glowTex,
+        color: 0xef4444,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      }));
+      s.position.copy(m.position);
+      s.scale.set(4, 4, 1);
+      scene.add(s);
+      glows.push(s);
     }
   }
   
-  connGeom=new THREE.BufferGeometry(); 
-  connGeom.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-  const colors=new Float32Array(connIdx.length*2*3); 
-  // Much more subtle connection colors for premium look
-  for(let i=0;i<colors.length;i+=3){
-    colors[i]=0.05;colors[i+1]=0.08;colors[i+2]=0.12;
-  }
-  connGeom.setAttribute('color',new THREE.BufferAttribute(colors,3));
-  col = connGeom.getAttribute('color');
-  // Ultra-thin lines with low opacity
-  const lineMat=new THREE.LineBasicMaterial({
-    vertexColors:true,
-    transparent:true,
-    opacity:0.2,  // Much more transparent
-    linewidth:0.5,  // Thinner lines
-    blending:THREE.AdditiveBlending
+  createRealisticTopology();
+  console.log(`Created ${N_EXC} excitatory + ${N_INH} inhibitory neurons`);
+
+  // Create connections will be handled when server sends connection data
+  connGeom = new THREE.BufferGeometry();
+  const lineMat = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.3,
+    blending: THREE.AdditiveBlending
   });
-  lines=new THREE.LineSegments(connGeom,lineMat); 
+  lines = new THREE.LineSegments(connGeom, lineMat);
   scene.add(lines);
   
   for(let s=0;s<connIdx.length;s++){
@@ -935,7 +970,7 @@
 
   // FIXED: Add connection visualization function
   function updateConnectionVisualization(connections) {
-    // Clear existing labels
+    // Clear existing visualization
     connectionLabels.forEach(label => {
       if (label.parent) label.parent.remove(label);
     });
@@ -943,65 +978,62 @@
 
     if (!showWeights || connections.length === 0) return;
 
-    // Create weight labels for each connection
+    // Create new connection geometry
+    const positions = [];
+    const colors = [];
+    
     connections.forEach(conn => {
       if (conn.from < neurons.length && conn.to < neurons.length) {
         const fromPos = neurons[conn.from].position;
         const toPos = neurons[conn.to].position;
         
-        // Calculate midpoint of connection
+        positions.push(fromPos.x, fromPos.y, fromPos.z);
+        positions.push(toPos.x, toPos.y, toPos.z);
+        
+        // Color based on connection type
+        if (conn.type === 'excitatory') {
+          colors.push(0.2, 0.6, 1.0, 0.2, 0.6, 1.0);  // Blue
+        } else {
+          colors.push(1.0, 0.3, 0.3, 1.0, 0.3, 0.3);  // Red for inhibitory
+        }
+        
+        // Add weight label at midpoint
         const midPoint = new THREE.Vector3(
           (fromPos.x + toPos.x) / 2,
           (fromPos.y + toPos.y) / 2,
           (fromPos.z + toPos.z) / 2
         );
 
-        // Create text sprite for weight
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         canvas.width = 64;
         canvas.height = 32;
         
-        context.fillStyle = '#f223e0';
-        context.font = '12px Inter';
+        context.fillStyle = conn.type === 'excitatory' ? '#60a5fa' : '#ef4444';
+        context.font = '10px Inter';
         context.textAlign = 'center';
-        context.fillText(conn.weight.toFixed(2), 32, 20);
+        context.fillText(conn.weight.toFixed(3), 32, 20);
         
         const texture = new THREE.CanvasTexture(canvas);
         const spriteMaterial = new THREE.SpriteMaterial({ 
           map: texture, 
           transparent: true,
-          opacity: 0.8
+          opacity: 0.7
         });
         const sprite = new THREE.Sprite(spriteMaterial);
         sprite.position.copy(midPoint);
-        sprite.scale.set(4, 2, 1);
+        sprite.scale.set(3, 1.5, 1);
         
         scene.add(sprite);
         connectionLabels.push(sprite);
       }
     });
-
-    // Also enhance connection line visibility when showing weights
-    if (connGeom && col) {
-      const colors = connGeom.getAttribute('color');
-      for(let i = 0; i < colors.array.length; i += 3) {
-        if (showWeights) {
-          // Make connections more visible when showing weights
-          colors.array[i] = 0.3;     // Brighter red
-          colors.array[i+1] = 0.5;   // Brighter green  
-          colors.array[i+2] = 0.8;   // Brighter blue
-        } else {
-          // Reset to subtle appearance
-          colors.array[i] = 0.05;
-          colors.array[i+1] = 0.08;
-          colors.array[i+2] = 0.12;
-        }
-      }
-      colors.needsUpdate = true;
-    }
-
-    console.log(`Created ${connectionLabels.length} weight labels`);
+    
+    // Update geometry
+    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    console.log(`Visualized ${connections.length} realistic connections`);
   }
 
   // Educational controls setup
@@ -1185,32 +1217,46 @@
   function animate(){
     requestAnimationFrame(animate);
     
-    for(let i=0;i<NUM;i++){
-      const n=neurons[i], g=glows[i], u=n.userData;
-      if(u.pulse>0){
-        u.pulse*=0.88; // Slightly slower decay for more elegant effect
-        const p=u.pulse/1.2;
-        // Premium violet firing with subtle color variations
-        n.material.emissive.setRGB(p*0.95, p*0.15, p*0.95);
-        g.material.opacity=p*0.9;
-        g.scale.setScalar(6+p*3); // More refined scaling
-        // Premium violet glow when firing
-        g.material.color.setRGB(0.95 + p*0.05, 0.15 + p*0.85, 0.95 + p*0.05);
+    for(let i = 0; i < neurons.length; i++){
+      const n = neurons[i], g = glows[i], u = n.userData;
+      
+      if(u.pulse > 0){
+        u.pulse *= 0.88;
+        const p = u.pulse / 1.2;
+        
+        if(u.type === 'excitatory'){
+          // Violet firing for excitatory
+          n.material.emissive.setRGB(p * 0.95, p * 0.15, p * 0.95);
+          g.material.color.setRGB(0.95, 0.15 + p * 0.85, 0.95);
+        } else {
+          // Orange firing for inhibitory
+          n.material.emissive.setRGB(p * 1.0, p * 0.5, p * 0.1);
+          g.material.color.setRGB(1.0, 0.5 + p * 0.5, 0.1);
+        }
+        
+        g.material.opacity = p * 0.9;
+        g.scale.setScalar((u.type === 'excitatory' ? 5 : 4) + p * 3);
       } else {
-        // Reset to premium blue when not firing
-        g.material.color.setRGB(0.23, 0.51, 0.98);
+        // Reset to base colors
+        if(u.type === 'excitatory'){
+          g.material.color.setRGB(0.23, 0.51, 0.98);
+        } else {
+          g.material.color.setRGB(0.94, 0.26, 0.26);
+        }
       }
       
-      // Enhanced voltage-based color with more refinement
-      const v=Math.max(0,Math.min(1,u.volt||0));
-      const hue=0.62-v*0.15; // More subtle hue shift
-      const saturation = 0.85 + v*0.1; // Slight saturation increase
-      const lightness = 0.35 + v*0.4; // Enhanced brightness range
-      n.material.color.setHSL(hue, saturation, lightness);
+      // Voltage-based color modulation
+      const v = Math.max(0, Math.min(1, u.volt || 0));
+      if(u.type === 'excitatory'){
+        const hue = 0.62 - v * 0.15;  // Blue to violet
+        n.material.color.setHSL(hue, 0.85 + v * 0.1, 0.35 + v * 0.4);
+      } else {
+        const hue = 0.0 + v * 0.08;   // Red to orange
+        n.material.color.setHSL(hue, 0.9, 0.4 + v * 0.3);
+      }
       
-      // Add subtle metallic reflection based on voltage
-      n.material.metalness = 0.9 + v*0.1;
-      n.material.roughness = 0.1 - v*0.05;
+      n.material.metalness = 0.9 + v * 0.1;
+      n.material.roughness = 0.1 - v * 0.05;
     }
     
     // Premium connection lighting effects
