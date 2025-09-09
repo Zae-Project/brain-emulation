@@ -610,105 +610,74 @@
     </div>
     <div id="err"></div>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js"
-      onerror="loadThreeFallback()"
-    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js"></script>
     <script>
-      function loadThreeFallback() {
-        console.log("CDN failed, trying alternative sources...");
-
-        // Try unpkg as secondary CDN
-        const script1 = document.createElement("script");
-        script1.src = "https://unpkg.com/three@0.165.0/build/three.min.js";
-        script1.onerror = () => {
-          console.log("Second CDN failed, trying local file...");
-
-          // Try local file as last resort
-          const script2 = document.createElement("script");
-          script2.src = "./three.min.js";
-          script2.onerror = () => {
+      // WebSocket connection
+      let ws;
+      function connectWS() {
+        try {
+          ws = new WebSocket("ws://localhost:8766");
+          ws.onopen = () => {
+            console.log("Connected to SNN server");
             const errEl = document.getElementById("err");
-            errEl.textContent =
-              "Failed to load Three.js. Neural network visualization unavailable.";
+            if (errEl) errEl.style.display = "none";
+          };
+          ws.onerror = () => {
+            const errEl = document.getElementById("err");
+            if (errEl) {
+              errEl.textContent =
+                "Connection failed. Make sure server.py is running.";
+              errEl.style.display = "block";
+            }
+          };
+          ws.onclose = () => setTimeout(connectWS, 2000);
+          ws.onmessage = handleMessage;
+        } catch (error) {
+          const errEl = document.getElementById("err");
+          if (errEl) {
+            errEl.textContent = "Failed to connect to server";
             errEl.style.display = "block";
-          };
-          script2.onload = () => {
-            console.log("Local Three.js loaded");
-            initApp();
-          };
-          document.head.appendChild(script2);
-        };
-        script1.onload = () => {
-          console.log("Backup CDN Three.js loaded");
-          initApp();
-        };
-        document.head.appendChild(script1);
+          }
+        }
       }
 
-      // Wait for Three.js to load
-      function initApp() {
-        console.log("Initializing app...");
+      // Constants
+      const NUM = 50;
+      const CLUSTER_COLORS = [
+        {
+          primary: new THREE.Color(0.0, 0.8, 1.0),
+          glow: new THREE.Color(0.3, 0.9, 1.0),
+        },
+        {
+          primary: new THREE.Color(1.0, 0.2, 0.8),
+          glow: new THREE.Color(1.0, 0.5, 0.9),
+        },
+        {
+          primary: new THREE.Color(0.9, 1.0, 0.0),
+          glow: new THREE.Color(1.0, 1.0, 0.4),
+        },
+        {
+          primary: new THREE.Color(1.0, 0.5, 0.0),
+          glow: new THREE.Color(1.0, 0.7, 0.3),
+        },
+        {
+          primary: new THREE.Color(1.0, 0.0, 0.4),
+          glow: new THREE.Color(1.0, 0.3, 0.6),
+        },
+      ];
 
-        const showErr = (m) => {
-          const e = document.getElementById("err");
-          e.textContent = m;
-          e.style.display = "block";
-        };
+      // Initialize the neural network when page loads
+      function initNeuralNetwork() {
+        console.log("Initializing Neural Network...");
 
-        if (!window.THREE) {
-          showErr("Three.js is still loading... Please wait.");
-          setTimeout(initApp, 1000); // Check again in 1 second
+        // Check if Three.js is loaded
+        if (typeof THREE === "undefined") {
+          console.log("Waiting for Three.js to load...");
+          setTimeout(initNeuralNetwork, 100);
           return;
         }
 
-        console.log("Three.js detected, starting neural network...");
-
-        // Hide any loading errors
-        document.getElementById("err").style.display = "none";
-
-        // WebSocket connection
-        let ws;
-        function connectWS() {
-          try {
-            ws = new WebSocket("ws://localhost:8766");
-            ws.onopen = () => {
-              console.log("Connected to SNN server");
-              document.getElementById("err").style.display = "none";
-            };
-            ws.onerror = () =>
-              showErr("Connection failed. Make sure server.py is running.");
-            ws.onclose = () => setTimeout(connectWS, 2000);
-            ws.onmessage = handleMessage;
-          } catch (error) {
-            showErr("Failed to connect to server");
-          }
-        }
-
-        // Constants
-        const NUM = 50;
-        const CLUSTER_COLORS = [
-          {
-            primary: new THREE.Color(0.0, 0.8, 1.0),
-            glow: new THREE.Color(0.3, 0.9, 1.0),
-          },
-          {
-            primary: new THREE.Color(1.0, 0.2, 0.8),
-            glow: new THREE.Color(1.0, 0.5, 0.9),
-          },
-          {
-            primary: new THREE.Color(0.9, 1.0, 0.0),
-            glow: new THREE.Color(1.0, 1.0, 0.4),
-          },
-          {
-            primary: new THREE.Color(1.0, 0.5, 0.0),
-            glow: new THREE.Color(1.0, 0.7, 0.3),
-          },
-          {
-            primary: new THREE.Color(1.0, 0.0, 0.4),
-            glow: new THREE.Color(1.0, 0.3, 0.6),
-          },
-        ];
+        console.log("Three.js loaded! Creating 3D neural network...");
 
         // Three.js setup
         const scene = new THREE.Scene();
@@ -716,7 +685,7 @@
 
         const camera = new THREE.PerspectiveCamera(
           45,
-          innerWidth / innerHeight,
+          window.innerWidth / window.innerHeight,
           0.1,
           2000
         );
@@ -727,7 +696,7 @@
           powerPreference: "high-performance",
         });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setSize(innerWidth, innerHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
         // Lighting
@@ -735,22 +704,6 @@
         const keyLight = new THREE.PointLight(0x4080ff, 2.0, 200);
         keyLight.position.set(80, 80, 80);
         scene.add(keyLight);
-
-        // Accent lights
-        CLUSTER_COLORS.forEach((cluster, i) => {
-          const angle = (i / CLUSTER_COLORS.length) * Math.PI * 2;
-          const light = new THREE.PointLight(
-            cluster.primary.getHex(),
-            0.85,
-            200
-          );
-          light.position.set(
-            Math.cos(angle) * 90,
-            Math.sin(angle) * 90,
-            Math.sin(angle * 2) * 40
-          );
-          scene.add(light);
-        });
 
         // Global variables
         const neurons = [],
@@ -762,7 +715,7 @@
           traceBuf = [];
         let showWeights = false;
 
-        // Camera controls - FIXED
+        // Camera controls
         let cameraTarget = new THREE.Vector3(0, 0, 0);
         let cameraDistance = 120;
         let cameraTheta = 0;
@@ -774,79 +727,32 @@
         let selectedNeuron = null;
         let neuronActivityHistory = new Map();
 
-        // Lesson content and current lesson
+        // Lesson content
         const lessonContent = {
           1: {
             title: "Basic Spike Dynamics",
-            content: `Each neuron integrates input until threshold (v=1). When threshold is reached, it emits a spike and resets.`,
+            content:
+              "Each neuron integrates input until threshold (v=1). When threshold is reached, it emits a spike and resets.",
           },
           2: {
             title: "Synaptic Transmission",
-            content: `Synapses transmit spikes between neurons. Excitatory synapses increase voltage; inhibitory decrease it.`,
+            content:
+              "Synapses transmit spikes between neurons. Excitatory synapses increase voltage; inhibitory decrease it.",
           },
           3: {
             title: "Network Plasticity",
-            content: `Plasticity mechanisms change synaptic strengths over time through Hebbian learning.`,
+            content:
+              "Plasticity mechanisms change synaptic strengths over time through Hebbian learning.",
           },
           4: {
             title: "Pattern Recognition",
-            content: `Networks can store and recall patterns through strengthened connection pathways.`,
+            content:
+              "Networks can store and recall patterns through strengthened connection pathways.",
           },
         };
         let currentLesson = 1;
-        // Draw trace function
-        function drawTrace() {
-          const canvas = document.getElementById("trace");
-          if (!canvas || !traceBuf.length) return;
 
-          const ctx = canvas.getContext("2d");
-          const w = canvas.width,
-            h = canvas.height;
-
-          ctx.fillStyle = "#0f172a";
-          ctx.fillRect(0, 0, w, h);
-
-          // Draw threshold line
-          ctx.strokeStyle = "#60a5fa";
-          ctx.lineWidth = 1;
-          ctx.setLineDash([5, 5]);
-          ctx.beginPath();
-          ctx.moveTo(0, h * 0.2);
-          ctx.lineTo(w, h * 0.2);
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          // Draw voltage trace
-          if (traceBuf.length > 1) {
-            ctx.strokeStyle = "#f223e0";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-
-            for (let i = 0; i < traceBuf.length; i++) {
-              const x = (i / (traceBuf.length - 1)) * w;
-              const y = h - traceBuf[i] * h * 0.8;
-
-              if (i === 0) {
-                ctx.moveTo(x, y);
-              } else {
-                ctx.lineTo(x, y);
-              }
-            }
-            ctx.stroke();
-          }
-
-          // Update voltage value display
-          if (selectedNeuron) {
-            const voltageEl = document.getElementById("voltageValue");
-            if (voltageEl) {
-              voltageEl.textContent = (
-                selectedNeuron.userData.volt || 0
-              ).toFixed(3);
-            }
-          }
-        }
-
-        // Network topology
+        // Create the neural network
         function createNetworkTopology() {
           // Clear existing
           neurons.forEach((n) => scene.remove(n));
@@ -1024,627 +930,64 @@
           console.log(`Created ${connections.length} connections`);
         }
 
-        // FIXED: Camera control functions
-        function setupCameraControls() {
-          const canvas = renderer.domElement;
-
-          canvas.addEventListener("mousedown", (e) => {
-            if (e.button === 0) {
-              isDragging = true;
-            } else if (e.button === 2) {
-              isPanning = true;
-              e.preventDefault();
-            }
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-          });
-
-          canvas.addEventListener("mousemove", (e) => {
-            const deltaX = e.clientX - lastMouseX;
-            const deltaY = e.clientY - lastMouseY;
-
-            if (isDragging) {
-              cameraTheta -= deltaX * 0.01;
-              cameraPhi += deltaY * 0.01;
-              cameraPhi = Math.max(0.1, Math.min(Math.PI - 0.1, cameraPhi));
-              updateCameraPosition();
-            } else if (isPanning) {
-              const panSpeed = cameraDistance * 0.0008;
-              const right = new THREE.Vector3(
-                -Math.cos(cameraTheta),
-                0,
-                Math.sin(cameraTheta)
-              );
-              const up = new THREE.Vector3(0, 1, 0);
-
-              cameraTarget.add(right.multiplyScalar(-deltaX * panSpeed));
-              cameraTarget.add(up.multiplyScalar(deltaY * panSpeed));
-              updateCameraPosition();
-            }
-
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-          });
-
-          canvas.addEventListener("mouseup", () => {
-            isDragging = false;
-            isPanning = false;
-          });
-
-          canvas.addEventListener("contextmenu", (e) => e.preventDefault());
-
-          canvas.addEventListener("wheel", (e) => {
-            e.preventDefault();
-            const zoomSpeed = cameraDistance * 0.1;
-            cameraDistance += e.deltaY * zoomSpeed * 0.001;
-            cameraDistance = Math.max(10, Math.min(500, cameraDistance));
-            updateCameraPosition();
-            updateZoomIndicator();
-          });
-
-          canvas.addEventListener("click", (e) => {
-            if (isDragging) return;
-
-            const mouse = new THREE.Vector2();
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(mouse, camera);
-
-            const intersects = raycaster.intersectObjects(neurons);
-            if (intersects.length > 0) {
-              selectNeuron(intersects[0].object);
-            } else {
-              deselectNeuron();
-            }
-          });
-
-          canvas.addEventListener("dblclick", (e) => {
-            const mouse = new THREE.Vector2();
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(mouse, camera);
-
-            const intersects = raycaster.intersectObjects(neurons);
-            if (intersects.length > 0) {
-              focusOnNeuron(intersects[0].object);
-            }
-          });
-
-          document.addEventListener("keydown", (e) => {
-            switch (e.code) {
-              case "Space":
-                e.preventDefault();
-                resetCameraView();
-                break;
-              case "KeyF":
-                if (selectedNeuron) focusOnNeuron(selectedNeuron);
-                break;
-              case "Escape":
-                deselectNeuron();
-                break;
-            }
-          });
-        }
-
-        function updateCameraPosition() {
-          const x =
-            cameraTarget.x +
-            cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
-          const y = cameraTarget.y + cameraDistance * Math.cos(cameraPhi);
-          const z =
-            cameraTarget.z +
-            cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
-
-          camera.position.set(x, y, z);
-          camera.lookAt(cameraTarget);
-        }
-
-        function updateZoomIndicator() {
-          const zoomElement = document.getElementById("zoomValue");
-          if (zoomElement) {
-            const zoomPercent = Math.round(
-              ((200 - cameraDistance) / 190) * 100
-            );
-            zoomElement.textContent = Math.max(0, zoomPercent) + "%";
-          }
-        }
-
-        function resetCameraView() {
-          cameraTarget.set(0, 0, 0);
-          cameraDistance = 120;
-          cameraTheta = 0;
-          cameraPhi = Math.PI / 2;
-          updateCameraPosition();
-          updateZoomIndicator();
-        }
-
-        function selectNeuron(neuron) {
-          if (selectedNeuron) {
-            selectedNeuron.material.emissive.copy(
-              selectedNeuron.userData.originalColor.clone().multiplyScalar(0.4)
-            );
-          }
-
-          selectedNeuron = neuron;
-          selected = neuron.userData.id;
-
-          neuron.material.emissive.copy(
-            new THREE.Color(0xff00d6).multiplyScalar(0.8)
-          );
-
-          updateNeuronInfo(neuron);
-          const neuronInfoElement = document.getElementById("neuronInfo");
-          if (neuronInfoElement) {
-            neuronInfoElement.style.display = "block";
-          }
-        }
-
-        function deselectNeuron() {
-          if (selectedNeuron) {
-            selectedNeuron.material.emissive.copy(
-              selectedNeuron.userData.originalColor.clone().multiplyScalar(0.4)
-            );
-            selectedNeuron = null;
-            selected = null;
-          }
-          const neuronInfoElement = document.getElementById("neuronInfo");
-          if (neuronInfoElement) {
-            neuronInfoElement.style.display = "none";
-          }
-        }
-
-        function focusOnNeuron(neuron) {
-          selectNeuron(neuron);
-
-          const targetPos = neuron.position.clone();
-          const duration = 1000;
-          const startTarget = cameraTarget.clone();
-          const startDistance = cameraDistance;
-          const endDistance = 30;
-          const startTime = Date.now();
-
-          function animateCamera() {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-
-            cameraTarget.lerpVectors(startTarget, targetPos, eased);
-            cameraDistance =
-              startDistance + (endDistance - startDistance) * eased;
-
-            updateCameraPosition();
-            updateZoomIndicator();
-
-            if (progress < 1) {
-              requestAnimationFrame(animateCamera);
-            }
-          }
-          animateCamera();
-        }
-
-        function updateNeuronInfo(neuron) {
-          const userData = neuron.userData;
-          const neuronId = userData.id;
-
-          let connectionsIn = 0;
-          let connectionsOut = 0;
-          connections.forEach((conn) => {
-            if (conn.to === neuronId) connectionsIn++;
-            if (conn.from === neuronId) connectionsOut++;
-          });
-
-          const history = neuronActivityHistory.get(neuronId) || [];
-          const recentSpikes = history.filter(
-            (time) => Date.now() - time < 5000
-          ).length;
-          const activityRate = (recentSpikes / 5).toFixed(1);
-
-          const setElementText = (id, text) => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = text;
-          };
-
-          setElementText("neuronId", neuronId);
-          setElementText("neuronType", userData.type);
-          setElementText("neuronCluster", userData.cluster);
-          setElementText("neuronVoltage", (userData.volt || 0).toFixed(3));
-          setElementText(
-            "neuronLastSpike",
-            history.length > 0
-              ? `${((Date.now() - history[history.length - 1]) / 1000).toFixed(
-                  1
-                )}s ago`
-              : "Never"
-          );
-          setElementText("neuronConnIn", connectionsIn);
-          setElementText("neuronConnOut", connectionsOut);
-          setElementText("neuronActivity", activityRate + " Hz");
-        }
-
         // Animation loop
         function animate() {
           requestAnimationFrame(animate);
 
-          const clusterActivity = [0, 0, 0, 0, 0];
-
+          // Update neurons
           for (let i = 0; i < neurons.length; i++) {
             const n = neurons[i],
               g = glows[i],
               u = n.userData;
 
-            // Always visible base color with voltage modulation
-            const voltage = Math.max(0, Math.min(1, u.volt || 0));
-            const baseColor = u.originalColor.clone();
-            baseColor.lerp(u.glowColor, voltage * 0.4);
-            n.material.color.copy(baseColor);
+            // Simulate random activity
+            if (Math.random() < 0.01) {
+              u.pulse = 1.2;
+            }
 
             if (u.pulse > 0) {
               u.pulse *= 0.85;
               const intensity = u.pulse / 1.2;
 
-              clusterActivity[u.cluster] += intensity;
-
-              if (n === selectedNeuron) {
-                n.material.emissive.copy(
-                  new THREE.Color(0xff00d6).multiplyScalar(
-                    0.8 + intensity * 0.5
-                  )
-                );
-              } else {
-                const glowColor = u.glowColor
-                  .clone()
-                  .multiplyScalar(intensity * 2);
-                n.material.emissive.copy(glowColor);
-              }
+              const glowColor = u.glowColor
+                .clone()
+                .multiplyScalar(intensity * 2);
+              n.material.emissive.copy(glowColor);
 
               n.scale.setScalar(1.0 + intensity * 0.4);
               g.material.opacity = 0.2 + intensity * 0.6;
               g.scale.setScalar(1.0 + intensity * 3.0);
-              g.material.color.copy(u.glowColor);
             } else {
-              if (n === selectedNeuron) {
-                n.material.emissive.copy(
-                  new THREE.Color(0xff00d6).multiplyScalar(0.6)
-                );
-              } else {
-                n.material.emissive.copy(
-                  u.originalColor.clone().multiplyScalar(0.4)
-                );
-              }
+              n.material.emissive.copy(
+                u.originalColor.clone().multiplyScalar(0.4)
+              );
               n.scale.setScalar(1.0);
               g.material.opacity = 0.15;
               g.scale.setScalar(1.0);
             }
           }
 
-          // Update connection colors
-          if (connGeom && col && connections.length > 0) {
-            for (let i = 0; i < connections.length; i++) {
-              const conn = connections[i];
-              const baseIdx = i * 6;
-
-              if (baseIdx + 5 < col.array.length) {
-                const clusterColor = CLUSTER_COLORS[conn.cluster].primary;
-                const activity = clusterActivity[conn.cluster];
-
-                let intensity = 0.4;
-                if (
-                  selectedNeuron &&
-                  (conn.from === selectedNeuron.userData.id ||
-                    conn.to === selectedNeuron.userData.id)
-                ) {
-                  intensity = 0.8 + Math.sin(Date.now() * 0.005) * 0.2;
-                }
-
-                const activityBoost = Math.min(activity * 0.8, 1.0);
-                const totalIntensity = intensity + activityBoost;
-
-                col.array[baseIdx] = clusterColor.r * totalIntensity;
-                col.array[baseIdx + 1] = clusterColor.g * totalIntensity;
-                col.array[baseIdx + 2] = clusterColor.b * totalIntensity;
-                col.array[baseIdx + 3] = clusterColor.r * totalIntensity;
-                col.array[baseIdx + 4] = clusterColor.g * totalIntensity;
-                col.array[baseIdx + 5] = clusterColor.b * totalIntensity;
-              }
-            }
-            col.needsUpdate = true;
-          }
-
-          drawTrace();
           renderer.render(scene, camera);
         }
 
-        // Message handling
+        // Message handling (stub)
         function handleMessage(e) {
-          const d = JSON.parse(e.data);
-
-          if (d.volt) {
-            for (const k in d.volt) {
-              const i = +k;
-              if (neurons[i]) {
-                neurons[i].userData.volt = d.volt[k];
-
-                // Update voltage display if this neuron is selected
-                if (selectedNeuron && selectedNeuron.userData.id === i) {
-                  const voltageEl = document.getElementById("neuronVoltage");
-                  if (voltageEl) voltageEl.textContent = d.volt[k].toFixed(3);
-                }
-
-                if (selected === i) {
-                  traceBuf.push(d.volt[k]);
-                  if (traceBuf.length > 200) traceBuf.shift();
-                }
-              }
-            }
-          }
-
-          if (d.spikes) {
-            const clusterSpikes = {};
-            const currentTime = Date.now();
-
-            d.spikes.forEach((spike) => {
-              const i = spike.i;
-              if (neurons[i]) {
-                const neuron = neurons[i];
-                const cluster = neuron.userData.cluster;
-
-                // Track spike in history
-                if (!neuronActivityHistory.has(i)) {
-                  neuronActivityHistory.set(i, []);
-                }
-                const history = neuronActivityHistory.get(i);
-                history.push(currentTime);
-
-                // Keep only recent spikes (last 30 seconds)
-                while (history.length > 0 && currentTime - history[0] > 30000) {
-                  history.shift();
-                }
-
-                neuron.userData.pulse = 1.2;
-
-                // Update selected neuron info if needed
-                if (selectedNeuron && selectedNeuron.userData.id === i) {
-                  updateNeuronInfo(selectedNeuron);
-                }
-
-                if (!clusterSpikes[cluster]) clusterSpikes[cluster] = [];
-                clusterSpikes[cluster].push(neuron);
-              }
-            });
-
-            // CLUSTER BURST EFFECTS
-            Object.keys(clusterSpikes).forEach((clusterId) => {
-              const spikes = clusterSpikes[clusterId];
-              if (spikes.length > 1) {
-                neurons.forEach((n) => {
-                  if (n.userData.cluster == clusterId) {
-                    n.userData.pulse = Math.max(n.userData.pulse, 1.5);
-                  }
-                });
-              }
-            });
-          }
+          // WebSocket message handling would go here
         }
 
-        // FIXED: Button controls
-        const btn = document.getElementById("play");
-        const rng = document.getElementById("speed");
-
-        if (btn) {
-          btn.onclick = () => {
-            if (!ws || ws.readyState !== WebSocket.OPEN) return;
-
-            const isCurrentlyPaused = btn.classList.contains("on");
-
-            if (isCurrentlyPaused) {
-              btn.classList.remove("on");
-              btn.textContent = "Play";
-              ws.send(JSON.stringify({ cmd: "pause" }));
-            } else {
-              btn.classList.add("on");
-              btn.textContent = "Pause";
-              ws.send(JSON.stringify({ cmd: "play" }));
-            }
-          };
-        }
-
-        if (rng) {
-          rng.oninput = () => {
-            if (!ws || ws.readyState !== WebSocket.OPEN) return;
-            const speed = parseInt(rng.value, 10);
-            const dt_ms = Math.max(5, 200 - speed);
-            ws.send(JSON.stringify({ cmd: "speed", dt_ms: dt_ms }));
-          };
-        }
-
-        // FIXED: Control sliders
-        const inputSlider = document.getElementById("inputCurrent");
-        if (inputSlider) {
-          inputSlider.addEventListener("input", () => {
-            const v = parseFloat(inputSlider.value);
-            const label = document.getElementById("inputValue");
-            if (label) label.textContent = v.toFixed(1);
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ cmd: "setInput", value: v }));
-            }
-          });
-        }
-
-        const synapseSlider = document.getElementById("synapseWeight");
-        if (synapseSlider) {
-          synapseSlider.addEventListener("input", () => {
-            const v = parseFloat(synapseSlider.value);
-            const label = document.getElementById("weightValue");
-            if (label) label.textContent = v.toFixed(2);
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ cmd: "setWeight", value: v }));
-            }
-          });
-        }
-
-        const probSlider = document.getElementById("connectionProb");
-        if (probSlider) {
-          probSlider.addEventListener("input", () => {
-            const v = parseFloat(probSlider.value);
-            const label = document.getElementById("probValue");
-            if (label) label.textContent = v.toFixed(3);
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ cmd: "setConnectionProb", value: v }));
-            }
-          });
-        }
-
-        const sizeSlider = document.getElementById("networkSize");
-        if (sizeSlider) {
-          sizeSlider.addEventListener("input", () => {
-            const v = parseInt(sizeSlider.value, 10);
-            const label = document.getElementById("sizeValue");
-            if (label) label.textContent = v;
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ cmd: "setNetworkSize", value: v }));
-              ws.send(JSON.stringify({ cmd: "reset" }));
-            }
-          });
-        }
-
-        const resetBtn = document.getElementById("resetNetwork");
-        if (resetBtn) {
-          resetBtn.addEventListener("click", () => {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ cmd: "reset" }));
-            }
-          });
-        }
-
-        const showWeightsBtn = document.getElementById("showWeights");
-        if (showWeightsBtn) {
-          showWeightsBtn.addEventListener("click", () => {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ cmd: "toggleWeights" }));
-            }
-          });
-        }
-
-        const injectBtn = document.getElementById("injectPattern");
-        if (injectBtn) {
-          injectBtn.addEventListener("click", () => {
-            if (ws && ws.readyState === WebSocket.OPEN)
-              ws.send(JSON.stringify({ cmd: "injectPattern" }));
-          });
-        }
-
-        const testBtn = document.getElementById("testMemory");
-        if (testBtn) {
-          testBtn.addEventListener("click", () => {
-            if (ws && ws.readyState === WebSocket.OPEN)
-              ws.send(JSON.stringify({ cmd: "testMemory" }));
-          });
-        }
-
-        // Lesson helper functions
-        function updateLessonContent() {
-          const box = document.getElementById("lessonContent");
-          if (!box) return;
-          const lesson = lessonContent[currentLesson];
-          box.innerHTML = `<div class="lesson"><strong>Lesson ${currentLesson}: ${
-            lesson ? lesson.title : "N/A"
-          }</strong><br>${lesson ? lesson.content : ""}</div>`;
-        }
-
-        function updateLessonControls() {
-          const pc = document.getElementById("patternControls");
-          if (pc) pc.style.display = currentLesson === 4 ? "block" : "none";
-        }
-
-        function updateNavigationButtons() {
-          const selEl = document.getElementById("lessonSelect");
-          if (selEl) selEl.value = currentLesson;
-          const prevBtn = document.getElementById("prevLesson");
-          const nextBtn = document.getElementById("nextLesson");
-          if (prevBtn) prevBtn.disabled = currentLesson === 1;
-          if (nextBtn) nextBtn.disabled = currentLesson === 4;
-        }
-
-        // Wire up lesson controls
-        document.querySelectorAll(".toggle").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            document
-              .querySelectorAll(".toggle")
-              .forEach((b) => b.classList.remove("active"));
-            btn.classList.add("active");
-            currentLesson = parseInt(btn.id.replace("lesson", "")) || 1;
-            updateLessonContent();
-            updateLessonControls();
-            updateNavigationButtons();
-          });
-        });
-
-        // Lesson modal with full content
-        function openLessonModal() {
-          const modal = document.getElementById("lessonModal");
-          const fallback = document.getElementById("lessonFallback");
-          if (!modal || !fallback) return;
-
-          modal.style.display = "block";
-          fallback.style.display = "block";
-          document.getElementById("lessonFrame").style.display = "none";
-
-          const fullContent = {
-            1: `<h1>Lesson 1: Basic Spike Dynamics</h1><p>Neural networks are built from individual neurons that integrate electrical signals and fire action potentials when threshold is reached. Use the Input Current slider to experiment with different firing patterns.</p>`,
-            2: `<h1>Lesson 2: Synaptic Transmission</h1><p>Neurons communicate through synaptic connections. Adjust Synaptic Weight and Connection Probability to see how network connectivity affects information flow.</p>`,
-            3: `<h1>Lesson 3: Network Plasticity</h1><p>Neural networks adapt through synaptic plasticity - the strengthening and weakening of connections based on activity patterns. This is the basis of learning and memory.</p>`,
-            4: `<h1>Lesson 4: Pattern Recognition</h1><p>Neural networks can store and recall patterns through associative memory. Use Inject Pattern and Test Memory to experiment with pattern storage and retrieval.</p>`,
-          };
-
-          fallback.innerHTML =
-            fullContent[currentLesson] ||
-            `<p>Lesson ${currentLesson} not available.</p>`;
-        }
-
-        // Hook modal controls
-        const viewBtn = document.getElementById("viewLesson");
-        if (viewBtn) viewBtn.addEventListener("click", openLessonModal);
-
-        const closeModal = document.getElementById("closeModal");
-        if (closeModal)
-          closeModal.addEventListener("click", () => {
-            const modal = document.getElementById("lessonModal");
-            if (modal) modal.style.display = "none";
-          });
-
-        const modal = document.getElementById("lessonModal");
-        if (modal)
-          modal.addEventListener("click", (e) => {
-            if (e.target === modal) modal.style.display = "none";
-          });
-
-        // Initialize
-        setupCameraControls();
-        updateZoomIndicator();
-        updateLessonContent();
-        updateLessonControls();
-        updateNavigationButtons();
+        // Initialize everything
         createNetworkTopology();
         connectWS();
         animate();
 
-        // Handle window resize
-        addEventListener("resize", () => {
-          camera.aspect = innerWidth / innerHeight;
-          camera.updateProjectionMatrix();
-          renderer.setSize(innerWidth, innerHeight);
-        });
+        console.log("Neural network initialized successfully!");
       }
 
-      // Start the application
-      if (window.THREE) {
-        initApp();
+      // Start when page loads
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initNeuralNetwork);
       } else {
-        setTimeout(initApp, 100);
+        initNeuralNetwork();
       }
     </script>
   </body>
