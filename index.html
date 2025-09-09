@@ -176,13 +176,13 @@
 
   const NUM=50, N_EXC = 40, N_INH = 10;
   
-  // STUNNING CLUSTER COLORS - inspired by premium neural network visualizations
+  // PROFESSIONAL CLUSTER COLORS - matching your reference image
   const CLUSTER_COLORS = [
-    { primary: new THREE.Color(0.2, 0.8, 1.0), glow: new THREE.Color(0.4, 0.9, 1.0), name: "Sensory" },     // Cyan
-    { primary: new THREE.Color(1.0, 0.4, 0.8), glow: new THREE.Color(1.0, 0.6, 0.9), name: "Motor" },       // Magenta
-    { primary: new THREE.Color(0.8, 1.0, 0.2), glow: new THREE.Color(0.9, 1.0, 0.4), name: "Memory" },      // Lime
-    { primary: new THREE.Color(1.0, 0.8, 0.2), glow: new THREE.Color(1.0, 0.9, 0.4), name: "Control" },     // Orange
-    { primary: new THREE.Color(1.0, 0.2, 0.2), glow: new THREE.Color(1.0, 0.4, 0.4), name: "Inhibitory" }   // Red
+    { primary: new THREE.Color(0.0, 0.8, 1.0), glow: new THREE.Color(0.3, 0.9, 1.0), name: "Sensory" },     // Bright Cyan
+    { primary: new THREE.Color(1.0, 0.2, 0.8), glow: new THREE.Color(1.0, 0.5, 0.9), name: "Motor" },       // Hot Pink
+    { primary: new THREE.Color(0.9, 1.0, 0.0), glow: new THREE.Color(1.0, 1.0, 0.4), name: "Memory" },      // Electric Yellow
+    { primary: new THREE.Color(1.0, 0.5, 0.0), glow: new THREE.Color(1.0, 0.7, 0.3), name: "Control" },     // Bright Orange
+    { primary: new THREE.Color(1.0, 0.0, 0.4), glow: new THREE.Color(1.0, 0.3, 0.6), name: "Inhibitory" }   // Electric Red
   ];
 
   // Initialize Three.js with PREMIUM QUALITY
@@ -296,6 +296,7 @@
   let showWeights = false;
   let currentLesson = 1;
 
+  // DENSE INTERCONNECTED NETWORK TOPOLOGY
   function createStunningNetworkTopology() {
     // Clear existing
     neurons.forEach(n => scene.remove(n));
@@ -303,40 +304,34 @@
     neurons.length = 0;
     glows.length = 0;
 
-    // Create 4 distinct clusters in 3D space
-    const clusterCenters = [
-      new THREE.Vector3(-40, 30, 20),   // Sensory cluster
-      new THREE.Vector3(40, 30, -20),   // Motor cluster  
-      new THREE.Vector3(-40, -30, -20), // Memory cluster
-      new THREE.Vector3(40, -30, 20),   // Control cluster
-    ];
-
-    // Create excitatory neurons in clusters
+    // Create a DENSE 3D network layout (like your reference image)
+    const radius = 35;
+    const layers = 3;
+    
+    // Create excitatory neurons in dense clustered formation
     for (let i = 0; i < N_EXC; i++) {
       const clusterId = Math.floor(i / (N_EXC / 4));
-      const clusterCenter = clusterCenters[clusterId];
       const clusterColor = CLUSTER_COLORS[clusterId];
       
-      // Position within cluster with some randomness
-      const angle = (i % (N_EXC / 4)) / (N_EXC / 4) * Math.PI * 2;
-      const radius = 8 + Math.random() * 6;
-      const height = (Math.random() - 0.5) * 8;
+      // Dense spherical distribution for each cluster
+      const layer = Math.floor(i / (N_EXC / layers));
+      const angleY = (i / (N_EXC / 4)) * Math.PI * 2 + clusterId * Math.PI * 0.5;
+      const angleX = (layer / layers) * Math.PI;
+      const clusterRadius = radius + (Math.random() - 0.5) * 15;
       
       const position = new THREE.Vector3(
-        clusterCenter.x + Math.cos(angle) * radius + (Math.random() - 0.5) * 4,
-        clusterCenter.y + Math.sin(angle) * radius + (Math.random() - 0.5) * 4,
-        clusterCenter.z + height
+        Math.sin(angleX) * Math.cos(angleY) * clusterRadius,
+        Math.cos(angleX) * clusterRadius * 0.7,
+        Math.sin(angleX) * Math.sin(angleY) * clusterRadius
       );
 
-      // High-quality neuron geometry
-      const geometry = new THREE.SphereGeometry(1.8, 32, 32);
-      const material = new THREE.MeshPhysicalMaterial({
+      // High-quality neuron with BRIGHT materials
+      const geometry = new THREE.SphereGeometry(1.2, 24, 24);
+      const material = new THREE.MeshStandardMaterial({
         color: clusterColor.primary,
-        emissive: new THREE.Color(0x000000),
-        roughness: 0.1,
-        metalness: 0.9,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.1,
+        emissive: clusterColor.primary.clone().multiplyScalar(0.3),
+        roughness: 0.3,
+        metalness: 0.8,
         transparent: true,
         opacity: 0.9
       });
@@ -352,13 +347,11 @@
         originalColor: clusterColor.primary.clone(),
         glowColor: clusterColor.glow.clone()
       };
-      neuron.castShadow = true;
-      neuron.receiveShadow = true;
       scene.add(neuron);
       neurons.push(neuron);
 
-      // Stunning glow effect
-      const glowGeometry = new THREE.SphereGeometry(3.5, 16, 16);
+      // BRIGHT glow effect
+      const glowGeometry = new THREE.SphereGeometry(2.5, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
         color: clusterColor.glow,
         transparent: true,
@@ -371,23 +364,23 @@
       glows.push(glow);
     }
 
-    // Create inhibitory neurons (distributed around the network)
+    // Create inhibitory neurons distributed throughout
     for (let i = 0; i < N_INH; i++) {
       const angle = (i / N_INH) * Math.PI * 2;
-      const radius = 60;
-      const height = (Math.random() - 0.5) * 20;
+      const height = (Math.random() - 0.5) * 40;
+      const r = radius * 1.3;
       
       const position = new THREE.Vector3(
-        Math.cos(angle) * radius,
-        Math.sin(angle) * radius,
-        height
+        Math.cos(angle) * r,
+        height,
+        Math.sin(angle) * r
       );
 
-      const geometry = new THREE.OctahedronGeometry(1.5, 2);  // Different shape for inhibitory
-      const material = new THREE.MeshPhysicalMaterial({
+      const geometry = new THREE.SphereGeometry(1.0, 20, 20);
+      const material = new THREE.MeshStandardMaterial({
         color: CLUSTER_COLORS[4].primary,
-        emissive: new THREE.Color(0x000000),
-        roughness: 0.2,
+        emissive: CLUSTER_COLORS[4].primary.clone().multiplyScalar(0.3),
+        roughness: 0.3,
         metalness: 0.8,
         transparent: true,
         opacity: 0.9
@@ -404,13 +397,11 @@
         originalColor: CLUSTER_COLORS[4].primary.clone(),
         glowColor: CLUSTER_COLORS[4].glow.clone()
       };
-      neuron.castShadow = true;
-      neuron.receiveShadow = true;
       scene.add(neuron);
       neurons.push(neuron);
 
-      // Red glow for inhibitory
-      const glowGeometry = new THREE.SphereGeometry(3.0, 16, 16);
+      // Red glow
+      const glowGeometry = new THREE.SphereGeometry(2.0, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
         color: CLUSTER_COLORS[4].glow,
         transparent: true,
@@ -423,18 +414,63 @@
       glows.push(glow);
     }
 
-    // Initialize connection geometry
+    // DENSE CONNECTION NETWORK - ALL INTERCONNECTED like your reference image
+    createDenseConnectionNetwork();
+
+    console.log(`Created DENSE network: ${neurons.length} neurons with full interconnectivity`);
+  }
+
+  // DENSE CONNECTION VISUALIZATION - like your reference image
+  function createDenseConnectionNetwork() {
+    const positions = [];
+    const colors = [];
+    const connectionData = [];
+    
+    // Create MANY connections - much denser than before
+    for (let i = 0; i < neurons.length; i++) {
+      for (let j = 0; j < neurons.length; j++) {
+        if (i !== j) {
+          // Much higher connection probability for dense network
+          const prob = neurons[i].userData.cluster === neurons[j].userData.cluster ? 0.6 : 0.3;
+          
+          if (Math.random() < prob) {
+            const fromPos = neurons[i].position;
+            const toPos = neurons[j].position;
+            
+            positions.push(fromPos.x, fromPos.y, fromPos.z);
+            positions.push(toPos.x, toPos.y, toPos.z);
+            
+            // Cluster-based connection colors
+            const fromCluster = neurons[i].userData.cluster;
+            const color = CLUSTER_COLORS[fromCluster].primary.clone().multiplyScalar(0.3);
+            
+            colors.push(color.r, color.g, color.b);
+            colors.push(color.r, color.g, color.b);
+            
+            connectionData.push({ from: i, to: j, cluster: fromCluster });
+          }
+        }
+      }
+    }
+    
+    // Create dense connection geometry
     connGeom = new THREE.BufferGeometry();
+    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    col = connGeom.getAttribute('color');
+    
     const lineMat = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.4,
       blending: THREE.AdditiveBlending
     });
+    
     lines = new THREE.LineSegments(connGeom, lineMat);
     scene.add(lines);
-
-    console.log(`Created stunning network: ${N_EXC} excitatory + ${N_INH} inhibitory neurons`);
+    
+    connections = connectionData;
+    console.log(`Created ${connections.length} dense connections`);
   }
 
   createStunningNetworkTopology();
@@ -458,73 +494,139 @@
     }
   });
 
-  // FIXED: Add missing animate function
+  // ENHANCED ANIMATION with cluster firing effects
   function animate(){
     requestAnimationFrame(animate);
+    
+    // Track cluster activity for synchronized effects
+    const clusterActivity = [0, 0, 0, 0, 0];
     
     for(let i = 0; i < neurons.length; i++){
       const n = neurons[i], g = glows[i], u = n.userData;
       
       if(u.pulse > 0){
-        u.pulse *= 0.88;
-        const p = u.pulse / 1.2;
+        u.pulse *= 0.85;
+        const intensity = u.pulse / 1.2;
         
-        if(u.type === 'excitatory'){
-          // Violet firing for excitatory
-          n.material.emissive.setRGB(p * 0.95, p * 0.15, p * 0.95);
-          g.material.color.setRGB(0.95, 0.15 + p * 0.85, 0.95);
-        } else {
-          // Orange firing for inhibitory
-          n.material.emissive.setRGB(p * 1.0, p * 0.5, p * 0.1);
-          g.material.color.setRGB(1.0, 0.5 + p * 0.5, 0.1);
-        }
+        // Add to cluster activity
+        clusterActivity[u.cluster] += intensity;
         
-        g.material.opacity = p * 0.9;
-        g.scale.setScalar((u.type === 'excitatory' ? 5 : 4) + p * 3);
+        // BRIGHT firing effects
+        const glowColor = u.glowColor.clone().multiplyScalar(intensity);
+        n.material.emissive.copy(glowColor);
+        n.scale.setScalar(1.0 + intensity * 0.4);
+        
+        // Stunning glow expansion
+        g.material.opacity = intensity * 0.8;
+        g.scale.setScalar(1.0 + intensity * 3.0);
+        g.material.color.copy(u.glowColor);
+        
       } else {
-        // Reset to base colors
-        if(u.type === 'excitatory'){
-          g.material.color.setRGB(0.23, 0.51, 0.98);
-        } else {
-          g.material.color.setRGB(0.94, 0.26, 0.26);
-        }
+        // Reset to base state
+        n.material.emissive.copy(u.originalColor.clone().multiplyScalar(0.2));
+        n.scale.setScalar(1.0);
+        g.material.opacity = 0.1;
+        g.scale.setScalar(1.0);
       }
       
       // Voltage-based color modulation
-      const v = Math.max(0, Math.min(1, u.volt || 0));
-      if(u.type === 'excitatory'){
-        const hue = 0.62 - v * 0.15;  // Blue to violet
-        n.material.color.setHSL(hue, 0.85 + v * 0.1, 0.35 + v * 0.4);
-      } else {
-        const hue = 0.0 + v * 0.08;   // Red to orange
-        n.material.color.setHSL(hue, 0.9, 0.4 + v * 0.3);
-      }
-      
-      n.material.metalness = 0.9 + v * 0.1;
-      n.material.roughness = 0.1 - v * 0.05;
+      const voltage = Math.max(0, Math.min(1, u.volt || 0));
+      const baseColor = u.originalColor.clone();
+      baseColor.lerp(u.glowColor, voltage * 0.5);
+      n.material.color.copy(baseColor);
     }
     
-    // Premium connection lighting effects
-    if (connGeom && col) {
-      const colors=connGeom.getAttribute('color');
-      for(let i=0;i<colors.array.length;i+=3){
-        if (showWeights) {
-          // Keep connections bright when showing weights
-          colors.array[i] = Math.max(0.3, colors.array[i] * 0.999);
-          colors.array[i+1] = Math.max(0.5, colors.array[i+1] * 0.999);
-          colors.array[i+2] = Math.max(0.8, colors.array[i+2] * 0.999);
-        } else {
-          // Very subtle connection fade for premium look
-          colors.array[i]=Math.max(0.02, colors.array[i]*0.995);
-          colors.array[i+1]=Math.max(0.04, colors.array[i+1]*0.995);
-          colors.array[i+2]=Math.max(0.08, colors.array[i+2]*0.995);
+    // CLUSTER-BASED CONNECTION LIGHTING - like your reference!
+    if (connGeom && col && connections.length > 0) {
+      for(let i = 0; i < connections.length; i++){
+        const conn = connections[i];
+        const activity = clusterActivity[conn.cluster];
+        const baseIdx = i * 6; // 2 vertices * 3 components
+        
+        if (baseIdx + 5 < col.array.length) {
+          const clusterColor = CLUSTER_COLORS[conn.cluster].glow;
+          const intensity = Math.min(activity * 0.3, 1.0);
+          
+          // Bright connection colors when cluster is active
+          col.array[baseIdx] = clusterColor.r * intensity;
+          col.array[baseIdx + 1] = clusterColor.g * intensity;
+          col.array[baseIdx + 2] = clusterColor.b * intensity;
+          col.array[baseIdx + 3] = clusterColor.r * intensity;
+          col.array[baseIdx + 4] = clusterColor.g * intensity;
+          col.array[baseIdx + 5] = clusterColor.b * intensity;
         }
       }
-      colors.needsUpdate=true;
+      col.needsUpdate = true;
     }
     
+    // Dynamic camera movement for cinematic effect
+    const time = Date.now() * 0.0003;
+    camera.position.x = Math.cos(time) * 8;
+    camera.position.y = Math.sin(time * 0.7) * 5;
+    camera.lookAt(0, 0, 0);
+    
     drawTrace();
-    renderer.render(scene,camera);
+    renderer.render(scene, camera);
+  }
+
+  // Enhanced message handling for cluster effects
+  function handleMessage(e) {
+    const d = JSON.parse(e.data);
+    
+    if (d.volt) {
+      for (const k in d.volt) {
+        const i = +k;
+        if (neurons[i]) {
+          neurons[i].userData.volt = d.volt[k];
+          if (selected === i) {
+            traceBuf.push(d.volt[k]);
+            if (traceBuf.length > 200) traceBuf.shift();
+          }
+        }
+      }
+    }
+    
+    if (d.spikes) {
+      // Group spikes by cluster for synchronized effects
+      const clusterSpikes = {};
+      
+      d.spikes.forEach(spike => {
+        const i = spike.i;
+        if (neurons[i]) {
+          const neuron = neurons[i];
+          const cluster = neuron.userData.cluster;
+          
+          // Set individual pulse
+          neuron.userData.pulse = 1.2;
+          
+          // Track cluster spikes
+          if (!clusterSpikes[cluster]) clusterSpikes[cluster] = [];
+          clusterSpikes[cluster].push(neuron);
+        }
+      });
+      
+      // CLUSTER BURST EFFECTS - when multiple neurons in same cluster fire
+      Object.keys(clusterSpikes).forEach(clusterId => {
+        const spikes = clusterSpikes[clusterId];
+        if (spikes.length > 1) {
+          // Amplify all neurons in this cluster
+          neurons.forEach(n => {
+            if (n.userData.cluster == clusterId) {
+              n.userData.pulse = Math.max(n.userData.pulse, 1.5);
+            }
+          });
+          
+          // Intensify accent light for this cluster
+          if (accentLights[clusterId]) {
+            accentLights[clusterId].intensity = 3.0;
+          }
+        }
+      });
+    }
+    
+    if (d.cmd === "showConnections" && d.connections) {
+      updateConnectionVisualization(d.connections);
+    }
   }
 
   // FIXED: Add missing openLessonModal function
@@ -646,108 +748,6 @@
 </script>
 </body>
 </html>
-        <ul>
-          <li><strong>Biological memory</strong>: How brains store experiences</li>
-          <li><strong>Artificial intelligence</strong>: Pattern recognition systems</li>
-          <li><strong>Neuromorphic computing</strong>: Brain-inspired processors</li>
-        </ul>
-      `
-    }
-  };
-
-  // FIXED: Add missing openLessonModal function
-  function openLessonModal() {
-    const modal = document.getElementById('lessonModal');
-    const content = document.getElementById('lessonFullContent');
-    
-    if (!modal || !content) return;
-    
-    modal.style.display = 'block';
-    
-    const lesson = lessonContent[currentLesson];
-    if (lesson) {
-      content.innerHTML = lesson.content;
-    } else {
-      content.innerHTML = `
-        <div style="text-align:center;padding:40px;color:#ef4444;">
-          <h3>Lesson ${currentLesson} Content</h3>
-          <p>Lesson content not available.</p>
-        </div>
-      `;
-    }
-  }
-
-  // FIXED: Simplified educational controls setup
-  function setupEducationalControls() {
-    // Show weights button
-    const showWeightsBtn = document.getElementById('showWeights');
-    if (showWeightsBtn) {
-      showWeightsBtn.addEventListener('click', () => {
-        showWeights = !showWeights;
-        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
-        showWeightsBtn.classList.toggle('on', showWeights);
-        
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'toggleWeights'}));
-        }
-        
-        if (!showWeights) {
-          connectionLabels.forEach(label => {
-            if (label.parent) label.parent.remove(label);
-          });
-          connectionLabels.length = 0;
-        }
-      });
-    }
-
-    // View lesson button
-    const viewBtn = document.getElementById('viewLesson');
-    if (viewBtn) {
-      viewBtn.addEventListener('click', () => {
-        openLessonModal();
-      });
-    }
-
-    // Modal close
-    const closeModal = document.getElementById('closeModal');
-    const modal = document.getElementById('lessonModal');
-    
-    if (closeModal) {
-      closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-      });
-    }
-
-    if (modal) {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.style.display = 'none';
-        }
-      });
-    }
-  }
-
-  // UI Controls - FIXED pause and speed functionality
-  const btn = document.getElementById('play'), rng = document.getElementById('speed');
-  
-  btn.onclick = () => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    
-    const isCurrentlyPaused = btn.classList.contains('on');
-    
-    if (isCurrentlyPaused) {
-      btn.classList.remove('on');
-      btn.textContent = 'Play';
-      ws.send(JSON.stringify({cmd:'pause'}));
-    } else {
-      btn.classList.add('on');
-      btn.textContent = 'Pause';
-      ws.send(JSON.stringify({cmd:'play'}));
-    }
-  };
-  
-  rng.oninput = () => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
     const speed = parseInt(rng.value, 10);
     const dt_ms = Math.max(5, 200 - speed);
     ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
