@@ -300,34 +300,6 @@ def create_realistic_network():
     
     return N_exc, N_inh
 
-if __name__=="__main__": 
-    asyncio.run(main())
-    connect_clustered(S_ei, G_exc, G_inh, prob_local=0.0, prob_distant=0.5)
-    connect_clustered(S_ie, G_inh, G_exc, prob_local=0.0, prob_distant=0.8)
-    connect_clustered(S_ii, G_inh, G_inh, prob_local=0.0, prob_distant=0.3)
-    
-    # Set synaptic weights
-    S_ee.w = PARAMS["synapse_weight"]
-    S_ei.w = PARAMS["synapse_weight"] * 1.5
-    S_ie.w = PARAMS["inhibition_strength"]
-    S_ii.w = PARAMS["inhibition_strength"] * 0.8
-    
-    # SPARSE EXTERNAL INPUT - stimulate one cluster at a time
-    cluster_to_stimulate = np.random.randint(0, 4)
-    for i in range(N_exc):
-        if G_exc.cluster[i] == cluster_to_stimulate:
-            G_exc.I_input[i] = PARAMS["input_current"] * 2
-    
-    # Poisson input
-    P = PoissonInput(G_exc, 'I_input', N_exc, 1*Hz, weight=0.01)
-    
-    # Monitors
-    sm = SpikeMonitor(G_exc + G_inh)
-    vm = StateMonitor(G_exc, 'v', record=True)
-    
-    net = Network(collect())
-    
-    return N_exc, N_inh
 
 if __name__=="__main__": 
     asyncio.run(main())
