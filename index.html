@@ -699,98 +699,11 @@
         }
       });
     }
-  }
 
-  // UI Controls - FIXED pause and speed functionality
-  const btn = document.getElementById('play'), rng = document.getElementById('speed');
-  
-  btn.onclick = () => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    
-    const isCurrentlyPaused = btn.classList.contains('on');
-    
-    if (isCurrentlyPaused) {
-      btn.classList.remove('on');
-      btn.textContent = 'Play';
-      ws.send(JSON.stringify({cmd:'pause'}));
-    } else {
-      btn.classList.add('on');
-      btn.textContent = 'Pause';
-      ws.send(JSON.stringify({cmd:'play'}));
-    }
-  };
-  
-  rng.oninput = () => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    const speed = parseInt(rng.value, 10);
-    const dt_ms = Math.max(5, 200 - speed);
-    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
-  };
-
-  // Initialize everything
-  console.log('Initializing educational controls...');
-  setupEducationalControls();
-  
-  console.log('Connecting to WebSocket...');
-  connectWS();
-  
-  console.log('Starting animation loop...');
-  animate();
-
-  // Handle window resize
-  addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
-  });
-
-})();
-</script>
-</body>
-</html>
-    const speed = parseInt(rng.value, 10);
-    const dt_ms = Math.max(5, 200 - speed);
-    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
-  };
-
-  // Initialize everything
-  console.log('Initializing educational controls...');
-  setupEducationalControls();
-  
-  console.log('Connecting to WebSocket...');
-  connectWS();
-  
-  console.log('Starting animation loop...');
-  animate();
-
-  // Handle window resize
-  addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
-  });
-
-})();
-</script>
-</body>
-</html>
-    } else {
-      content.innerHTML = `
-        <div style="text-align:center;padding:40px;color:#ef4444;">
-          <h3>Lesson ${currentLesson} Content</h3>
-          <p>Lesson content not available.</p>
-        </div>
-      `;
-    }
-  }
-
-  // Educational controls setup
-  function setupEducationalControls() {
     // Lesson dropdown functionality
     const lessonSelect = document.getElementById('lessonSelect');
     const prevBtn = document.getElementById('prevLesson');
     const nextBtn = document.getElementById('nextLesson');
-    const viewBtn = document.getElementById('viewLesson');
     
     if (lessonSelect) {
       lessonSelect.addEventListener('change', (e) => {
@@ -824,43 +737,6 @@
         }
       });
     }
-
-    if (viewBtn) {
-      viewBtn.addEventListener('click', () => {
-        openLessonModal();
-      });
-    }
-
-    // Modal controls
-    const closeModal = document.getElementById('closeModal');
-    const modal = document.getElementById('lessonModal');
-    
-    if (closeModal) {
-      closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-      });
-    }
-
-    if (modal) {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.style.display = 'none';
-        }
-      });
-    }
-
-    // Legacy lesson toggle buttons (keep for backwards compatibility)
-    document.querySelectorAll('.toggle').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentLesson = parseInt(btn.id.replace('lesson', ''));
-        lessonSelect.value = currentLesson;
-        updateLessonContent();
-        updateLessonControls();
-        updateNavigationButtons();
-      });
-    });
 
     // Input controls
     const inputCurrent = document.getElementById('inputCurrent');
@@ -961,6 +837,152 @@
     }
   }
 
+  // FIXED: Add missing lessonContent definition
+  const lessonContent = {
+    1: {
+      title: "Basic Spike Dynamics",
+      content: `
+        <h1>Lesson 1: Basic Spike Dynamics</h1>
+        <h2>Learning Objectives</h2>
+        <p>Understand how individual neurons integrate input current and generate action potentials (spikes) when reaching threshold voltage.</p>
+        
+        <h2>Theory</h2>
+        <p><strong>Leaky Integrate-and-Fire Model:</strong></p>
+        <p>Each neuron follows the equation: <code>dv/dt = (-v + I_input)/tau</code></p>
+        <ul>
+          <li><strong>v</strong>: membrane voltage</li>
+          <li><strong>I_input</strong>: input current</li>
+          <li><strong>tau</strong>: time constant (8ms)</li>
+          <li><strong>Threshold</strong>: v = 1.0</li>
+          <li><strong>Reset</strong>: v = 0 after spike</li>
+        </ul>
+
+        <h2>Interactive Experiments</h2>
+        <h3>Experiment 1.1: Single Neuron Response</h3>
+        <ol>
+          <li><strong>Click on any neuron</strong> to select it</li>
+          <li><strong>Observe the voltage trace</strong> in the right panel</li>
+          <li><strong>Adjust Input Current</strong> using the slider (try 0.1 to 1.0)</li>
+          <li><strong>Watch how voltage accumulates</strong> toward threshold</li>
+        </ol>
+      `
+    },
+    2: {
+      title: "Synaptic Transmission",
+      content: `<h1>Lesson 2: Synaptic Transmission</h1><p>Explore how neurons communicate through synaptic connections.</p>`
+    },
+    3: {
+      title: "Network Plasticity", 
+      content: `<h1>Lesson 3: Network Plasticity</h1><p>Understand how neural networks adapt and self-organize.</p>`
+    },
+    4: {
+      title: "Pattern Recognition",
+      content: `<h1>Lesson 4: Pattern Recognition</h1><p>Explore how spiking networks can detect and learn temporal patterns.</p>`
+    }
+  };
+
+  // FIXED: Add missing drawTrace function
+  const drawTrace = () => {
+    const c = document.getElementById('trace').getContext('2d');
+    c.fillStyle = '#0f172a';
+    c.fillRect(0, 0, 260, 150);
+    
+    if (selected === null) {
+      const voltageValue = document.getElementById('voltageValue');
+      if (voltageValue) voltageValue.textContent = '--';
+      return;
+    }
+    
+    // Update voltage display
+    const currentVoltage = neurons[selected] ? neurons[selected].userData.volt || 0 : 0;
+    const voltageValue = document.getElementById('voltageValue');
+    if (voltageValue) {
+      voltageValue.textContent = currentVoltage.toFixed(3);
+    }
+    
+    // Draw threshold line
+    c.strokeStyle = '#60a5fa';
+    c.lineWidth = 1;
+    c.setLineDash([5, 5]);
+    const thresholdY = 148 - 1.0 * 130;
+    c.beginPath();
+    c.moveTo(2, thresholdY);
+    c.lineTo(258, thresholdY);
+    c.stroke();
+    c.setLineDash([]);
+    
+    // Draw voltage trace
+    if (traceBuf.length >= 2) {
+      c.strokeStyle = '#f223e0';
+      c.lineWidth = 2;
+      c.beginPath();
+      const L = traceBuf.length;
+      for (let i = 0; i < L; i++) {
+        const x = i / (L - 1) * 256 + 2;
+        const y = 148 - Math.max(0, Math.min(2, traceBuf[i])) * 65;
+        i ? c.lineTo(x, y) : c.moveTo(x, y);
+      }
+      c.stroke();
+    }
+    
+    // Add voltage scale labels
+    c.fillStyle = '#94a3b8';
+    c.font = '10px Inter';
+    c.fillText('2.0V', 5, 15);
+    c.fillText('1.0V', 5, 83);
+    c.fillText('0.0V', 5, 145);
+  };
+
+  // FIXED: Add missing updateConnectionVisualization function
+  function updateConnectionVisualization(connectionsData) {
+    // Clear existing connection labels
+    connectionLabels.forEach(label => {
+      if (label.parent) label.parent.remove(label);
+    });
+    connectionLabels.length = 0;
+
+    if (!showWeights || !connectionsData || connectionsData.length === 0) return;
+
+    connections = connectionsData;
+
+    // Create beautiful connection lines
+    const positions = [];
+    const colors = [];
+    
+    connections.forEach((conn, index) => {
+      if (conn.from < neurons.length && conn.to < neurons.length) {
+        const fromPos = neurons[conn.from].position;
+        const toPos = neurons[conn.to].position;
+        
+        positions.push(fromPos.x, fromPos.y, fromPos.z);
+        positions.push(toPos.x, toPos.y, toPos.z);
+        
+        // Color based on connection type and strength
+        const color = conn.type === 'excitatory' ? 
+          new THREE.Color(0.2, 0.8, 1.0) : 
+          new THREE.Color(1.0, 0.2, 0.2);
+        
+        const intensity = Math.min(conn.weight * 3, 1.0);
+        color.multiplyScalar(intensity);
+        
+        colors.push(color.r, color.g, color.b);
+        colors.push(color.r, color.g, color.b);
+
+        // Store connection info for outgoing array
+        const fromId = conn.from;
+        if (!outgoing[fromId]) outgoing[fromId] = [];
+        outgoing[fromId].push(index);
+      }
+    });
+    
+    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    col = connGeom.getAttribute('color');
+
+    console.log(`Visualized ${connections.length} stunning connections`);
+  }
+
+  // FIXED: Add missing educational control functions
   function updateNavigationButtons() {
     const prevBtn = document.getElementById('prevLesson');
     const nextBtn = document.getElementById('nextLesson');
@@ -1043,171 +1065,59 @@
     }
   }
 
-  const drawTrace=()=>{
-    const c=document.getElementById('trace').getContext('2d'); 
-    c.fillStyle='#0f172a'; 
-    c.fillRect(0,0,260,150); 
-    
-    if(selected===null) {
-      const voltageValue = document.getElementById('voltageValue');
-      if (voltageValue) voltageValue.textContent = '--';
-      return;
-    }
-    
-    // Update voltage display
-    const currentVoltage = neurons[selected].userData.volt || 0;
-    const voltageValue = document.getElementById('voltageValue');
-    if (voltageValue) {
-      voltageValue.textContent = currentVoltage.toFixed(3);
-    }
-    
-    // Draw threshold line
-    c.strokeStyle='#60a5fa'; 
-    c.lineWidth=1;
-    c.setLineDash([5, 5]);
-    const thresholdY = 148 - 1.0 * 130;
-    c.beginPath();
-    c.moveTo(2, thresholdY);
-    c.lineTo(258, thresholdY);
-    c.stroke();
-    c.setLineDash([]);
-    
-    // Draw voltage trace
-    if(traceBuf.length >= 2) {
-      c.strokeStyle='#f223e0'; 
-      c.lineWidth=2;
-      c.beginPath(); 
-      const L=traceBuf.length; 
-      for(let i=0;i<L;i++){
-        const x=i/(L-1)*256+2;
-        const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65;
-        i?c.lineTo(x,y):c.moveTo(x,y);
-      } 
-      c.stroke();
-    }
-    
-    // Add voltage scale labels
-    c.fillStyle='#94a3b8';
-    c.font='10px Inter';
-    c.fillText('2.0V', 5, 15);
-    c.fillText('1.0V', 5, 83);
-    c.fillText('0.0V', 5, 145);
-  };
-
-  // WebSocket message handler
-  function handleMessage(e) {
-    const d=JSON.parse(e.data);
-    if(d.volt){ 
-      for(const k in d.volt){ 
-        const i=+k; 
-        if(neurons[i]){ 
-          const v=d.volt[k]; 
-          neurons[i].userData.volt=v; 
-          if(selected===i){ 
-            traceBuf.push(v); 
-            if(traceBuf.length>200) traceBuf.shift();
-          } 
-        } 
-      } 
-    }
-    if(d.spikes){ 
-      d.spikes.forEach(s=>{
-        const i=s.i; 
-        if(!neurons[i]) return; 
-        const n=neurons[i]; 
-        n.userData.pulse=1.2; 
+  // FIXED: Complete setupEducationalControls function
+  function setupEducationalControls() {
+    // Show weights button
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
         
-        (outgoing[i]||[]).forEach(seg=>{
-          const a=seg*2*3, b=(seg*2+1)*3; 
-          col.array[a]=col.array[b]=0.9; 
-          col.array[a+1]=col.array[b+1]=0.95; 
-          col.array[a+2]=col.array[b+2]=1.0;
-        }); 
-        col.needsUpdate=true;
-      }); 
-    }
-    // FIXED: Handle connection visualization
-    if(d.cmd === "showConnections" && d.connections) {
-      console.log(`Received ${d.connections.length} connections`);
-      updateConnectionVisualization(d.connections);
-    }
-  }
-
-  // FIXED: Add connection visualization function
-  function updateConnectionVisualization(connections) {
-    // Clear existing visualization
-    connectionLabels.forEach(label => {
-      if (label.parent) label.parent.remove(label);
-    });
-    connectionLabels = [];
-
-    if (!showWeights || connections.length === 0) return;
-
-    // Create new connection geometry
-    const positions = [];
-    const colors = [];
-    
-    connections.forEach(conn => {
-      if (conn.from < neurons.length && conn.to < neurons.length) {
-        const fromPos = neurons[conn.from].position;
-        const toPos = neurons[conn.to].position;
-        
-        positions.push(fromPos.x, fromPos.y, fromPos.z);
-        positions.push(toPos.x, toPos.y, toPos.z);
-        
-        // Color based on connection type
-        if (conn.type === 'excitatory') {
-          colors.push(0.2, 0.6, 1.0, 0.2, 0.6, 1.0);  // Blue
-        } else {
-          colors.push(1.0, 0.3, 0.3, 1.0, 0.3, 0.3);  // Red for inhibitory
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
         }
         
-        // Add weight label at midpoint
-        const midPoint = new THREE.Vector3(
-          (fromPos.x + toPos.x) / 2,
-          (fromPos.y + toPos.y) / 2,
-          (fromPos.z + toPos.z) / 2
-        );
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels.length = 0;
+        }
+      });
+    }
 
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.width = 64;
-        canvas.height = 32;
-        
-        context.fillStyle = conn.type === 'excitatory' ? '#60a5fa' : '#ef4444';
-        context.font = '10px Inter';
-        context.textAlign = 'center';
-        context.fillText(conn.weight.toFixed(3), 32, 20);
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        const spriteMaterial = new THREE.SpriteMaterial({ 
-          map: texture, 
-          transparent: true,
-          opacity: 0.7
-        });
-        const sprite = new THREE.Sprite(spriteMaterial);
-        sprite.position.copy(midPoint);
-        sprite.scale.set(3, 1.5, 1);
-        
-        scene.add(sprite);
-        connectionLabels.push(sprite);
-      }
-    });
-    
-    // Update geometry
-    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    
-    console.log(`Visualized ${connections.length} realistic connections`);
-  }
+    // View lesson button
+    const viewBtn = document.getElementById('viewLesson');
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        openLessonModal();
+      });
+    }
 
-  // Educational controls setup
-  function setupEducationalControls() {
+    // Modal close
+    const closeModal = document.getElementById('closeModal');
+    const modal = document.getElementById('lessonModal');
+    
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
     // Lesson dropdown functionality
     const lessonSelect = document.getElementById('lessonSelect');
     const prevBtn = document.getElementById('prevLesson');
     const nextBtn = document.getElementById('nextLesson');
-    const viewBtn = document.getElementById('viewLesson');
     
     if (lessonSelect) {
       lessonSelect.addEventListener('change', (e) => {
@@ -1242,43 +1152,6 @@
       });
     }
 
-    if (viewBtn) {
-      viewBtn.addEventListener('click', () => {
-        openLessonModal();
-      });
-    }
-
-    // Modal controls
-    const closeModal = document.getElementById('closeModal');
-    const modal = document.getElementById('lessonModal');
-    
-    if (closeModal) {
-      closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-      });
-    }
-
-    if (modal) {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.style.display = 'none';
-        }
-      });
-    }
-
-    // Legacy lesson toggle buttons (keep for backwards compatibility)
-    document.querySelectorAll('.toggle').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentLesson = parseInt(btn.id.replace('lesson', ''));
-        lessonSelect.value = currentLesson;
-        updateLessonContent();
-        updateLessonControls();
-        updateNavigationButtons();
-      });
-    });
-
     // Input controls
     const inputCurrent = document.getElementById('inputCurrent');
     const inputValue = document.getElementById('inputValue');
@@ -1310,6 +1183,133 @@
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
         }
+      });
+    }
+
+    // Buttons
+    const resetBtn = document.getElementById('resetNetwork');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'reset'}));
+        }
+      });
+    }
+
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
+        
+        // If hiding weights, clear labels immediately
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels = [];
+          
+          // Reset connection line colors to subtle
+          if (connGeom && col) {
+            const colors = connGeom.getAttribute('color');
+            for(let i = 0; i < colors.array.length; i += 3) {
+              colors.array[i] = 0.05;
+              colors.array[i+1] = 0.08;
+              colors.array[i+2] = 0.12;
+            }
+            colors.needsUpdate = true;
+          }
+        }
+        
+        console.log(`Weights visibility: ${showWeights}`);
+      });
+    }
+
+    // Pattern controls for lesson 4
+    const injectBtn = document.getElementById('injectPattern');
+    const testBtn = document.getElementById('testMemory');
+    
+    if (injectBtn) {
+      injectBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'injectPattern'}));
+        }
+      });
+    }
+
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'testMemory'}));
+        }
+      });
+    }
+  }
+
+  // UI Controls - FIXED pause and speed functionality
+  const btn=document.getElementById('play'), rng=document.getElementById('speed');
+  
+  // FIXED: Proper pause/play toggle
+  btn.onclick=()=>{
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    
+    // Toggle the button state first
+    const isCurrentlyPaused = btn.classList.contains('on');
+    
+    if (isCurrentlyPaused) {
+      // Currently showing "Pause" (running), so pause it
+      btn.classList.remove('on');
+      btn.textContent = 'Play';
+      ws.send(JSON.stringify({cmd:'pause'}));
+      console.log('Pausing simulation');
+    } else {
+      // Currently showing "Play" (paused), so resume it
+      btn.classList.add('on');
+      btn.textContent = 'Pause';
+      ws.send(JSON.stringify({cmd:'play'}));
+      console.log('Resuming simulation');
+    }
+  };
+  
+  // FIXED: Speed control that actually affects simulation speed
+  rng.oninput=()=>{
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const speed = parseInt(rng.value, 10);
+    // Invert the scale: higher slider value = faster simulation = lower dt_ms
+    const dt_ms = Math.max(5, 200 - speed); // 10-150 becomes 195-50ms
+    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
+    console.log(`Speed set to ${speed} (${dt_ms}ms timestep)`);
+  };
+
+  // Initialize everything
+  console.log('Initializing educational controls...');
+  setupEducationalControls();
+  updateLessonContent();
+  updateLessonControls();
+  updateNavigationButtons();
+  
+  console.log('Connecting to WebSocket...');
+  connectWS();
+  
+  console.log('Starting animation loop...');
+  animate();
+
+  // Handle window resize
+  addEventListener('resize',()=>{
+    camera.aspect=innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+
+})();
+</script>
+</body>
+</html>
       });
     }
 
