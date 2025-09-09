@@ -135,7 +135,7 @@ class SNNVisualizer {
 
     // Set up working 3D camera system
     this.camera = {
-      position: { x: 0, y: 0, z: 180 },
+      position: { x: 0, y: 0, z: 200 },
       target: { x: 0, y: 0, z: 0 },
       rotation: { pitch: 0, yaw: 0 },
       distance: 100,
