@@ -23,17 +23,14 @@
     #panel h4{margin:0 0 8px;font-weight:600;color:#f1f5f9;font-size:15px}
     #trace{width:100%;height:150px;background:#0f172a;border-radius:12px;border:1px solid #1e293b}
     #err{position:fixed;left:20px;bottom:20px;background:#dc2626;color:#fff;padding:10px 14px;border-radius:12px;display:none}
-    .hint{position:fixed;left:20px;bottom:20px;color:var(--muted)}
     #controls{position:fixed;left:20px;bottom:20px;width:300px;background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5);max-height:300px;overflow-y:auto}
     .control-group{margin-bottom:12px}
     .control-group label{display:block;margin-bottom:4px;font-size:13px;color:#94a3b8}
     .control-group input[type="range"]{width:100%;accent-color:#3b82f6}
-    .control-group input[type="number"]{width:80px;padding:4px 8px;background:#0f172a;border:1px solid #1e293b;border-radius:6px;color:#c4d1e0}
     .toggle{background:#1e293b;border:1px solid #334155;padding:6px 12px;border-radius:8px;cursor:pointer;display:inline-block;margin:2px}
     .toggle.active{background:#1e40af;color:#fff}
     #info{position:fixed;right:20px;bottom:20px;width:320px;background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5);font-size:13px;line-height:1.6}
     .lesson{background:#0f172a;padding:12px;border-radius:8px;margin:8px 0;border-left:3px solid #3b82f6}
-    #lessonSelect{padding:6px 12px;background:#0f172a;border:1px solid #334155;color:#cbd5e1;border-radius:6px;min-width:200px;font-family:Inter,system-ui}
   </style>
 </head>
 <body>
@@ -42,21 +39,6 @@
   <div style="font-weight:600;color:#f1f5f9">SNN • Neural Network</div>
   <button id="play" class="btn on">Pause</button>
   <label style="color:#94a3b8">Speed <input id="speed" class="range" type="range" min="10" max="150" value="50"/></label>
-</div>
-
-<div id="lessonPanel" style="position:fixed;left:20px;top:80px;display:flex;gap:12px;align-items:center;background:rgba(18,21,28,0.85);padding:10px 16px;border-radius:12px;border:1px solid #1e293b;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 8px 25px rgba(0,0,0,0.4)">
-  <label for="lessonSelect" style="color:#94a3b8;font-weight:500;">Lesson:</label>
-  <select id="lessonSelect">
-    <option value="1">Lesson 1: Basic Spike Dynamics</option>
-    <option value="2">Lesson 2: Synaptic Transmission</option>
-    <option value="3">Lesson 3: Network Plasticity</option>
-    <option value="4">Lesson 4: Pattern Recognition</option>
-  </select>
-  <div style="display:flex;gap:8px;">
-    <button id="prevLesson" class="btn" style="padding:6px 10px;font-size:12px;">← Prev</button>
-    <button id="nextLesson" class="btn" style="padding:6px 10px;font-size:12px;">Next →</button>
-    <button id="viewLesson" class="btn" style="padding:6px 10px;font-size:12px;background:#f223e0;color:#fff;">📖 View Full</button>
-  </div>
 </div>
 
 <div id="panel">
@@ -70,42 +52,12 @@
 
 <div id="controls">
   <h4 style="margin:0 0 12px;color:#f1f5f9">Learning Controls</h4>
-  
-  <div class="control-group">
-    <label>Lesson Mode:</label>
-    <div class="toggle active" id="lesson1">Basic Spikes</div>
-    <div class="toggle" id="lesson2">Synapses</div>
-    <div class="toggle" id="lesson3">Plasticity</div>
-    <div class="toggle" id="lesson4">Patterns</div>
-  </div>
-  
   <div class="control-group">
     <label for="inputCurrent">Input Current: <span id="inputValue">0.5</span></label>
     <input type="range" id="inputCurrent" min="0" max="2" step="0.1" value="0.5"/>
   </div>
-  
-  <div class="control-group">
-    <label for="synapseWeight">Synaptic Weight: <span id="weightValue">0.2</span></label>
-    <input type="range" id="synapseWeight" min="0" max="1" step="0.05" value="0.2"/>
-  </div>
-  
-  <div class="control-group">
-    <label for="networkSize">Network Size: <span id="sizeValue">50</span></label>
-    <input type="range" id="networkSize" min="10" max="100" step="5" value="50"/>
-  </div>
-  
-  <div class="control-group">
-    <label for="connectionProb">Connection Probability: <span id="probValue">0.045</span></label>
-    <input type="range" id="connectionProb" min="0" max="0.2" step="0.005" value="0.045"/>
-  </div>
-  
   <button id="resetNetwork" class="btn">Reset Network</button>
   <button id="showWeights" class="btn">Show Weights</button>
-  
-  <div class="control-group" id="patternControls" style="display:none;">
-    <button id="injectPattern" class="btn" style="width:100%;margin-bottom:8px;">Inject Pattern</button>
-    <button id="testMemory" class="btn" style="width:100%;">Test Memory</button>
-  </div>
 </div>
 
 <div id="info">
@@ -114,26 +66,14 @@
     <div class="lesson">
       <strong>Lesson 1: Basic Spikes</strong><br>
       Each neuron accumulates voltage over time. When it reaches threshold (v=1), it fires a spike and resets to 0.
-      <br><br>
-      <strong>Try:</strong> Adjust input current and watch firing rates change.
     </div>
   </div>
 </div>
 <div id="err"></div>
 
-<div id="lessonModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:1000;overflow-y:auto;">
-  <div style="max-width:800px;margin:40px auto;background:#12151c;border:1px solid #334155;border-radius:16px;padding:24px;position:relative;">
-    <button id="closeModal" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;">×</button>
-    <div id="lessonFullContent" style="color:#cbd5e1;line-height:1.6;">
-      <!-- Full lesson content will be loaded here -->
-    </div>
-  </div>
-</div>
-
 <script src="three.min.js"></script>
 <script>
 (function(){
-  // Basic setup
   const showErr = m => {
     const e = document.getElementById('err');
     e.textContent = m;
@@ -190,27 +130,16 @@
   keyLight.position.set(80, 80, 80);
   scene.add(keyLight);
 
-  // Accent lights
-  const accentLights = [];
-  CLUSTER_COLORS.forEach((cluster, i) => {
-    const angle = (i / CLUSTER_COLORS.length) * Math.PI * 2;
-    const light = new THREE.PointLight(cluster.primary.getHex(), 0.8, 150);
-    light.position.set(Math.cos(angle) * 100, Math.sin(angle) * 100, Math.sin(angle * 2) * 50);
-    scene.add(light);
-    accentLights.push(light);
-  });
-
   // Global variables
   const neurons = [], glows = [], connectionLabels = [];
   let connections = [];
   let connGeom, col, lines;
   let selected = null, traceBuf = [];
-  const outgoing = [];
   let showWeights = false;
-  let currentLesson = 1;
 
-  // Create dense network topology
-  function createStunningNetworkTopology() {
+  // Create network topology
+  function createNetworkTopology() {
+    // Clear existing
     neurons.forEach(n => scene.remove(n));
     glows.forEach(g => scene.remove(g));
     neurons.length = 0;
@@ -219,14 +148,13 @@
     const radius = 35;
     const N_EXC = 40, N_INH = 10;
     
-    // Create excitatory neurons in clusters
+    // Create excitatory neurons
     for (let i = 0; i < N_EXC; i++) {
       const clusterId = Math.floor(i / (N_EXC / 4));
       const clusterColor = CLUSTER_COLORS[clusterId];
       
-      const layer = Math.floor(i / (N_EXC / 3));
       const angleY = (i / (N_EXC / 4)) * Math.PI * 2 + clusterId * Math.PI * 0.5;
-      const angleX = (layer / 3) * Math.PI;
+      const angleX = (Math.floor(i / (N_EXC / 3)) / 3) * Math.PI;
       const clusterRadius = radius + (Math.random() - 0.5) * 15;
       
       const position = new THREE.Vector3(
@@ -238,7 +166,7 @@
       const geometry = new THREE.SphereGeometry(1.2, 24, 24);
       const material = new THREE.MeshStandardMaterial({
         color: clusterColor.primary,
-        emissive: clusterColor.primary.clone().multiplyScalar(0.3),
+        emissive: clusterColor.primary.clone().multiplyScalar(0.4),
         roughness: 0.3,
         metalness: 0.8,
         transparent: true,
@@ -259,11 +187,12 @@
       scene.add(neuron);
       neurons.push(neuron);
 
+      // Glow effect
       const glowGeometry = new THREE.SphereGeometry(2.5, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
         color: clusterColor.glow,
         transparent: true,
-        opacity: 0.0,
+        opacity: 0.15,
         blending: THREE.AdditiveBlending
       });
       const glow = new THREE.Mesh(glowGeometry, glowMaterial);
@@ -283,7 +212,7 @@
       const geometry = new THREE.SphereGeometry(1.0, 20, 20);
       const material = new THREE.MeshStandardMaterial({
         color: CLUSTER_COLORS[4].primary,
-        emissive: CLUSTER_COLORS[4].primary.clone().multiplyScalar(0.3),
+        emissive: CLUSTER_COLORS[4].primary.clone().multiplyScalar(0.4),
         roughness: 0.3,
         metalness: 0.8,
         transparent: true,
@@ -308,7 +237,7 @@
       const glowMaterial = new THREE.MeshBasicMaterial({
         color: CLUSTER_COLORS[4].glow,
         transparent: true,
-        opacity: 0.0,
+        opacity: 0.15,
         blending: THREE.AdditiveBlending
       });
       const glow = new THREE.Mesh(glowGeometry, glowMaterial);
@@ -317,11 +246,11 @@
       glows.push(glow);
     }
 
-    createDenseConnectionNetwork();
+    createConnectionNetwork();
     console.log(`Created network: ${neurons.length} neurons`);
   }
 
-  function createDenseConnectionNetwork() {
+  function createConnectionNetwork() {
     const positions = [];
     const colors = [];
     const connectionData = [];
@@ -339,7 +268,7 @@
             positions.push(toPos.x, toPos.y, toPos.z);
             
             const fromCluster = neurons[i].userData.cluster;
-            const color = CLUSTER_COLORS[fromCluster].primary.clone().multiplyScalar(0.3);
+            const color = CLUSTER_COLORS[fromCluster].primary.clone().multiplyScalar(0.4);
             
             colors.push(color.r, color.g, color.b);
             colors.push(color.r, color.g, color.b);
@@ -358,7 +287,7 @@
     const lineMat = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.4,
+      opacity: 0.5,
       blending: THREE.AdditiveBlending
     });
     
@@ -369,7 +298,7 @@
     console.log(`Created ${connections.length} connections`);
   }
 
-  // Animation loop - FIXED to always show neurons and connections
+  // Animation loop
   function animate() {
     requestAnimationFrame(animate);
     
@@ -378,6 +307,77 @@
     for (let i = 0; i < neurons.length; i++) {
       const n = neurons[i], g = glows[i], u = n.userData;
       
+      // Always visible base color with voltage modulation
+      const voltage = Math.max(0, Math.min(1, u.volt || 0));
+      const baseColor = u.originalColor.clone();
+      baseColor.lerp(u.glowColor, voltage * 0.4);
+      n.material.color.copy(baseColor);
+      
+      if (u.pulse > 0) {
+        u.pulse *= 0.85;
+        const intensity = u.pulse / 1.2;
+        
+        clusterActivity[u.cluster] += intensity;
+        
+        // Bright firing effects
+        const glowColor = u.glowColor.clone().multiplyScalar(intensity * 2);
+        n.material.emissive.copy(glowColor);
+        n.scale.setScalar(1.0 + intensity * 0.4);
+        
+        // Enhanced glow
+        g.material.opacity = 0.2 + intensity * 0.6;
+        g.scale.setScalar(1.0 + intensity * 3.0);
+        g.material.color.copy(u.glowColor);
+        
+      } else {
+        // Base state - always visible
+        n.material.emissive.copy(u.originalColor.clone().multiplyScalar(0.4));
+        n.scale.setScalar(1.0);
+        g.material.opacity = 0.15;
+        g.scale.setScalar(1.0);
+      }
+    }
+    
+    // Update connection colors based on cluster activity
+    if (connGeom && col && connections.length > 0) {
+      for (let i = 0; i < connections.length; i++) {
+        const conn = connections[i];
+        const baseIdx = i * 6;
+        
+        if (baseIdx + 5 < col.array.length) {
+          const clusterColor = CLUSTER_COLORS[conn.cluster].primary;
+          const activity = clusterActivity[conn.cluster];
+          
+          // Always visible base + activity boost
+          const baseIntensity = 0.4;
+          const activityBoost = Math.min(activity * 0.8, 1.0);
+          const totalIntensity = baseIntensity + activityBoost;
+          
+          col.array[baseIdx] = clusterColor.r * totalIntensity;
+          col.array[baseIdx + 1] = clusterColor.g * totalIntensity;
+          col.array[baseIdx + 2] = clusterColor.b * totalIntensity;
+          col.array[baseIdx + 3] = clusterColor.r * totalIntensity;
+          col.array[baseIdx + 4] = clusterColor.g * totalIntensity;
+          col.array[baseIdx + 5] = clusterColor.b * totalIntensity;
+        }
+      }
+      col.needsUpdate = true;
+    }
+    
+    drawTrace();
+    renderer.render(scene, camera);
+  }
+
+  // Message handling
+  function handleMessage(e) {
+    const d = JSON.parse(e.data);
+    
+    if (d.volt) {
+      for (const k in d.volt) {
+        const i = +k;
+        if (neurons[i]) {
+          neurons[i].userData.volt = d.volt[k];
+          if
       // ALWAYS show base neuron colors
       const voltage = Math.max(0, Math.min(1, u.volt || 0));
       const baseColor = u.originalColor.clone();
