@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 2: Synaptic Transmission</title>
+    <style>
+        body {
+            font-family: Inter, system-ui, sans-serif;
+            background: #0f1419;
+            color: #e6e9ef;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 { color: #ff9bf0; margin-top: 24px; }
+        h1 { font-size: 28px; margin-bottom: 16px; }
+        h2 { font-size: 22px; margin-bottom: 12px; }
+        ul, ol { margin-left: 20px; }
+        li { margin-bottom: 8px; }
+        strong { color: #ff9bf0; }
+        p { margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Lesson 2: Synaptic Transmission</h1>
+    
+    <h2>How Neurons Communicate</h2>
+    <p>Neurons don't work in isolation - they form complex networks through synaptic connections that transmit signals between cells. This lesson explores how network connectivity shapes brain function and emergent behavior.</p>
+    
+    <h2>Synaptic Weights</h2>
+    <p>The strength of connection between neurons is controlled by synaptic weight. This determines how much influence one neuron has on another:</p>
+    <ul>
+        <li><strong>Weak synapses (0.0-0.2):</strong> Subtle influence, requires many simultaneous spikes to significantly affect the target neuron</li>
+        <li><strong>Medium synapses (0.3-0.6):</strong> Moderate influence, single spikes can noticeably change target voltage</li>
+        <li><strong>Strong synapses (0.7+):</strong> Powerful influence, can trigger immediate firing in target neuron</li>
+    </ul>
+    
+    <h2>Network Connectivity</h2>
+    <p>The <strong>Connection Probability</strong> determines how densely neurons are wired together:</p>
+    <ul>
+        <li><strong>Sparse connectivity (0.02-0.05):</strong> Isolated activity, signals don't spread far through the network</li>
+        <li><strong>Medium connectivity (0.06-0.12):</strong> Activity spreads through network in waves and cascades</li>
+        <li><strong>Dense connectivity (0.13+):</strong> Synchronized network-wide activity, all neurons tend to fire together</li>
+    </ul>
+    
+    <h2>Types of Synapses</h2>
+    <ul>
+        <li><strong>Excitatory synapses:</strong> Increase target neuron's voltage (push toward firing threshold)</li>
+        <li><strong>Inhibitory synapses:</strong> Decrease target neuron's voltage (prevent firing, provide control)</li>
+        <li><strong>Chemical synapses:</strong> Use neurotransmitters to transmit signals (what we simulate)</li>
+        <li><strong>Electrical synapses:</strong> Direct electrical coupling between neurons (gap junctions)</li>
+    </ul>
+    
+    <h2>Network Dynamics</h2>
+    <p>When neurons are connected, complex dynamics emerge:</p>
+    <ul>
+        <li><strong>Propagation:</strong> Spikes travel through connected pathways</li>
+        <li><strong>Amplification:</strong> Single spikes can trigger cascades of activity</li>
+        <li><strong>Competition:</strong> Excitation and inhibition balance each other</li>
+        <li><strong>Oscillations:</strong> Rhythmic patterns of network activity</li>
+    </ul>
+    
+    <h2>Experiment Protocol</h2>
+    <ol>
+        <li>Start with low synaptic weight (0.1) and sparse connectivity (0.03)</li>
+        <li>Gradually increase synaptic weight - observe how activity spreads further</li>
+        <li>Reset and try increasing connectivity instead - compare the effects</li>
+        <li>Find the "critical point" where isolated spikes become network-wide bursts</li>
+        <li>Try different combinations to see emergent behaviors</li>
+    </ol>
+    
+    <h2>What to Observe</h2>
+    <p>Pay attention to these network phenomena:</p>
+    <ul>
+        <li><strong>Signal propagation:</strong> How spikes travel through connected neurons</li>
+        <li><strong>Activity cascades:</strong> Single spikes triggering multiple downstream spikes</li>
+        <li><strong>Cluster synchronization:</strong> Groups of neurons firing together</li>
+        <li><strong>Network bursts:</strong> Periods of high activity across many neurons</li>
+        <li><strong>Connection visualization:</strong> Colored lines showing synaptic links</li>
+    </ul>
+    
+    <h2>Real Brain Networks</h2>
+    <p>In the real brain:</p>
+    <ul>
+        <li>Each neuron receives ~7,000 synaptic inputs on average</li>
+        <li>There are ~86 billion neurons in the human brain</li>
+        <li>Network connectivity follows specific anatomical patterns</li>
+        <li>Different brain regions have different connectivity profiles</li>
+        <li>Synaptic strength can change with experience (plasticity)</li>
+    </ul>
+    
+    <h2>Clinical Relevance</h2>
+    <p>Understanding synaptic transmission is crucial for:</p>
+    <ul>
+        <li><strong>Epilepsy:</strong> Excessive synchronization and network bursts</li>
+        <li><strong>Depression:</strong> Altered neurotransmitter function</li>
+        <li><strong>Schizophrenia:</strong> Disrupted network connectivity</li>
+        <li><strong>Alzheimer's:</strong> Loss of synaptic connections</li>
+    </ul>
+    
+    <h2>Try This</h2>
+    <ul>
+        <li>Can you create a network that shows traveling waves of activity?</li>
+        <li>What's the minimum connectivity needed for network-wide synchronization?</li>
+        <li>How do weak vs. strong synapses affect network dynamics differently?</li>
+        <li>What happens when you rapidly change connectivity during simulation?</li>
+    </ul>
+</body>
+</html>
