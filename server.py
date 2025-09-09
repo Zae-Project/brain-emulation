@@ -118,13 +118,20 @@ async def handler(ws,path):
                     recreate_network()
                     print("Network reset with new parameters")
                 elif d.get("cmd") == "toggleWeights":
-                    # Send connection data for visualization
+                    # FIXED: Send proper connection data for visualization
                     connections = []
-                    if hasattr(S, 'i') and hasattr(S, 'j'):
-                        for i, j in zip(S.i, S.j):
-                            connections.append({"from": int(i), "to": int(j), "weight": PARAMS["synapse_weight"]})
-                    await ws.send(json.dumps({"connections": connections}))
-                    print("Sent connection data")
+                    if hasattr(S, 'i') and hasattr(S, 'j') and len(S.i) > 0:
+                        for idx in range(len(S.i)):
+                            connections.append({
+                                "from": int(S.i[idx]), 
+                                "to": int(S.j[idx]), 
+                                "weight": PARAMS["synapse_weight"]
+                            })
+                        print(f"Sending {len(connections)} connections to client")
+                        await ws.send(json.dumps({"cmd": "showConnections", "connections": connections}))
+                    else:
+                        print("No connections found to send")
+                        await ws.send(json.dumps({"cmd": "showConnections", "connections": []}))
                 elif d.get("cmd") == "injectPattern":
                     # Inject a specific pattern for lesson 4
                     pattern_neurons = [0, 5, 10, 15, 20]  # Example pattern
