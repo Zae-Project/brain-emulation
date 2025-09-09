@@ -67,24 +67,28 @@ Use the **Synaptic Weight** slider to see how connection strength affects behavi
 - Some patterns suppress others
 - Basis for decision-making
 
+## Practical Exercises
+
+### Exercise 1: Connection Visualization
+1. Click "Show Connections" to see synapses
+2. Observe how neurons are linked
+3. **Question**: Are all neurons equally connected?
+
+### Exercise 2: Propagation Waves
+1. Set Synaptic Weight = 0.2
+2. Watch for wave-like activity patterns
+3. **Question**: How far do waves travel?
+
+### Exercise 3: Synchronization
+1. Gradually increase Synaptic Weight
+2. Watch for synchronized firing
+3. **Question**: At what weight does synchronization emerge?
+
+## Real-World Applications
+- **Memory formation**: Synaptic strengthening stores information
+- **Learning**: Weight changes encode experiences
+- **Neural disorders**: Abnormal connectivity causes problems
+- **AI networks**: Artificial synapses enable machine learning
+
 ## Next Steps
 Ready for Lesson 3: Network Plasticity and Learning!
-   - Spikes travel along connections
-   - Create expanding waves of activity
-
-2. **Amplification**:
-   - Single inputs can trigger multiple spikes
-   - Network amplifies weak signals
-
-3. **Synchronization**:
-   - Neurons start firing together
-   - Creates rhythmic network activity
-
-4. **Competition**:
-   - Different activity patterns compete
-   - Some suppress others
-
-## Mathematical Insights
-
-### Synaptic Integration
-Each neuron receives input from multiple sources:
