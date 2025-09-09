@@ -230,6 +230,8 @@ canvas {
   font-size: 13px;
   line-height: 1.5;
   z-index: 10;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .lesson {
@@ -395,7 +397,7 @@ canvas {
 
 #navControls {
   right: 16px;
-  top: 400px;
+  top: 300px;
   background: var(--surface-1);
   border: 1px solid var(--border);
   padding: 16px;
