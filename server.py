@@ -58,10 +58,12 @@ q=queue.Queue()
 def brain_loop():
     last=0
     while True:
-        if CTRL["paused"]: time.sleep(0.01); continue  # Faster response
+        if CTRL["paused"]: 
+            time.sleep(0.05)  # Responsive pause
+            continue
         try:
-            # Run smaller time steps for better resolution
-            dt = max(5, min(50, CTRL["dt_ms"])) * ms
+            # FIXED: Use CTRL["dt_ms"] directly for simulation speed
+            dt = max(5, min(200, CTRL["dt_ms"])) * ms  # Wider range for better control
             net.run(dt)
             
             i,t=sm.i[:],sm.t[:]
@@ -70,8 +72,9 @@ def brain_loop():
             volt={str(r):float(vm.v[r,-1]) for r in range(NUM)}
             q.put({"t":float(defaultclock.t/ms),"spikes":spikes,"volt":volt})
             
-            # Shorter sleep for more responsive updates
-            time.sleep(max(0.005, CTRL["dt_ms"]/1000 * 0.1))
+            # FIXED: Sleep scales with speed for smooth control
+            sleep_time = CTRL["dt_ms"] / 1000 * 0.2  # Proportional to simulation speed
+            time.sleep(max(0.01, sleep_time))
         except Exception as e:
             print(f"Brain loop error: {e}")
             time.sleep(0.01)
@@ -89,13 +92,14 @@ async def handler(ws,path):
                 
                 if d.get("cmd") == "pause": 
                     CTRL["paused"] = True
-                    print("Simulation paused")
+                    print("✓ Simulation PAUSED")
                 elif d.get("cmd") == "play": 
                     CTRL["paused"] = False
-                    print("Simulation resumed")
+                    print("✓ Simulation RESUMED")
                 elif d.get("cmd") == "speed": 
-                    CTRL["dt_ms"] = max(10, min(150, int(d["dt_ms"])))
-                    print(f"Speed set to {CTRL['dt_ms']}ms")
+                    new_speed = max(5, min(200, int(d["dt_ms"])))
+                    CTRL["dt_ms"] = new_speed
+                    print(f"✓ Simulation speed: {new_speed}ms timestep")
                 elif d.get("cmd") == "setInput":
                     PARAMS["input_current"] = float(d["value"])
                     G.I_input = PARAMS["input_current"]
