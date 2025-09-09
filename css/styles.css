@@ -182,11 +182,101 @@ canvas {
 }
 
 .lesson {
-  background: #0f172a;
+  background: var(--panel);
   padding: 12px;
   border-radius: 8px;
   margin: 8px 0;
   border-left: 3px solid #3b82f6;
+}
+
+.lesson strong {
+  color: #f1f5f9;
+}
+
+/* Lesson Modal Styles */
+.lesson-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.lesson-modal-content {
+  background: var(--panel);
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  color: var(--text);
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.lesson-modal-content h1,
+.lesson-modal-content h2,
+.lesson-modal-content h3 {
+  color: #f1f5f9;
+  margin-top: 20px;
+  margin-bottom: 12px;
+}
+
+.lesson-modal-content h1 {
+  color: #60a5fa;
+  margin-top: 0;
+}
+
+.lesson-modal-content p {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.lesson-modal-content ul,
+.lesson-modal-content ol {
+  margin: 12px 0;
+  padding-left: 20px;
+}
+
+.lesson-modal-content li {
+  margin-bottom: 6px;
+}
+
+.lesson-modal-content code {
+  background: #0f172a;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #f223e0;
+  font-family: "Courier New", monospace;
+}
+
+.lesson-modal-content .close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #1e293b;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lesson-modal-content .close-btn:hover {
+  background: #334155;
+  color: #f1f5f9;
 }
 
 #lessonPanel {
@@ -204,6 +294,27 @@ canvas {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
   position: fixed;
   z-index: 10;
+}
+
+#lessonPanel select {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#lessonPanel select option {
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px;
+}
+
+#lessonPanel label {
+  color: #94a3b8;
+  font-weight: 500;
 }
 
 #navControls {
