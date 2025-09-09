@@ -81,6 +81,18 @@
     }
     /* Small lesson card title emphasis */
     .lesson strong { color: #ff9bf0; }
+
+    /* Lesson iframe (full lesson) */
+    #lessonModal > div { overflow: hidden; }
+    #lessonFrame {
+      width: 100%;
+      height: 60vh;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      display: block;
+    }
+    #lessonFallback { padding: 12px 0; color: #cbd5e1; line-height:1.6; }
   </style>
 </head>
 <body>
@@ -159,10 +171,15 @@
 
 <!-- Re-add lesson modal (restores ability to view full lesson) -->
 <div id="lessonModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:1000;overflow-y:auto;">
-  <div style="max-width:800px;margin:40px auto;background:#12151c;border:1px solid #334155;border-radius:16px;padding:24px;position:relative;">
-    <button id="closeModal" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;">×</button>
-    <div id="lessonFullContent" style="color:#cbd5e1;line-height:1.6;">
-      <!-- Full lesson content injected here -->
+  <div style="max-width:800px;margin:40px auto;background:#12151c;border:1px solid #334155;border-radius:16px;padding:18px 20px;position:relative;">
+    <button id="closeModal" style="position:absolute;top:12px;right:12px;background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;">×</button>
+
+    <!-- iframe will load lessons/lessonX.html -->
+    <iframe id="lessonFrame" src="" title="Lesson content" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+
+    <!-- fallback (used when iframe can't load or as graceful fallback) -->
+    <div id="lessonFallback" style="display:none;">
+      <!-- Full lesson content injected here when iframe unavailable -->
     </div>
   </div>
 </div>
@@ -743,83 +760,99 @@
   };
   let currentLesson = 1;
 
-  // Updated: open full lesson from external file (fallback to inline snippet)
-  function extractBody(html) {
-    // If the fetched file is a full HTML page, extract <body> or <main> content
-    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-    if (bodyMatch) return bodyMatch[1];
-    const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
-    if (mainMatch) return mainMatch[1];
-    return html; // already a fragment
-  }
-
+  // NEW: open lesson modal by setting iframe src to lesson file (works for file:// and http)
   function openLessonModal() {
     const modal = document.getElementById('lessonModal');
-    const content = document.getElementById('lessonFullContent');
-    if (!modal || !content) return;
+    const frame = document.getElementById('lessonFrame');
+    const fallback = document.getElementById('lessonFallback');
+    if (!modal || !frame || !fallback) return;
+
+    // show modal and iframe; try to load the lesson file from lessons/lessonX.html
     modal.style.display = 'block';
+    fallback.style.display = 'none';
+    frame.style.display = 'block';
 
-    // prefer external lesson files placed at /lessons/lesson1.html ... lesson4.html
     const lessonFile = `lessons/lesson${currentLesson}.html`;
+    // set src — if the file can be loaded the iframe will show it (works when served or local file present)
+    frame.src = lessonFile;
 
-    // try to fetch the full lesson content; on failure, use the inline summary
-    fetch(lessonFile, {cache: "no-store"})
-      .then(response => {
-        if (!response.ok) throw new Error('lesson file not found');
-        return response.text();
-      })
-      .then(html => {
-        // extract body/main if a full page was returned
-        content.innerHTML = extractBody(html);
-      })
-      .catch(() => {
-        // fallback to pre-defined inline lesson snippet
+    // If iframe fails to load (some environments), show fallback preview
+    // Use a short timeout to detect empty load — keep simple and reliable
+    const fallbackTimer = setTimeout(() => {
+      try {
+        // If iframe document is accessible and has body content, keep it.
+        const doc = frame.contentDocument || frame.contentWindow?.document;
+        if (!doc || !doc.body || doc.body.innerHTML.trim().length === 0) {
+          // show fallback preview content
+          frame.style.display = 'none';
+          fallback.style.display = 'block';
+          const lesson = lessonContent[currentLesson];
+          fallback.innerHTML = lesson ? lesson.content : `<p style="color:#e6e9ef">Lesson ${currentLesson} not available.</p>`;
+        }
+      } catch (err) {
+        // cross-origin or access denied -> show fallback preview
+        frame.style.display = 'none';
+        fallback.style.display = 'block';
         const lesson = lessonContent[currentLesson];
-        content.innerHTML = lesson ? lesson.content : `<p style="color:#e6e9ef">Lesson ${currentLesson} not available.</p>`;
-      });
+        fallback.innerHTML = lesson ? lesson.content : `<p style="color:#e6e9ef">Lesson ${currentLesson} not available.</p>`;
+      }
+    }, 300); // small delay
+
+    // clear timer when iframe loads successfully
+    frame.onload = () => {
+      clearTimeout(fallbackTimer);
+      // optionally adjust height based on content (only same-origin)
+      try {
+        const doc = frame.contentDocument || frame.contentWindow.document;
+        if (doc && doc.body) {
+          const h = Math.min(window.innerHeight * 0.75, Math.max(300, doc.body.scrollHeight));
+          frame.style.height = h + 'px';
+        }
+      } catch(e){}
+    };
   }
 
-  function updateLessonContent() {
-    const box = document.getElementById('lessonContent');
-    if (!box) return;
-    const lesson = lessonContent[currentLesson];
-    // keep the short preview in the right-hand panel
-    box.innerHTML = `<div class="lesson"><strong>Lesson ${currentLesson}: ${lesson ? lesson.title : 'N/A'}</strong><br>${lesson ? lesson.content : ''}</div>`;
+  // CLOSE handler: hide modal and clear iframe src to stop any activity
+  const closeModalBtn = document.getElementById('closeModal');
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+      const modal = document.getElementById('lessonModal');
+      const frame = document.getElementById('lessonFrame');
+      const fallback = document.getElementById('lessonFallback');
+      if (modal) modal.style.display = 'none';
+      if (frame) { frame.src = 'about:blank'; frame.style.display = 'none'; }
+      if (fallback) { fallback.style.display = 'none'; fallback.innerHTML = ''; }
+    });
   }
 
-  function updateLessonControls() {
-    // toggle pattern controls only for lesson 4
-    const pc = document.getElementById('patternControls');
-    if (pc) pc.style.display = currentLesson === 4 ? 'block' : 'none';
-  }
-
-  function updateNavigationButtons() {
-    const sel = document.getElementById('lessonSelect');
-    if (sel) sel.value = currentLesson;
-  }
-
-  // Hook modal close/view buttons
+  // Wire View Full button (already present) to open modal
   const viewBtn = document.getElementById('viewLesson');
   if (viewBtn) viewBtn.addEventListener('click', openLessonModal);
-  const closeModal = document.getElementById('closeModal');
-  const modal = document.getElementById('lessonModal');
-  if (closeModal) closeModal.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
-  if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
 
-  // Restore legacy toggles behavior
-  document.querySelectorAll('.toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentLesson = parseInt(btn.id.replace('lesson','')) || 1;
-      updateLessonContent();
-      updateLessonControls();
-      updateNavigationButtons();
-    });
-  });
+  // Prev / Next lesson buttons and select
+  const prevBtn = document.getElementById('prevLesson');
+  const nextBtn = document.getElementById('nextLesson');
+  const sel = document.getElementById('lessonSelect');
 
-  // ensure functions and animate call remain as before
-  // ...existing code...
+  function setLesson(n) {
+    currentLesson = Math.max(1, Math.min(4, n));
+    updateLessonContent();
+    updateLessonControls();
+    updateNavigationButtons();
+  }
+
+  if (prevBtn) prevBtn.addEventListener('click', () => setLesson(currentLesson - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => setLesson(currentLesson + 1));
+  if (sel) sel.addEventListener('change', (e) => setLesson(parseInt(e.target.value || '1', 10)));
+
+  // Update navigation buttons (ensure select is in sync)
+  function updateNavigationButtons() {
+    const selEl = document.getElementById('lessonSelect');
+    if (selEl) selEl.value = currentLesson;
+    // enable/disable prev/next
+    if (prevBtn) prevBtn.disabled = currentLesson === 1;
+    if (nextBtn) nextBtn.disabled = currentLesson === 4;
+  }
 
   // Initialize lesson UI state
   updateLessonContent();
@@ -838,17 +871,8 @@
     renderer.setSize(innerWidth, innerHeight);
   });
 
-})(); // end IIFE - ensure no stray JS follows
+})(); // end IIFE - clean close of script
 </script>
 
 </body>
 </html>
-  });
-
-  // ensure functions and animate call remain as before
-  // ...existing code...
-
-})();
-</script>
-
-<!-- ...existing code... -->
