@@ -1,5 +1,5 @@
-// SNN Visualizer - Complete Professional Implementation
-// Neural network visualization with proper connection display and weight panels
+// SNN Visualizer - Complete Professional Implementation with proper lesson system
+// Neural network visualization with dimmed lighting and full lesson integration
 
 class SNNVisualizer {
   constructor() {
@@ -24,26 +24,29 @@ class SNNVisualizer {
 
     this.CLUSTER_COLORS = [
       {
-        primary: new THREE.Color(0.0, 0.8, 1.0),
-        glow: new THREE.Color(0.3, 0.9, 1.0),
+        primary: new THREE.Color(0.0, 0.6, 0.8),
+        glow: new THREE.Color(0.2, 0.7, 0.9),
       },
       {
-        primary: new THREE.Color(1.0, 0.2, 0.8),
-        glow: new THREE.Color(1.0, 0.5, 0.9),
+        primary: new THREE.Color(0.8, 0.2, 0.6),
+        glow: new THREE.Color(0.9, 0.4, 0.7),
       },
       {
-        primary: new THREE.Color(0.9, 1.0, 0.0),
-        glow: new THREE.Color(1.0, 1.0, 0.4),
+        primary: new THREE.Color(0.7, 0.8, 0.0),
+        glow: new THREE.Color(0.8, 0.9, 0.3),
       },
       {
-        primary: new THREE.Color(1.0, 0.5, 0.0),
-        glow: new THREE.Color(1.0, 0.7, 0.3),
+        primary: new THREE.Color(0.8, 0.4, 0.0),
+        glow: new THREE.Color(0.9, 0.6, 0.2),
       },
     ];
 
     this.neurons = [];
     this.connections = [];
     this.voltageHistory = [];
+
+    // Make this instance globally accessible for lesson buttons
+    window.snnVisualizer = this;
 
     this.init();
   }
@@ -121,15 +124,29 @@ class SNNVisualizer {
       };
     }
 
-    // Set up camera
+    // Set up 3D camera system
     this.camera = {
-      position: { x: 0, y: 0, z: 100 },
+      position: { x: 0, y: 0, z: 150 },
+      rotation: { x: 0, y: 0, z: 0 },
       target: { x: 0, y: 0, z: 0 },
-      distance: 100,
-      theta: 1.5,
-      phi: 1.5,
+      up: { x: 0, y: 1, z: 0 },
+      fov: 75,
+      near: 0.1,
+      far: 1000,
       move: { forward: 0, right: 0, up: 0 },
-      mouse: { x: 0, y: 0, isLeftDown: false, isRightDown: false },
+      mouse: {
+        x: 0,
+        y: 0,
+        lastX: 0,
+        lastY: 0,
+        isLeftDown: false,
+        isRightDown: false,
+        sensitivity: 0.002,
+        pitch: 0,
+        yaw: 0,
+      },
+      moveSpeed: 2.0,
+      mouseLook: true,
     };
 
     this.initCameraControls();
@@ -156,40 +173,67 @@ class SNNVisualizer {
   }
 
   onMouseDown(e) {
-    if (e.button === 0) this.camera.mouse.isLeftDown = true;
+    if (e.button === 0) {
+      this.camera.mouse.isLeftDown = true;
+      this.dom.canvas.requestPointerLock();
+    }
     if (e.button === 2) this.camera.mouse.isRightDown = true;
-    this.camera.mouse.x = e.clientX;
-    this.camera.mouse.y = e.clientY;
+    this.camera.mouse.lastX = e.clientX;
+    this.camera.mouse.lastY = e.clientY;
   }
 
   onMouseUp(e) {
-    if (e.button === 0) this.camera.mouse.isLeftDown = false;
+    if (e.button === 0) {
+      this.camera.mouse.isLeftDown = false;
+      document.exitPointerLock();
+    }
     if (e.button === 2) this.camera.mouse.isRightDown = false;
   }
 
   onMouseMove(e) {
-    const dx = e.clientX - this.camera.mouse.x;
-    const dy = e.clientY - this.camera.mouse.y;
-    this.camera.mouse.x = e.clientX;
-    this.camera.mouse.y = e.clientY;
+    if (document.pointerLockElement === this.dom.canvas) {
+      // True FPS-style mouse look
+      const deltaX = e.movementX || e.webkitMovementX || 0;
+      const deltaY = e.movementY || e.webkitMovementY || 0;
 
-    if (this.camera.mouse.isLeftDown) {
-      this.camera.theta -= dx * 0.01;
-      this.camera.phi -= dy * 0.01;
-      this.camera.phi = Math.max(0.1, Math.min(Math.PI - 0.1, this.camera.phi));
-      this.updateCameraPosition();
+      this.camera.mouse.yaw -= deltaX * this.camera.mouse.sensitivity;
+      this.camera.mouse.pitch -= deltaY * this.camera.mouse.sensitivity;
+
+      // Clamp pitch to prevent over-rotation
+      this.camera.mouse.pitch = Math.max(
+        -Math.PI / 2 + 0.1,
+        Math.min(Math.PI / 2 - 0.1, this.camera.mouse.pitch)
+      );
+
+      this.updateCameraRotation();
+    } else if (this.camera.mouse.isRightDown) {
+      // Pan mode for right-click drag
+      const deltaX = e.clientX - this.camera.mouse.lastX;
+      const deltaY = e.clientY - this.camera.mouse.lastY;
+
+      const right = this.getCameraRight();
+      const up = this.getCameraUp();
+
+      const panSpeed = 0.01;
+      this.camera.position.x -= right.x * deltaX * panSpeed;
+      this.camera.position.y += up.y * deltaY * panSpeed;
+      this.camera.position.z -= right.z * deltaX * panSpeed;
     }
-    if (this.camera.mouse.isRightDown) {
-      this.camera.target.x -= dx * 0.1;
-      this.camera.target.y += dy * 0.1;
-      this.updateCameraPosition();
-    }
+
+    this.camera.mouse.lastX = e.clientX;
+    this.camera.mouse.lastY = e.clientY;
   }
 
   onWheel(e) {
-    this.camera.distance += e.deltaY * 0.1;
-    this.camera.distance = Math.max(10, Math.min(500, this.camera.distance));
-    this.updateCameraPosition();
+    e.preventDefault();
+    // Smooth zoom by moving forward/backward
+    const forward = this.getCameraForward();
+    const zoomSpeed = 5;
+    const direction = e.deltaY > 0 ? -1 : 1;
+
+    this.camera.position.x += forward.x * direction * zoomSpeed;
+    this.camera.position.y += forward.y * direction * zoomSpeed;
+    this.camera.position.z += forward.z * direction * zoomSpeed;
   }
 
   onCanvasClick(e) {
@@ -239,51 +283,133 @@ class SNNVisualizer {
   }
 
   updateCameraPosition() {
-    const speed = this.config.cameraMoveSpeed * this.state.speed;
+    // WASD movement in 3D space
+    if (
+      this.camera.move.forward !== 0 ||
+      this.camera.move.right !== 0 ||
+      this.camera.move.up !== 0
+    ) {
+      const forward = this.getCameraForward();
+      const right = this.getCameraRight();
+      const up = this.getCameraUp();
 
-    // Apply movement
-    const forward = {
-      x: Math.sin(this.camera.phi) * Math.cos(this.camera.theta),
-      y: Math.cos(this.camera.phi),
-      z: Math.sin(this.camera.phi) * Math.sin(this.camera.theta),
-    };
+      const speed = this.camera.moveSpeed * this.state.speed;
 
-    const right = {
-      x: Math.cos(this.camera.theta + Math.PI / 2),
-      y: 0,
-      z: Math.sin(this.camera.theta + Math.PI / 2),
-    };
+      // Move forward/backward
+      this.camera.position.x += forward.x * this.camera.move.forward * speed;
+      this.camera.position.y += forward.y * this.camera.move.forward * speed;
+      this.camera.position.z += forward.z * this.camera.move.forward * speed;
 
-    this.camera.target.x += forward.x * this.camera.move.forward * speed;
-    this.camera.target.y += forward.y * this.camera.move.forward * speed;
-    this.camera.target.z += forward.z * this.camera.move.forward * speed;
+      // Move left/right
+      this.camera.position.x += right.x * this.camera.move.right * speed;
+      this.camera.position.y += right.y * this.camera.move.right * speed;
+      this.camera.position.z += right.z * this.camera.move.right * speed;
 
-    this.camera.target.x += right.x * this.camera.move.right * speed;
-    this.camera.target.z += right.z * this.camera.move.right * speed;
-
-    this.camera.target.y += this.camera.move.up * speed;
-
-    // Update camera position
-    this.camera.position.x =
-      this.camera.target.x +
-      this.camera.distance *
-        Math.sin(this.camera.phi) *
-        Math.cos(this.camera.theta);
-    this.camera.position.y =
-      this.camera.target.y + this.camera.distance * Math.cos(this.camera.phi);
-    this.camera.position.z =
-      this.camera.target.z +
-      this.camera.distance *
-        Math.sin(this.camera.phi) *
-        Math.sin(this.camera.theta);
+      // Move up/down (world space)
+      this.camera.position.y += this.camera.move.up * speed;
+    }
   }
 
-  resetCamera() {
-    this.camera.target = { x: 0, y: 0, z: 0 };
-    this.camera.distance = 100;
-    this.camera.theta = 1.5;
-    this.camera.phi = 1.5;
-    this.updateCameraPosition();
+  updateCameraRotation() {
+    // Update camera rotation based on pitch and yaw
+    this.camera.rotation.x = this.camera.mouse.pitch;
+    this.camera.rotation.y = this.camera.mouse.yaw;
+  }
+
+  getCameraForward() {
+    return {
+      x: Math.sin(this.camera.mouse.yaw) * Math.cos(this.camera.mouse.pitch),
+      y: Math.sin(this.camera.mouse.pitch),
+      z: Math.cos(this.camera.mouse.yaw) * Math.cos(this.camera.mouse.pitch),
+    };
+  }
+
+  getCameraRight() {
+    const forward = this.getCameraForward();
+    const worldUp = { x: 0, y: 1, z: 0 };
+
+    // Cross product: forward × worldUp
+    return this.normalize({
+      x: forward.z * worldUp.y - forward.y * worldUp.z,
+      y: forward.x * worldUp.z - forward.z * worldUp.x,
+      z: forward.y * worldUp.x - forward.x * worldUp.y,
+    });
+  }
+
+  getCameraUp() {
+    const forward = this.getCameraForward();
+    const right = this.getCameraRight();
+
+    // Cross product: right × forward
+    return this.normalize({
+      x: right.y * forward.z - right.z * forward.y,
+      y: right.z * forward.x - right.x * forward.z,
+      z: right.x * forward.y - right.y * forward.x,
+    });
+  }
+
+  normalize(vector) {
+    const length = Math.sqrt(
+      vector.x * vector.x + vector.y * vector.y + vector.z * vector.z
+    );
+    if (length === 0) return { x: 0, y: 1, z: 0 };
+    return {
+      x: vector.x / length,
+      y: vector.y / length,
+      z: vector.z / length,
+    };
+  }
+
+  project3D(pos) {
+    // True 3D perspective projection
+    const cam = this.camera;
+
+    // Transform point to camera space
+    const dx = pos.x - cam.position.x;
+    const dy = pos.y - cam.position.y;
+    const dz = pos.z - cam.position.z;
+
+    // Apply camera rotation (inverse)
+    const cosYaw = Math.cos(-cam.mouse.yaw);
+    const sinYaw = Math.sin(-cam.mouse.yaw);
+    const cosPitch = Math.cos(-cam.mouse.pitch);
+    const sinPitch = Math.sin(-cam.mouse.pitch);
+
+    // Rotate around Y axis (yaw)
+    const x1 = dx * cosYaw - dz * sinYaw;
+    const z1 = dx * sinYaw + dz * cosYaw;
+    const y1 = dy;
+
+    // Rotate around X axis (pitch)
+    const x2 = x1;
+    const y2 = y1 * cosPitch - z1 * sinPitch;
+    const z2 = y1 * sinPitch + z1 * cosPitch;
+
+    // Perspective projection
+    if (z2 <= cam.near) {
+      return { x: -1000, y: -1000, scale: 0, depth: z2 }; // Behind camera
+    }
+
+    const fovRadians = (cam.fov * Math.PI) / 180;
+    const f = 1 / Math.tan(fovRadians / 2);
+    const aspect = this.dom.canvas.width / this.dom.canvas.height;
+
+    const projX = (x2 * f) / (z2 * aspect);
+    const projY = (y2 * f) / z2;
+
+    // Convert to screen coordinates
+    const screenX = (projX + 1) * this.dom.canvas.width * 0.5;
+    const screenY = (1 - projY) * this.dom.canvas.height * 0.5;
+
+    // Calculate scale based on distance for size scaling
+    const scale = Math.max(0.1, cam.near / Math.max(cam.near, z2));
+
+    return {
+      x: screenX,
+      y: screenY,
+      scale: scale,
+      depth: z2,
+    };
   }
 
   createNetwork() {
@@ -338,20 +464,6 @@ class SNNVisualizer {
         }
       }
     }
-  }
-
-  project3D(pos) {
-    const dx = pos.x - this.camera.position.x;
-    const dy = pos.y - this.camera.position.y;
-    const dz = pos.z - this.camera.position.z;
-
-    const scale = 300 / (this.camera.distance + Math.abs(dz));
-
-    return {
-      x: this.dom.canvas.width / 2 + dx * scale,
-      y: this.dom.canvas.height / 2 - dy * scale,
-      scale: Math.max(0.2, scale / 3),
-    };
   }
 
   updateNetwork() {
@@ -461,7 +573,7 @@ class SNNVisualizer {
         (conn.from.pulse > 0.1 || conn.to.pulse > 0.1);
 
       if (isActive) {
-        // Active connection - show in cluster color with intensity
+        // Active connection - show in dimmed cluster color
         const activeColor =
           conn.from.pulse > conn.to.pulse
             ? conn.from.colors.glow
@@ -472,8 +584,8 @@ class SNNVisualizer {
           activeColor.r * 255
         )}, ${Math.floor(activeColor.g * 255)}, ${Math.floor(
           activeColor.b * 255
-        )}, ${0.8 * intensity})`;
-        this.ctx.lineWidth = 2 + conn.weight * 3;
+        )}, ${0.4 * intensity})`;
+        this.ctx.lineWidth = 1.5 + conn.weight * 1.5;
       } else {
         // Inactive connection - always visible in grey
         this.ctx.strokeStyle = `rgba(100, 116, 139, 0.25)`;
@@ -503,9 +615,9 @@ class SNNVisualizer {
       const radius = this.config.neuronSize * projected.scale * 8;
       const intensity = neuron.pulse / this.config.pulseIntensity;
 
-      // Draw glow effect when firing
+      // Draw dimmed glow effect when firing
       if (intensity > 0.1) {
-        const glowRadius = radius * (2 + intensity * 3);
+        const glowRadius = radius * (1.5 + intensity * 1.2);
         const gradient = this.ctx.createRadialGradient(
           projected.x,
           projected.y,
@@ -520,13 +632,13 @@ class SNNVisualizer {
           0,
           `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
             glowColor.g * 255
-          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.9})`
+          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.3})`
         );
         gradient.addColorStop(
           0.7,
           `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
             glowColor.g * 255
-          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.3})`
+          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.1})`
         );
         gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
@@ -536,10 +648,10 @@ class SNNVisualizer {
         this.ctx.fill();
       }
 
-      // Draw neuron body
+      // Draw neuron body with dimmed colors
       const color =
         intensity > 0.1 ? neuron.colors.glow : neuron.colors.primary;
-      const brightness = intensity > 0.1 ? 1 : 0.7;
+      const brightness = intensity > 0.1 ? 0.6 : 0.5;
       this.ctx.fillStyle = `rgb(${Math.floor(
         color.r * 255 * brightness
       )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
@@ -558,7 +670,7 @@ class SNNVisualizer {
       }
 
       // Add rim lighting
-      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
       this.ctx.lineWidth = 1;
       this.ctx.stroke();
 
@@ -755,21 +867,25 @@ class SNNVisualizer {
         title: "Lesson 1: Basic Spikes",
         content:
           "Each neuron accumulates voltage over time. When it reaches threshold (v≥1), it fires a spike and resets to 0.",
+        file: "lessons/lesson1.html",
       },
       2: {
         title: "Lesson 2: Synaptic Transmission",
         content:
           "Spikes travel along synapses (connections) between neurons, with varying weights affecting signal strength.",
+        file: "lessons/lesson2.html",
       },
       3: {
         title: "Lesson 3: Network Plasticity",
         content:
           "Synaptic weights can change over time based on neural activity, enabling learning and adaptation.",
+        file: "lessons/lesson3.html",
       },
       4: {
         title: "Lesson 4: Pattern Recognition",
         content:
           "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
+        file: "lessons/lesson4.html",
       },
     };
 
@@ -779,9 +895,65 @@ class SNNVisualizer {
         <div class="lesson">
           <strong>${lesson.title}</strong><br />
           ${lesson.content}
-          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="alert('Full lesson content: This would open a detailed explanation of ${lesson.title} with interactive examples.')">View Full Lesson</button>
+          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">View Full Lesson</button>
         </div>
       `;
+    }
+  }
+
+  async showFullLesson(lessonNumber) {
+    const lessons = {
+      1: { title: "Basic Spikes", file: "lessons/lesson1.html" },
+      2: { title: "Synaptic Transmission", file: "lessons/lesson2.html" },
+      3: { title: "Network Plasticity", file: "lessons/lesson3.html" },
+      4: { title: "Pattern Recognition", file: "lessons/lesson4.html" },
+    };
+
+    const lesson = lessons[lessonNumber];
+    if (!lesson) return;
+
+    try {
+      const response = await fetch(lesson.file);
+      const content = await response.text();
+
+      // Create modal
+      const modal = document.createElement("div");
+      modal.className = "lesson-modal";
+
+      const modalContent = document.createElement("div");
+      modalContent.className = "lesson-modal-content";
+      modalContent.innerHTML = `
+        <button class="close-btn">&times;</button>
+        ${content}
+      `;
+
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+
+      // Close modal functionality
+      const closeBtn = modalContent.querySelector(".close-btn");
+      const closeModal = () => {
+        document.body.removeChild(modal);
+      };
+
+      closeBtn.addEventListener("click", closeModal);
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      // Close on escape key
+      const handleKeydown = (e) => {
+        if (e.key === "Escape") {
+          closeModal();
+          document.removeEventListener("keydown", handleKeydown);
+        }
+      };
+      document.addEventListener("keydown", handleKeydown);
+    } catch (error) {
+      console.error("Failed to load lesson:", error);
+      alert(
+        `Failed to load ${lesson.title}. Please check that the lesson file exists.`
+      );
     }
   }
 
