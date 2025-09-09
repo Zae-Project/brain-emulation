@@ -1,0 +1,247 @@
+:root {
+  --bg: #0a0c12;
+  --panel: #12151c;
+  --text: #c4d1e0;
+  --muted: #6b7280;
+  --edge: #1e293b;
+  --edgeHot: #3b82f6;
+  --node: #60a5fa;
+  --hot: #f59e0b;
+  --pulse: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 Inter, system-ui, Helvetica, Arial;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+}
+
+#overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+      1400px 900px at 30% 0%,
+      #1e293b22,
+      transparent 70%
+    ),
+    radial-gradient(1000px 600px at 80% 100%, #1e1b4b22, transparent 60%);
+}
+
+#hud {
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  background: rgba(18, 21, 28, 0.85);
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid #1e293b;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.btn {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(12, 8, 18, 0.9);
+  color: #f3f2ff;
+  cursor: pointer;
+  padding: 10px 14px;
+  transition: all 0.12s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.btn.on {
+  background: #ff00d6;
+  color: #06010a;
+  border-color: rgba(255, 0, 214, 0.35);
+  box-shadow: 0 0 18px rgba(255, 0, 214, 0.12);
+}
+
+.range {
+  accent-color: #ff00d6;
+}
+
+#panel {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  width: 300px;
+  background: var(--panel);
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+#panel h4 {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 15px;
+}
+
+#trace {
+  width: 100%;
+  height: 150px;
+  background: #0f172a;
+  border-radius: 12px;
+  border: 1px solid #1e293b;
+}
+
+#err {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  background: #dc2626;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  display: none;
+}
+
+#controls {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  width: 300px;
+  background: var(--panel);
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.control-group {
+  margin-bottom: 12px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  accent-color: #3b82f6;
+}
+
+.toggle {
+  background: #1e293b;
+  border: 1px solid #334155;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-block;
+  margin: 2px;
+}
+
+.toggle.active {
+  background: #1e40af;
+  color: #fff;
+}
+
+#info {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 320px;
+  background: var(--panel);
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  line-height: 1.6;
+  z-index: 10;
+}
+
+.lesson {
+  background: #0f172a;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 8px 0;
+  border-left: 3px solid #3b82f6;
+}
+
+#lessonPanel {
+  left: 20px;
+  top: 80px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: rgba(18, 21, 28, 0.85);
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #1e293b;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  position: fixed;
+  z-index: 10;
+}
+
+#navControls {
+  right: 20px;
+  top: 200px;
+  background: rgba(12, 8, 18, 0.9);
+  border: 1px solid rgba(200, 200, 200, 0.06);
+  border-radius: 12px;
+  padding: 12px;
+  color: #f3f2ff;
+  font-size: 11px;
+  line-height: 1.4;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  max-width: 180px;
+  position: fixed;
+  z-index: 10;
+}
+
+#navControls h5 {
+  margin: 0 0 8px 0;
+  color: #ff9bf0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.nav-tip {
+  margin: 4px 0;
+  color: #94a3b8;
+}
+
+#three-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  cursor: grab;
+}
+
+#three-canvas:active {
+  cursor: grabbing;
+}
