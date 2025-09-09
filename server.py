@@ -5,12 +5,15 @@ prefs.codegen.target="numpy"
 PORT=8766; NUM=50
 CTRL={"paused":False,"dt_ms":50}  # UI controls
 
-# Educational parameters
+# FIXED: Realistic SNN parameters based on neuroscience research
 PARAMS = {
-    "input_current": 0.1,  # Reduced for better control
-    "synapse_weight": 0.15,
-    "connection_prob": 0.08,
-    "tau": 8
+    "input_current": 0.02,  # Much lower baseline - realistic sparse firing
+    "synapse_weight": 0.05,  # Weaker synapses for realistic dynamics
+    "connection_prob": 0.1,  # Higher but more structured connectivity
+    "tau": 20,  # Longer time constant (20ms) - more realistic
+    "inhibition_strength": 0.15,  # Inhibitory connections
+    "refractory_period": 5,  # 5ms refractory period
+    "noise_level": 0.01  # Low background noise
 }
 
 def recreate_network():
@@ -20,13 +23,13 @@ def recreate_network():
     start_scope()
     tau = PARAMS["tau"] * ms
     # Fixed: Declare I_input as a parameter in the equations
-    eqs = "dv/dt=(-v + I_input + I_noise)/tau : 1\nI_input : 1\nI_noise : 1"
+    eqs = "dv/dt=(-v + I_input + I_noise + I_syn)/tau : 1\nI_input : 1\nI_noise : 1\nI_syn : 1"
     
     G = NeuronGroup(NUM, eqs, threshold='v>1', reset='v=0', method='euler')
     G.v = 'rand()*0.3'
     G.I_input = PARAMS["input_current"]
     # Add continuous background noise to keep network active
-    G.I_noise = '0.05 + 0.02*randn()'  # Small random current
+    G.I_noise = f'{PARAMS["noise_level"]} * randn()'  # Small random current
     
     S = Synapses(G, G, on_pre=f'v+={PARAMS["synapse_weight"]}')
     S.connect(p=PARAMS["connection_prob"])
@@ -118,20 +121,30 @@ async def handler(ws,path):
                     recreate_network()
                     print("Network reset with new parameters")
                 elif d.get("cmd") == "toggleWeights":
-                    # FIXED: Send proper connection data for visualization
+                    # Send realistic connection data
                     connections = []
-                    if hasattr(S, 'i') and hasattr(S, 'j') and len(S.i) > 0:
-                        for idx in range(len(S.i)):
+                    
+                    # Add E->E connections
+                    if hasattr(S_ee, 'i') and len(S_ee.i) > 0:
+                        for idx in range(len(S_ee.i)):
                             connections.append({
-                                "from": int(S.i[idx]), 
-                                "to": int(S.j[idx]), 
-                                "weight": PARAMS["synapse_weight"]
+                                "from": int(S_ee.i[idx]), 
+                                "to": int(S_ee.j[idx]), 
+                                "weight": float(S_ee.w[idx]),
+                                "type": "excitatory"
                             })
-                        print(f"Sending {len(connections)} connections to client")
-                        await ws.send(json.dumps({"cmd": "showConnections", "connections": connections}))
-                    else:
-                        print("No connections found to send")
-                        await ws.send(json.dumps({"cmd": "showConnections", "connections": []}))
+                    
+                    # Add I->E connections (inhibitory)
+                    if hasattr(S_ie, 'i') and len(S_ie.i) > 0:
+                        for idx in range(len(S_ie.i)):
+                            connections.append({
+                                "from": int(S_ie.i[idx]) + N_exc,  # Offset for inhibitory neurons
+                                "to": int(S_ie.j[idx]), 
+                                "weight": float(S_ie.w[idx]),
+                                "type": "inhibitory"
+                            })
+                    
+                    await ws.send(json.dumps({"cmd": "showConnections", "connections": connections}))
                 elif d.get("cmd") == "injectPattern":
                     # Inject a specific pattern for lesson 4
                     pattern_neurons = [0, 5, 10, 15, 20]  # Example pattern
