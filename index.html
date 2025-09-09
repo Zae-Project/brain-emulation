@@ -188,6 +188,7 @@
       #lessonModal > div {
         background: #0b0c0f;
         border: 1px solid rgba(200, 200, 200, 0.06); /* very thin grey border */
+        z-index: 20; /* ensure UI panels sit above the 3D canvas */
       }
 
       /* Neon buttons and active state */
@@ -702,7 +703,22 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        // Place the renderer canvas behind UI and make it cover the viewport
+        renderer.domElement.id = "three-canvas";
+        renderer.domElement.style.position = "fixed";
+        renderer.domElement.style.inset = "0";
+        renderer.domElement.style.width = "100%";
+        renderer.domElement.style.height = "100%";
+        renderer.domElement.style.zIndex = "0";
+        renderer.domElement.style.pointerEvents = "none";
         document.body.appendChild(renderer.domElement);
+
+        // Ensure the canvas resizes with the window
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
         // Enhanced lighting for better visibility
         scene.add(new THREE.AmbientLight(0x404040, 0.6)); // Brighter ambient
@@ -741,6 +757,7 @@
         let lastMouseY = 0;
         let selectedNeuron = null;
         let neuronActivityHistory = new Map();
+        let isRunning = true; // controls whether neurons update (Play/Pause)
 
         // Lesson content
         const lessonContent = {
@@ -776,8 +793,11 @@
           glows.length = 0;
 
           const radius = 25; // Smaller radius for better visibility
-          const N_EXC = 40,
-            N_INH = 10;
+          // Use the network size slider value so UI can control topology
+          const networkSizeSetting =
+            parseInt(document.getElementById("networkSize")?.value) || 50;
+          const N_EXC = Math.max(1, Math.round(networkSizeSetting * 0.8));
+          const N_INH = Math.max(0, networkSizeSetting - N_EXC);
 
           // Create excitatory neurons in visible clusters
           for (let i = 0; i < N_EXC; i++) {
@@ -948,36 +968,48 @@
         function animate() {
           requestAnimationFrame(animate);
 
-          // Update neurons
-          for (let i = 0; i < neurons.length; i++) {
-            const n = neurons[i],
-              g = glows[i],
-              u = n.userData;
+          // Keep the camera positioned according to spherical coordinates
+          camera.position.x =
+            cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+          camera.position.y = cameraDistance * Math.cos(cameraPhi);
+          camera.position.z =
+            cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+          camera.lookAt(cameraTarget);
 
-            // Simulate random activity
-            if (Math.random() < 0.01) {
-              u.pulse = 1.2;
-            }
+          // Update neurons only while running
+          if (isRunning) {
+            for (let i = 0; i < neurons.length; i++) {
+              const n = neurons[i],
+                g = glows[i],
+                u = n.userData;
 
-            if (u.pulse > 0) {
-              u.pulse *= 0.85;
-              const intensity = u.pulse / 1.2;
+              // Simulate random activity
+              if (Math.random() < 0.01) {
+                u.pulse = 1.2;
+              }
 
-              const glowColor = u.glowColor
-                .clone()
-                .multiplyScalar(intensity * 2);
-              n.material.emissive.copy(glowColor);
+              if (u.pulse > 0) {
+                u.pulse *= 0.85;
+                const intensity = u.pulse / 1.2;
 
-              n.scale.setScalar(1.0 + intensity * 0.4);
-              g.material.opacity = 0.2 + intensity * 0.6;
-              g.scale.setScalar(1.0 + intensity * 3.0);
-            } else {
-              n.material.emissive.copy(
-                u.originalColor.clone().multiplyScalar(0.4)
-              );
-              n.scale.setScalar(1.0);
-              g.material.opacity = 0.15;
-              g.scale.setScalar(1.0);
+                const glowColor = u.glowColor
+                  .clone()
+                  .multiplyScalar(intensity * 2);
+                // Some materials may not have emissive; check and set if available
+                if (n.material.emissive) n.material.emissive.copy(glowColor);
+
+                n.scale.setScalar(1.0 + intensity * 0.4);
+                if (g && g.material) g.material.opacity = 0.2 + intensity * 0.6;
+                if (g) g.scale.setScalar(1.0 + intensity * 3.0);
+              } else {
+                if (n.material.emissive)
+                  n.material.emissive.copy(
+                    u.originalColor.clone().multiplyScalar(0.4)
+                  );
+                n.scale.setScalar(1.0);
+                if (g && g.material) g.material.opacity = 0.15;
+                if (g) g.scale.setScalar(1.0);
+              }
             }
           }
 
@@ -1052,11 +1084,81 @@
           camera.lookAt(cameraTarget);
         }
 
-        // Add event listeners
-        renderer.domElement.addEventListener("mousemove", onMouseMove);
-        renderer.domElement.addEventListener("mousedown", onMouseDown);
-        renderer.domElement.addEventListener("mouseup", onMouseUp);
-        renderer.domElement.addEventListener("wheel", onMouseWheel);
+        // Add event listeners (attached to window so UI remains interactive)
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mousedown", onMouseDown);
+        window.addEventListener("mouseup", onMouseUp);
+        window.addEventListener("wheel", onMouseWheel);
+
+        // UI controls
+        const playBtn = document.getElementById("play");
+        const resetBtn = document.getElementById("resetNetwork");
+        const showWeightsBtn = document.getElementById("showWeights");
+        const networkSizeSlider = document.getElementById("networkSize");
+        const inputSlider = document.getElementById("inputCurrent");
+        const weightSlider = document.getElementById("synapseWeight");
+        const lessonSelect = document.getElementById("lessonSelect");
+        const prevLesson = document.getElementById("prevLesson");
+        const nextLesson = document.getElementById("nextLesson");
+        const viewLesson = document.getElementById("viewLesson");
+        const lessonModal = document.getElementById("lessonModal");
+        const closeModal = document.getElementById("closeModal");
+
+        playBtn.addEventListener("click", () => {
+          isRunning = !isRunning;
+          playBtn.classList.toggle("on", isRunning);
+          playBtn.textContent = isRunning ? "Pause" : "Play";
+        });
+
+        resetBtn.addEventListener("click", () => {
+          createNetworkTopology();
+        });
+
+        showWeightsBtn.addEventListener("click", () => {
+          showWeights = !showWeights;
+          if (lines && lines.material)
+            lines.material.opacity = showWeights ? 1.0 : 0.5;
+          showWeightsBtn.classList.toggle("on", showWeights);
+        });
+
+        networkSizeSlider.addEventListener("input", (e) => {
+          document.getElementById("sizeValue").textContent = e.target.value;
+        });
+        networkSizeSlider.addEventListener("change", () => {
+          createNetworkTopology();
+        });
+
+        inputSlider.addEventListener("input", (e) => {
+          document.getElementById("inputValue").textContent = e.target.value;
+        });
+        weightSlider.addEventListener("input", (e) => {
+          document.getElementById("weightValue").textContent = e.target.value;
+        });
+
+        prevLesson.addEventListener("click", () => {
+          lessonSelect.selectedIndex = Math.max(
+            0,
+            lessonSelect.selectedIndex - 1
+          );
+        });
+        nextLesson.addEventListener("click", () => {
+          lessonSelect.selectedIndex = Math.min(
+            lessonSelect.options.length - 1,
+            lessonSelect.selectedIndex + 1
+          );
+        });
+
+        viewLesson.addEventListener("click", () => {
+          lessonModal.style.display = "block";
+          document.getElementById("lessonFrame").srcdoc =
+            "<h2>" +
+            lessonSelect.options[lessonSelect.selectedIndex].text +
+            "</h2>";
+        });
+        closeModal.addEventListener("click", () => {
+          lessonModal.style.display = "none";
+          document.getElementById("lessonFrame").src = "";
+        });
 
         connectWS();
         animate();
