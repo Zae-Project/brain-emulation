@@ -667,6 +667,236 @@
     }
   }
 
+  // FIXED: openLessonModal to properly load external lesson files
+  function openLessonModal() {
+    const modal = document.getElementById('lessonModal');
+    const frame = document.getElementById('lessonFrame');
+    const fallback = document.getElementById('lessonFallback');
+    if (!modal || !frame || !fallback) return;
+
+    modal.style.display = 'block';
+    
+    // Try to load external lesson file first
+    const lessonFile = `lessons/lesson${currentLesson}.html`;
+    
+    // Show loading state
+    fallback.style.display = 'block';
+    frame.style.display = 'none';
+    fallback.innerHTML = '<p style="color:#94a3b8">Loading lesson content...</p>';
+
+    // Attempt to fetch the external lesson file
+    fetch(lessonFile)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.text();
+      })
+      .then(html => {
+        // Successfully loaded external file
+        console.log(`✓ Loaded external lesson file: ${lessonFile}`);
+        
+        // Extract content from full HTML if needed
+        let content = html;
+        const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        if (bodyMatch) {
+          content = bodyMatch[1];
+        } else {
+          const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+          if (mainMatch) {
+            content = mainMatch[1];
+          }
+        }
+        
+        fallback.innerHTML = content;
+        fallback.style.display = 'block';
+        frame.style.display = 'none';
+      })
+      .catch(error => {
+        // Failed to load external file, use inline content
+        console.log(`⚠ Could not load ${lessonFile}: ${error.message}`);
+        console.log('📖 Using inline lesson content instead');
+        
+        // Full expanded lesson content (inline fallback)
+        const fullContent = {
+          1: `<h1>Lesson 1: Basic Spike Dynamics</h1>
+             <h2>Overview</h2>
+             <p>Neural networks are built from individual neurons that integrate electrical signals and fire action potentials (spikes) when certain conditions are met.</p>
+             
+             <h2>The Integrate-and-Fire Model</h2>
+             <p>Each neuron in our simulation follows the leaky integrate-and-fire model:</p>
+             <ul>
+               <li><strong>Integration:</strong> The neuron accumulates incoming current over time</li>
+               <li><strong>Threshold:</strong> When voltage reaches v=1.0, the neuron fires a spike</li>
+               <li><strong>Reset:</strong> After firing, voltage resets to v=0.0</li>
+               <li><strong>Leak:</strong> Voltage naturally decays toward rest without input</li>
+             </ul>
+             
+             <h2>Detailed Dynamics</h2>
+             <p>The mathematical model for each neuron follows:</p>
+             <code>τ dV/dt = -V + I_input + I_noise + I_syn</code>
+             
+             <h2>Experiment Steps</h2>
+             <p>Use the <strong>Input Current</strong> slider to see how external stimulation affects firing rates:</p>
+             <ol>
+               <li><strong>Low current (0.0-0.3):</strong> Sparse, irregular firing - neurons rarely reach threshold</li>
+               <li><strong>Medium current (0.4-0.8):</strong> Regular firing patterns emerge - predictable spike timing</li>
+               <li><strong>High current (0.9+):</strong> High-frequency bursting - rapid continuous firing</li>
+             </ol>
+             
+             <h2>What to Observe</h2>
+             <ul>
+               <li>Watch how individual neurons (colored spheres) brighten when they spike</li>
+               <li>Observe the voltage trace in the upper-right panel showing membrane potential</li>
+               <li>Notice the relationship between input strength and firing frequency</li>
+               <li>See how noise affects spike timing precision</li>
+             </ul>
+             
+             <h2>Biological Relevance</h2>
+             <p>Real neurons in the brain work similarly - they integrate synaptic inputs and fire when a threshold is reached. This simple model captures the essential dynamics of neural computation.</p>`,
+             
+          2: `<h1>Lesson 2: Synaptic Transmission</h1>
+             <h2>How Neurons Communicate</h2>
+             <p>Neurons don't work in isolation - they form networks through synaptic connections that transmit signals between cells. This lesson explores how network connectivity shapes brain function.</p>
+             
+             <h2>Synaptic Weights</h2>
+             <p>The strength of connection between neurons is controlled by synaptic weight. This determines how much influence one neuron has on another:</p>
+             <ul>
+               <li><strong>Weak synapses (0.0-0.2):</strong> Subtle influence, requires many simultaneous spikes to affect the target</li>
+               <li><strong>Medium synapses (0.3-0.6):</strong> Moderate influence, single spikes can noticeably change target voltage</li>
+               <li><strong>Strong synapses (0.7+):</strong> Powerful influence, can trigger immediate firing in target neuron</li>
+             </ul>
+             
+             <h2>Network Connectivity</h2>
+             <p>The <strong>Connection Probability</strong> determines how densely neurons are wired together:</p>
+             <ul>
+               <li><strong>Sparse connectivity (0.02-0.05):</strong> Isolated activity, signals don't spread far</li>
+               <li><strong>Medium connectivity (0.06-0.12):</strong> Activity spreads through network in waves</li>
+               <li><strong>Dense connectivity (0.13+):</strong> Synchronized network-wide activity, all neurons fire together</li>
+             </ul>
+             
+             <h2>Types of Synapses</h2>
+             <ul>
+               <li><strong>Excitatory synapses:</strong> Increase target neuron's voltage (push toward firing)</li>
+               <li><strong>Inhibitory synapses:</strong> Decrease target neuron's voltage (prevent firing)</li>
+             </ul>
+             
+             <h2>Experiment Protocol</h2>
+             <ol>
+               <li>Start with low synaptic weight (0.1) and sparse connectivity (0.03)</li>
+               <li>Gradually increase synaptic weight - observe how activity spreads</li>
+               <li>Reset and try increasing connectivity instead - compare the effects</li>
+               <li>Find the "critical point" where isolated spikes become network bursts</li>
+             </ol>
+             
+             <h2>What to Observe</h2>
+             <p>Notice how the colored connections between neurons light up when activity propagates through the network. The visualization shows real-time synaptic transmission as signals flow between connected neurons.</p>`,
+             
+          3: `<h1>Lesson 3: Network Plasticity</h1>
+             <h2>Learning and Adaptation</h2>
+             <p>Real neural networks aren't static - they change their connectivity based on experience through synaptic plasticity. This is the biological basis of learning and memory.</p>
+             
+             <h2>Hebbian Learning Principle</h2>
+             <p>The famous principle "neurons that fire together, wire together" describes how synapses strengthen:</p>
+             <ul>
+               <li><strong>Correlation:</strong> When pre- and post-synaptic neurons are active simultaneously</li>
+               <li><strong>Strengthening:</strong> The synapse between them becomes stronger (increased weight)</li>
+               <li><strong>Weakening:</strong> Unused synapses gradually weaken over time (synaptic pruning)</li>
+               <li><strong>Timing matters:</strong> Precise spike timing determines whether strengthening or weakening occurs</li>
+             </ul>
+             
+             <h2>Types of Plasticity</h2>
+             <ul>
+               <li><strong>Spike-Timing Dependent Plasticity (STDP):</strong> Timing of pre/post spikes matters</li>
+               <li><strong>Rate-based plasticity:</strong> Overall activity levels determine changes</li>
+               <li><strong>Homeostatic plasticity:</strong> Networks maintain stable overall activity</li>
+             </ul>
+             
+             <h2>Network Reorganization</h2>
+             <p>As synapses change strength, the network's behavior evolves:</p>
+             <ul>
+               <li>Frequently used pathways become "superhighways" for information flow</li>
+               <li>Network develops preferred patterns of activity (attractors)</li>
+               <li>Memory traces emerge from strengthened connection patterns</li>
+               <li>Unused connections weaken and may be pruned away</li>
+             </ul>
+             
+             <h2>Experimental Procedure</h2>
+             <ol>
+               <li>Reset the network to start with random connectivity</li>
+               <li>Observe initial activity patterns with default settings</li>
+               <li>Run for extended time and watch how patterns stabilize</li>
+               <li>Use "Show Weights" to reveal current synaptic strengths</li>
+               <li>Notice which connections have strengthened vs. weakened</li>
+             </ol>
+             
+             <h2>Biological Significance</h2>
+             <p>This process underlies all forms of learning - from motor skills to memories. Diseases like Alzheimer's disrupt these plasticity mechanisms, leading to memory loss.</p>`,
+             
+          4: `<h1>Lesson 4: Pattern Recognition and Memory</h1>
+             <h2>Emergent Computation</h2>
+             <p>When properly trained, neural networks can recognize patterns and recall memories from partial cues. This lesson demonstrates associative memory and pattern completion.</p>
+             
+             <h2>Pattern Storage Mechanism</h2>
+             <p>Specific patterns of neural activity can be "stored" in the network through:</p>
+             <ul>
+               <li><strong>Activation Pattern:</strong> A specific subset of neurons firing together in sequence</li>
+               <li><strong>Strengthened Connections:</strong> Synapses between pattern neurons become stronger through Hebbian learning</li>
+               <li><strong>Memory Trace:</strong> The pattern leaves a lasting change in network connectivity</li>
+               <li><strong>Distributed Storage:</strong> Memory is spread across many synapses, not localized</li>
+             </ul>
+             
+             <h2>Pattern Recall Process</h2>
+             <p>Once stored, patterns can be recalled through:</p>
+             <ul>
+               <li><strong>Partial Cue:</strong> Activating just part of the original pattern</li>
+               <li><strong>Pattern Completion:</strong> The network fills in the missing pieces automatically</li>
+               <li><strong>Attractor Dynamics:</strong> Activity converges to the nearest stored pattern</li>
+               <li><strong>Content-Addressable Memory:</strong> Any part can retrieve the whole</li>
+             </ul>
+             
+             <h2>Types of Memory Networks</h2>
+             <ul>
+               <li><strong>Hopfield Networks:</strong> Store fixed-point attractors</li>
+               <li><strong>Associative Memory:</strong> Link different patterns together</li>
+               <li><strong>Sequence Memory:</strong> Store temporal patterns and sequences</li>
+             </ul>
+             
+             <h2>Experimental Protocol</h2>
+             <ol>
+               <li>Click "Inject Pattern" to store a specific activity pattern in the network</li>
+               <li>Watch how the pattern spreads and strengthens connections</li>
+               <li>Wait for activity to settle down</li>
+               <li>Click "Test Memory" to provide a partial cue</li>
+               <li>Observe whether the network recalls the full pattern</li>
+               <li>Try multiple pattern injections to see interference effects</li>
+             </ol>
+             
+             <h2>What to Observe</h2>
+             <ul>
+               <li>How quickly the injected pattern spreads through the network</li>
+               <li>Whether the pattern becomes self-sustaining</li>
+               <li>How partial cues trigger pattern completion</li>
+               <li>Competition between different stored patterns</li>
+               <li>The role of network connectivity in memory capacity</li>
+             </ul>
+             
+             <h2>Real-World Applications</h2>
+             <p>These principles are used in:</p>
+             <ul>
+               <li>Artificial neural networks for pattern recognition</li>
+               <li>Associative memory systems in AI</li>
+               <li>Understanding memory disorders and treatments</li>
+               <li>Brain-computer interfaces</li>
+             </ul>`
+        };
+        
+        fallback.innerHTML = fullContent[currentLesson] || `<p style="color:#e6e9ef">Lesson ${currentLesson} content not available.</p>`;
+        fallback.style.display = 'block';
+        frame.style.display = 'none';
+      });
+  }
+
   // Initialize
   createNetworkTopology();
   connectWS();
@@ -751,88 +981,266 @@
     }
   }
 
-  // Minimal lesson content and modal helpers (restore original lesson behavior)
+  // Lesson content and modal helpers
   const lessonContent = {
-    1: { title: "Basic Spike Dynamics", content: `<h1>Lesson 1: Basic Spike Dynamics</h1><p>Each neuron integrates input until threshold (v=1). When threshold is reached, it emits a spike and resets. Use the sliders to observe how input current and synaptic weight affect firing.</p>` },
-    2: { title: "Synaptic Transmission", content: `<h1>Lesson 2: Synaptic Transmission</h1><p>Synapses transmit spikes between neurons. Excitatory synapses increase post-synaptic voltage; inhibitory synapses decrease it. Adjust the <strong>Synaptic Weight</strong> and <strong>Connection Probability</strong> to see network dynamics.</p>` },
+    1: { title: "Basic Spike Dynamics", content: `<h1>Lesson 1: Basic Spike Dynamics</h1><p>Each neuron integrates input until threshold (v=1). When threshold is reached, it emits a spike and resets.</p>` },
+    2: { title: "Synaptic Transmission", content: `<h1>Lesson 2: Synaptic Transmission</h1><p>Synapses transmit spikes between neurons. Excitatory synapses increase post-synaptic voltage; inhibitory synapses decrease it.</p>` },
     3: { title: "Network Plasticity", content: `<h1>Lesson 3: Network Plasticity</h1><p>Plasticity mechanisms change synaptic strengths over time. This lesson demonstrates simplified plastic changes: repeated co-activation can strengthen connections.</p>` },
-    4: { title: "Pattern Recognition", content: `<h1>Lesson 4: Pattern Recognition</h1><p>Inject patterns and test partial cues for recall. Use <strong>Inject Pattern</strong> and <strong>Test Memory</strong> to experiment with pattern completion in the network.</p>` }
+    4: { title: "Pattern Recognition", content: `<h1>Lesson 4: Pattern Recognition</h1><p>Inject patterns and test partial cues for recall. Use <strong>Inject Pattern</strong> and <strong>Test Memory</strong> to experiment with pattern completion.</p>` }
   };
   let currentLesson = 1;
 
-  // NEW: open lesson modal by setting iframe src to lesson file (works for file:// and http)
+  // SINGLE openLessonModal function - removed duplicates
   function openLessonModal() {
     const modal = document.getElementById('lessonModal');
     const frame = document.getElementById('lessonFrame');
     const fallback = document.getElementById('lessonFallback');
     if (!modal || !frame || !fallback) return;
 
-    // show modal and iframe; try to load the lesson file from lessons/lessonX.html
     modal.style.display = 'block';
-    fallback.style.display = 'none';
-    frame.style.display = 'block';
-
+    
+    // Try to load external lesson file first
     const lessonFile = `lessons/lesson${currentLesson}.html`;
-    // set src — if the file can be loaded the iframe will show it (works when served or local file present)
-    frame.src = lessonFile;
+    
+    // Show loading state
+    fallback.style.display = 'block';
+    frame.style.display = 'none';
+    fallback.innerHTML = '<p style="color:#94a3b8">Loading lesson content...</p>';
 
-    // If iframe fails to load (some environments), show fallback preview
-    // Use a short timeout to detect empty load — keep simple and reliable
-    const fallbackTimer = setTimeout(() => {
-      try {
-        // If iframe document is accessible and has body content, keep it.
-        const doc = frame.contentDocument || frame.contentWindow?.document;
-        if (!doc || !doc.body || doc.body.innerHTML.trim().length === 0) {
-          // show fallback preview content
-          frame.style.display = 'none';
-          fallback.style.display = 'block';
-          const lesson = lessonContent[currentLesson];
-          fallback.innerHTML = lesson ? lesson.content : `<p style="color:#e6e9ef">Lesson ${currentLesson} not available.</p>`;
+    // Attempt to fetch the external lesson file
+    fetch(lessonFile)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-      } catch (err) {
-        // cross-origin or access denied -> show fallback preview
-        frame.style.display = 'none';
+        return response.text();
+      })
+      .then(html => {
+        // Successfully loaded external file
+        console.log(`✓ Loaded external lesson file: ${lessonFile}`);
+        
+        // Extract content from full HTML if needed
+        let content = html;
+        const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        if (bodyMatch) {
+          content = bodyMatch[1];
+        } else {
+          const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+          if (mainMatch) {
+            content = mainMatch[1];
+          }
+        }
+        
+        fallback.innerHTML = content;
         fallback.style.display = 'block';
-        const lesson = lessonContent[currentLesson];
-        fallback.innerHTML = lesson ? lesson.content : `<p style="color:#e6e9ef">Lesson ${currentLesson} not available.</p>`;
-      }
-    }, 300); // small delay
-
-    // clear timer when iframe loads successfully
-    frame.onload = () => {
-      clearTimeout(fallbackTimer);
-      // optionally adjust height based on content (only same-origin)
-      try {
-        const doc = frame.contentDocument || frame.contentWindow.document;
-        if (doc && doc.body) {
-          const h = Math.min(window.innerHeight * 0.75, Math.max(300, doc.body.scrollHeight));
-          frame.style.height = h + 'px';
-        }
-      } catch(e){}
-    };
+        frame.style.display = 'none';
+      })
+      .catch(error => {
+        // Failed to load external file, use inline content
+        console.log(`⚠ Could not load ${lessonFile}: ${error.message}`);
+        console.log('📖 Using inline lesson content instead');
+        
+        // Full expanded lesson content (inline fallback)
+        const fullContent = {
+          1: `<h1>Lesson 1: Basic Spike Dynamics</h1>
+             <h2>Overview</h2>
+             <p>Neural networks are built from individual neurons that integrate electrical signals and fire action potentials (spikes) when certain conditions are met.</p>
+             
+             <h2>The Integrate-and-Fire Model</h2>
+             <p>Each neuron in our simulation follows the leaky integrate-and-fire model:</p>
+             <ul>
+               <li><strong>Integration:</strong> The neuron accumulates incoming current over time</li>
+               <li><strong>Threshold:</strong> When voltage reaches v=1.0, the neuron fires a spike</li>
+               <li><strong>Reset:</strong> After firing, voltage resets to v=0.0</li>
+               <li><strong>Leak:</strong> Voltage naturally decays toward rest without input</li>
+             </ul>
+             
+             <h2>Detailed Dynamics</h2>
+             <p>The mathematical model for each neuron follows:</p>
+             <code>τ dV/dt = -V + I_input + I_noise + I_syn</code>
+             
+             <h2>Experiment Steps</h2>
+             <p>Use the <strong>Input Current</strong> slider to see how external stimulation affects firing rates:</p>
+             <ol>
+               <li><strong>Low current (0.0-0.3):</strong> Sparse, irregular firing - neurons rarely reach threshold</li>
+               <li><strong>Medium current (0.4-0.8):</strong> Regular firing patterns emerge - predictable spike timing</li>
+               <li><strong>High current (0.9+):</strong> High-frequency bursting - rapid continuous firing</li>
+             </ol>
+             
+             <h2>What to Observe</h2>
+             <ul>
+               <li>Watch how individual neurons (colored spheres) brighten when they spike</li>
+               <li>Observe the voltage trace in the upper-right panel showing membrane potential</li>
+               <li>Notice the relationship between input strength and firing frequency</li>
+               <li>See how noise affects spike timing precision</li>
+             </ul>
+             
+             <h2>Biological Relevance</h2>
+             <p>Real neurons in the brain work similarly - they integrate synaptic inputs and fire when a threshold is reached. This simple model captures the essential dynamics of neural computation.</p>`,
+             
+          2: `<h1>Lesson 2: Synaptic Transmission</h1>
+             <h2>How Neurons Communicate</h2>
+             <p>Neurons don't work in isolation - they form networks through synaptic connections that transmit signals between cells. This lesson explores how network connectivity shapes brain function.</p>
+             
+             <h2>Synaptic Weights</h2>
+             <p>The strength of connection between neurons is controlled by synaptic weight. This determines how much influence one neuron has on another:</p>
+             <ul>
+               <li><strong>Weak synapses (0.0-0.2):</strong> Subtle influence, requires many simultaneous spikes to affect the target</li>
+               <li><strong>Medium synapses (0.3-0.6):</strong> Moderate influence, single spikes can noticeably change target voltage</li>
+               <li><strong>Strong synapses (0.7+):</strong> Powerful influence, can trigger immediate firing in target neuron</li>
+             </ul>
+             
+             <h2>Network Connectivity</h2>
+             <p>The <strong>Connection Probability</strong> determines how densely neurons are wired together:</p>
+             <ul>
+               <li><strong>Sparse connectivity (0.02-0.05):</strong> Isolated activity, signals don't spread far</li>
+               <li><strong>Medium connectivity (0.06-0.12):</strong> Activity spreads through network in waves</li>
+               <li><strong>Dense connectivity (0.13+):</strong> Synchronized network-wide activity, all neurons fire together</li>
+             </ul>
+             
+             <h2>Types of Synapses</h2>
+             <ul>
+               <li><strong>Excitatory synapses:</strong> Increase target neuron's voltage (push toward firing)</li>
+               <li><strong>Inhibitory synapses:</strong> Decrease target neuron's voltage (prevent firing)</li>
+             </ul>
+             
+             <h2>Experiment Protocol</h2>
+             <ol>
+               <li>Start with low synaptic weight (0.1) and sparse connectivity (0.03)</li>
+               <li>Gradually increase synaptic weight - observe how activity spreads</li>
+               <li>Reset and try increasing connectivity instead - compare the effects</li>
+               <li>Find the "critical point" where isolated spikes become network bursts</li>
+             </ol>
+             
+             <h2>What to Observe</h2>
+             <p>Notice how the colored connections between neurons light up when activity propagates through the network. The visualization shows real-time synaptic transmission as signals flow between connected neurons.</p>`,
+             
+          3: `<h1>Lesson 3: Network Plasticity</h1>
+             <h2>Learning and Adaptation</h2>
+             <p>Real neural networks aren't static - they change their connectivity based on experience through synaptic plasticity. This is the biological basis of learning and memory.</p>
+             
+             <h2>Hebbian Learning Principle</h2>
+             <p>The famous principle "neurons that fire together, wire together" describes how synapses strengthen:</p>
+             <ul>
+               <li><strong>Correlation:</strong> When pre- and post-synaptic neurons are active simultaneously</li>
+               <li><strong>Strengthening:</strong> The synapse between them becomes stronger (increased weight)</li>
+               <li><strong>Weakening:</strong> Unused synapses gradually weaken over time (synaptic pruning)</li>
+               <li><strong>Timing matters:</strong> Precise spike timing determines whether strengthening or weakening occurs</li>
+             </ul>
+             
+             <h2>Types of Plasticity</h2>
+             <ul>
+               <li><strong>Spike-Timing Dependent Plasticity (STDP):</strong> Timing of pre/post spikes matters</li>
+               <li><strong>Rate-based plasticity:</strong> Overall activity levels determine changes</li>
+               <li><strong>Homeostatic plasticity:</strong> Networks maintain stable overall activity</li>
+             </ul>
+             
+             <h2>Network Reorganization</h2>
+             <p>As synapses change strength, the network's behavior evolves:</p>
+             <ul>
+               <li>Frequently used pathways become "superhighways" for information flow</li>
+               <li>Network develops preferred patterns of activity (attractors)</li>
+               <li>Memory traces emerge from strengthened connection patterns</li>
+               <li>Unused connections weaken and may be pruned away</li>
+             </ul>
+             
+             <h2>Experimental Procedure</h2>
+             <ol>
+               <li>Reset the network to start with random connectivity</li>
+               <li>Observe initial activity patterns with default settings</li>
+               <li>Run for extended time and watch how patterns stabilize</li>
+               <li>Use "Show Weights" to reveal current synaptic strengths</li>
+               <li>Notice which connections have strengthened vs. weakened</li>
+             </ol>
+             
+             <h2>Biological Significance</h2>
+             <p>This process underlies all forms of learning - from motor skills to memories. Diseases like Alzheimer's disrupt these plasticity mechanisms, leading to memory loss.</p>`,
+             
+          4: `<h1>Lesson 4: Pattern Recognition and Memory</h1>
+             <h2>Emergent Computation</h2>
+             <p>When properly trained, neural networks can recognize patterns and recall memories from partial cues. This lesson demonstrates associative memory and pattern completion.</p>
+             
+             <h2>Pattern Storage Mechanism</h2>
+             <p>Specific patterns of neural activity can be "stored" in the network through:</p>
+             <ul>
+               <li><strong>Activation Pattern:</strong> A specific subset of neurons firing together in sequence</li>
+               <li><strong>Strengthened Connections:</strong> Synapses between pattern neurons become stronger through Hebbian learning</li>
+               <li><strong>Memory Trace:</strong> The pattern leaves a lasting change in network connectivity</li>
+               <li><strong>Distributed Storage:</strong> Memory is spread across many synapses, not localized</li>
+             </ul>
+             
+             <h2>Pattern Recall Process</h2>
+             <p>Once stored, patterns can be recalled through:</p>
+             <ul>
+               <li><strong>Partial Cue:</strong> Activating just part of the original pattern</li>
+               <li><strong>Pattern Completion:</strong> The network fills in the missing pieces automatically</li>
+               <li><strong>Attractor Dynamics:</strong> Activity converges to the nearest stored pattern</li>
+               <li><strong>Content-Addressable Memory:</strong> Any part can retrieve the whole</li>
+             </ul>
+             
+             <h2>Types of Memory Networks</h2>
+             <ul>
+               <li><strong>Hopfield Networks:</strong> Store fixed-point attractors</li>
+               <li><strong>Associative Memory:</strong> Link different patterns together</li>
+               <li><strong>Sequence Memory:</strong> Store temporal patterns and sequences</li>
+             </ul>
+             
+             <h2>Experimental Protocol</h2>
+             <ol>
+               <li>Click "Inject Pattern" to store a specific activity pattern in the network</li>
+               <li>Watch how the pattern spreads and strengthens connections</li>
+               <li>Wait for activity to settle down</li>
+               <li>Click "Test Memory" to provide a partial cue</li>
+               <li>Observe whether the network recalls the full pattern</li>
+               <li>Try multiple pattern injections to see interference effects</li>
+             </ol>
+             
+             <h2>What to Observe</h2>
+             <ul>
+               <li>How quickly the injected pattern spreads through the network</li>
+               <li>Whether the pattern becomes self-sustaining</li>
+               <li>How partial cues trigger pattern completion</li>
+               <li>Competition between different stored patterns</li>
+               <li>The role of network connectivity in memory capacity</li>
+             </ul>
+             
+             <h2>Real-World Applications</h2>
+             <p>These principles are used in:</p>
+             <ul>
+               <li>Artificial neural networks for pattern recognition</li>
+               <li>Associative memory systems in AI</li>
+               <li>Understanding memory disorders and treatments</li>
+               <li>Brain-computer interfaces</li>
+             </ul>`
+        };
+        
+        fallback.innerHTML = fullContent[currentLesson] || `<p style="color:#e6e9ef">Lesson ${currentLesson} content not available.</p>`;
+        fallback.style.display = 'block';
+        frame.style.display = 'none';
+      });
   }
 
-  // CLOSE handler: hide modal and clear iframe src to stop any activity
-  const closeModalBtn = document.getElementById('closeModal');
-  if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', () => {
-      const modal = document.getElementById('lessonModal');
-      const frame = document.getElementById('lessonFrame');
-      const fallback = document.getElementById('lessonFallback');
-      if (modal) modal.style.display = 'none';
-      if (frame) { frame.src = 'about:blank'; frame.style.display = 'none'; }
-      if (fallback) { fallback.style.display = 'none'; fallback.innerHTML = ''; }
-    });
+  // Helper functions for lessons
+  function updateLessonContent() {
+    const box = document.getElementById('lessonContent');
+    if (!box) return;
+    const lesson = lessonContent[currentLesson];
+    box.innerHTML = `<div class="lesson"><strong>Lesson ${currentLesson}: ${lesson ? lesson.title : 'N/A'}</strong><br>${lesson ? lesson.content : ''}</div>`;
   }
 
-  // Wire View Full button (already present) to open modal
-  const viewBtn = document.getElementById('viewLesson');
-  if (viewBtn) viewBtn.addEventListener('click', openLessonModal);
+  function updateLessonControls() {
+    const pc = document.getElementById('patternControls');
+    if (pc) pc.style.display = currentLesson === 4 ? 'block' : 'none';
+  }
 
-  // Prev / Next lesson buttons and select
-  const prevBtn = document.getElementById('prevLesson');
-  const nextBtn = document.getElementById('nextLesson');
-  const sel = document.getElementById('lessonSelect');
+  function updateNavigationButtons() {
+    const selEl = document.getElementById('lessonSelect');
+    if (selEl) selEl.value = currentLesson;
+    const prevBtn = document.getElementById('prevLesson');
+    const nextBtn = document.getElementById('nextLesson');
+    if (prevBtn) prevBtn.disabled = currentLesson === 1;
+    if (nextBtn) nextBtn.disabled = currentLesson === 4;
+  }
 
   function setLesson(n) {
     currentLesson = Math.max(1, Math.min(4, n));
@@ -841,23 +1249,504 @@
     updateNavigationButtons();
   }
 
-  if (prevBtn) prevBtn.addEventListener('click', () => setLesson(currentLesson - 1));
-  if (nextBtn) nextBtn.addEventListener('click', () => setLesson(currentLesson + 1));
-  if (sel) sel.addEventListener('change', (e) => setLesson(parseInt(e.target.value || '1', 10)));
+  // Wire up all event listeners only once
+  function wireEventListeners() {
+    // Main controls
+    const btn = document.getElementById('play');
+    const rng = document.getElementById('speed');
+    
+    if (btn) {
+      btn.onclick = () => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        
+        const isCurrentlyPaused = btn.classList.contains('on');
+        
+        if (isCurrentlyPaused) {
+          btn.classList.remove('on');
+          btn.textContent = 'Play';
+          ws.send(JSON.stringify({cmd:'pause'}));
+        } else {
+          btn.classList.add('on');
+          btn.textContent = 'Pause';
+          ws.send(JSON.stringify({cmd:'play'}));
+        }
+      };
+    }
+    
+    if (rng) {
+      rng.oninput = () => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        const speed = parseInt(rng.value, 10);
+        const dt_ms = Math.max(5, 200 - speed);
+        ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
+      };
+    }
 
-  // Update navigation buttons (ensure select is in sync)
-  function updateNavigationButtons() {
-    const selEl = document.getElementById('lessonSelect');
-    if (selEl) selEl.value = currentLesson;
-    // enable/disable prev/next
-    if (prevBtn) prevBtn.disabled = currentLesson === 1;
-    if (nextBtn) nextBtn.disabled = currentLesson === 4;
+    // Input controls
+    const inputCurrent = document.getElementById('inputCurrent');
+    const inputValue = document.getElementById('inputValue');
+    if (inputCurrent && inputValue) {
+      inputCurrent.addEventListener('input', () => {
+        inputValue.textContent = inputCurrent.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
+        }
+      });
+    }
+
+    // Reset and show weights buttons
+    const resetBtn = document.getElementById('resetNetwork');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'reset'}));
+        }
+      });
+    }
+
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
+      });
+    }
+
+    // Trace drawing function
+    function drawTrace() {
+      const canvas = document.getElementById('trace');
+      const c = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+
+      // clear background
+      c.fillStyle = '#0f172a';
+      c.fillRect(0, 0, W, H);
+
+      // draw subtle grid lines
+      c.strokeStyle = '#1e293b';
+      c.lineWidth = 1;
+      c.beginPath();
+      for (let i = 0; i <= 4; i++) {
+        const y = 8 + (i * (H - 16) / 4);
+        c.moveTo(6, y);
+        c.lineTo(W - 6, y);
+      }
+      c.stroke();
+
+      // draw trace if available
+      if (traceBuf && traceBuf.length > 0) {
+        const len = Math.min(traceBuf.length, 200);
+        const pad = 6;
+        c.beginPath();
+        c.lineWidth = 2;
+        c.strokeStyle = '#60a5fa';
+        for (let i = 0; i < len; i++) {
+          const v = traceBuf[traceBuf.length - len + i];
+          const x = pad + (i / (len - 1 || 1)) * (W - pad * 2);
+          const vv = Math.max(0, Math.min(1, v));
+          const y = pad + (1 - vv) * (H - pad * 2);
+          if (i === 0) c.moveTo(x, y); else c.lineTo(x, y);
+        }
+        c.stroke();
+
+        // latest value display
+        const last = traceBuf[traceBuf.length - 1];
+        c.fillStyle = '#f223e0';
+        c.font = '12px Inter, system-ui, Helvetica, Arial';
+        c.fillText(last !== undefined ? last.toFixed(3) : '--', 10, 14);
+      } else {
+        c.fillStyle = '#94a3b8';
+        c.font = '12px Inter, system-ui, Helvetica, Arial';
+        c.fillText('--', 10, 14);
+      }
+    }
+
+    // Lesson controls
+    const viewBtn = document.getElementById('viewLesson');
+    if (viewBtn) viewBtn.addEventListener('click', openLessonModal);
+
+    const closeModalBtn = document.getElementById('closeModal');
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', () => {
+        const modal = document.getElementById('lessonModal');
+        if (modal) modal.style.display = 'none';
+      });
+    }
+
+    const prevBtn = document.getElementById('prevLesson');
+    const nextBtn = document.getElementById('nextLesson');
+    const sel = document.getElementById('lessonSelect');
+
+    if (prevBtn) prevBtn.addEventListener('click', () => setLesson(currentLesson - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => setLesson(currentLesson + 1));
+    if (sel) sel.addEventListener('change', (e) => setLesson(parseInt(e.target.value || '1', 10)));
+
+    // Toggle lesson buttons
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLesson = parseInt(btn.id.replace('lesson','')) || 1;
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    });
   }
 
-  // Initialize lesson UI state
+  // Initialize everything
+  createNetworkTopology();
+  wireEventListeners();
   updateLessonContent();
   updateLessonControls();
   updateNavigationButtons();
+  connectWS();
+  animate();
+
+  // Handle window resize
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  // Add missing roundRect helper function for canvas drawing
+  function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    if (typeof stroke === 'undefined') stroke = true;
+    if (typeof radius === 'undefined') radius = 5;
+    if (typeof radius === 'number') {
+      radius = {tl: radius, tr: radius, br: radius, bl: radius};
+    } else {
+      var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+      for (var side in defaultRadius) {
+        radius[side] = radius[side] || defaultRadius[side];
+      }
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + radius.tl, y);
+    ctx.lineTo(x + width - radius.tr, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+    ctx.lineTo(x + width, y + height - radius.br);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+    ctx.lineTo(x + radius.bl, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+    ctx.lineTo(x, y + radius.tl);
+    ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+  }
+
+  // Hook missing controls: synapseWeight, connectionProb, networkSize, inject/test pattern
+  const synapseSlider = document.getElementById('synapseWeight');
+  if (synapseSlider) {
+    synapseSlider.addEventListener('input', () => {
+      const v = parseFloat(synapseSlider.value);
+      const label = document.getElementById('weightValue');
+      if (label) label.textContent = v.toFixed(2);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ cmd: 'setWeight', value: v }));
+      }
+    });
+  }
+
+  const probSlider = document.getElementById('connectionProb');
+  if (probSlider) {
+    probSlider.addEventListener('input', () => {
+      const v = parseFloat(probSlider.value);
+      const label = document.getElementById('probValue');
+      if (label) label.textContent = v.toFixed(3);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ cmd: 'setConnectionProb', value: v }));
+      }
+    });
+  }
+
+  const sizeSlider = document.getElementById('networkSize');
+  if (sizeSlider) {
+    sizeSlider.addEventListener('input', () => {
+      const v = parseInt(sizeSlider.value, 10);
+      const label = document.getElementById('sizeValue');
+      if (label) label.textContent = v;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ cmd: 'setNetworkSize', value: v }));
+        ws.send(JSON.stringify({ cmd: 'reset' }));
+      }
+    });
+  }
+
+  const injectBtn = document.getElementById('injectPattern');
+  if (injectBtn) injectBtn.addEventListener('click', () => { 
+    if (ws && ws.readyState === WebSocket.OPEN) 
+      ws.send(JSON.stringify({cmd:'injectPattern'})); 
+  });
+
+  const testBtn = document.getElementById('testMemory');
+  if (testBtn) testBtn.addEventListener('click', () => { 
+    if (ws && ws.readyState === WebSocket.OPEN) 
+      ws.send(JSON.stringify({cmd:'testMemory'})); 
+  });
+
+  // Add the missing lesson helper functions
+  function updateLessonContent() {
+    const box = document.getElementById('lessonContent');
+    if (!box) return;
+    const lesson = lessonContent[currentLesson];
+    box.innerHTML = `<div class="lesson"><strong>Lesson ${currentLesson}: ${lesson ? lesson.title : 'N/A'}</strong><br>${lesson ? lesson.content : ''}</div>`;
+  }
+
+  function updateLessonControls() {
+    const pc = document.getElementById('patternControls');
+    if (pc) pc.style.display = currentLesson === 4 ? 'block' : 'none';
+  }
+
+  // Wire up toggle lesson buttons
+  document.querySelectorAll('.toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLesson = parseInt(btn.id.replace('lesson','')) || 1;
+      updateLessonContent();
+      updateLessonControls();
+      updateNavigationButtons();
+    });
+  });
+
+  // FIXED: Completely rewrite openLessonModal to ALWAYS show content
+  function openLessonModal() {
+    const modal = document.getElementById('lessonModal');
+    const frame = document.getElementById('lessonFrame');
+    const fallback = document.getElementById('lessonFallback');
+    if (!modal || !frame || !fallback) return;
+
+    modal.style.display = 'block';
+    
+    // Try to load external lesson file first
+    const lessonFile = `lessons/lesson${currentLesson}.html`;
+    
+    // Show loading state
+    fallback.style.display = 'block';
+    frame.style.display = 'none';
+    fallback.innerHTML = '<p style="color:#94a3b8">Loading lesson content...</p>';
+
+    // Attempt to fetch the external lesson file
+    fetch(lessonFile)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.text();
+      })
+      .then(html => {
+        // Successfully loaded external file
+        console.log(`✓ Loaded external lesson file: ${lessonFile}`);
+        
+        // Extract content from full HTML if needed
+        let content = html;
+        const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        if (bodyMatch) {
+          content = bodyMatch[1];
+        } else {
+          const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+          if (mainMatch) {
+            content = mainMatch[1];
+          }
+        }
+        
+        fallback.innerHTML = content;
+        fallback.style.display = 'block';
+        frame.style.display = 'none';
+      })
+      .catch(error => {
+        // Failed to load external file, use inline content
+        console.log(`⚠ Could not load ${lessonFile}: ${error.message}`);
+        console.log('📖 Using inline lesson content instead');
+        
+        // Full expanded lesson content (inline fallback)
+        const fullContent = {
+          1: `<h1>Lesson 1: Basic Spike Dynamics</h1>
+             <h2>Overview</h2>
+             <p>Neural networks are built from individual neurons that integrate electrical signals and fire action potentials (spikes) when certain conditions are met.</p>
+             
+             <h2>The Integrate-and-Fire Model</h2>
+             <p>Each neuron in our simulation follows the leaky integrate-and-fire model:</p>
+             <ul>
+               <li><strong>Integration:</strong> The neuron accumulates incoming current over time</li>
+               <li><strong>Threshold:</strong> When voltage reaches v=1.0, the neuron fires a spike</li>
+               <li><strong>Reset:</strong> After firing, voltage resets to v=0.0</li>
+               <li><strong>Leak:</strong> Voltage naturally decays toward rest without input</li>
+             </ul>
+             
+             <h2>Detailed Dynamics</h2>
+             <p>The mathematical model for each neuron follows:</p>
+             <code>τ dV/dt = -V + I_input + I_noise + I_syn</code>
+             
+             <h2>Experiment Steps</h2>
+             <p>Use the <strong>Input Current</strong> slider to see how external stimulation affects firing rates:</p>
+             <ol>
+               <li><strong>Low current (0.0-0.3):</strong> Sparse, irregular firing - neurons rarely reach threshold</li>
+               <li><strong>Medium current (0.4-0.8):</strong> Regular firing patterns emerge - predictable spike timing</li>
+               <li><strong>High current (0.9+):</strong> High-frequency bursting - rapid continuous firing</li>
+             </ol>
+             
+             <h2>What to Observe</h2>
+             <ul>
+               <li>Watch how individual neurons (colored spheres) brighten when they spike</li>
+               <li>Observe the voltage trace in the upper-right panel showing membrane potential</li>
+               <li>Notice the relationship between input strength and firing frequency</li>
+               <li>See how noise affects spike timing precision</li>
+             </ul>
+             
+             <h2>Biological Relevance</h2>
+             <p>Real neurons in the brain work similarly - they integrate synaptic inputs and fire when a threshold is reached. This simple model captures the essential dynamics of neural computation.</p>`,
+             
+          2: `<h1>Lesson 2: Synaptic Transmission</h1>
+             <h2>How Neurons Communicate</h2>
+             <p>Neurons don't work in isolation - they form networks through synaptic connections that transmit signals between cells. This lesson explores how network connectivity shapes brain function.</p>
+             
+             <h2>Synaptic Weights</h2>
+             <p>The strength of connection between neurons is controlled by synaptic weight. This determines how much influence one neuron has on another:</p>
+             <ul>
+               <li><strong>Weak synapses (0.0-0.2):</strong> Subtle influence, requires many simultaneous spikes to affect the target</li>
+               <li><strong>Medium synapses (0.3-0.6):</strong> Moderate influence, single spikes can noticeably change target voltage</li>
+               <li><strong>Strong synapses (0.7+):</strong> Powerful influence, can trigger immediate firing in target neuron</li>
+             </ul>
+             
+             <h2>Network Connectivity</h2>
+             <p>The <strong>Connection Probability</strong> determines how densely neurons are wired together:</p>
+             <ul>
+               <li><strong>Sparse connectivity (0.02-0.05):</strong> Isolated activity, signals don't spread far</li>
+               <li><strong>Medium connectivity (0.06-0.12):</strong> Activity spreads through network in waves</li>
+               <li><strong>Dense connectivity (0.13+):</strong> Synchronized network-wide activity, all neurons fire together</li>
+             </ul>
+             
+             <h2>Types of Synapses</h2>
+             <ul>
+               <li><strong>Excitatory synapses:</strong> Increase target neuron's voltage (push toward firing)</li>
+               <li><strong>Inhibitory synapses:</strong> Decrease target neuron's voltage (prevent firing)</li>
+             </ul>
+             
+             <h2>Experiment Protocol</h2>
+             <ol>
+               <li>Start with low synaptic weight (0.1) and sparse connectivity (0.03)</li>
+               <li>Gradually increase synaptic weight - observe how activity spreads</li>
+               <li>Reset and try increasing connectivity instead - compare the effects</li>
+               <li>Find the "critical point" where isolated spikes become network bursts</li>
+             </ol>
+             
+             <h2>What to Observe</h2>
+             <p>Notice how the colored connections between neurons light up when activity propagates through the network. The visualization shows real-time synaptic transmission as signals flow between connected neurons.</p>`,
+             
+          3: `<h1>Lesson 3: Network Plasticity</h1>
+             <h2>Learning and Adaptation</h2>
+             <p>Real neural networks aren't static - they change their connectivity based on experience through synaptic plasticity. This is the biological basis of learning and memory.</p>
+             
+             <h2>Hebbian Learning Principle</h2>
+             <p>The famous principle "neurons that fire together, wire together" describes how synapses strengthen:</p>
+             <ul>
+               <li><strong>Correlation:</strong> When pre- and post-synaptic neurons are active simultaneously</li>
+               <li><strong>Strengthening:</strong> The synapse between them becomes stronger (increased weight)</li>
+               <li><strong>Weakening:</strong> Unused synapses gradually weaken over time (synaptic pruning)</li>
+               <li><strong>Timing matters:</strong> Precise spike timing determines whether strengthening or weakening occurs</li>
+             </ul>
+             
+             <h2>Types of Plasticity</h2>
+             <ul>
+               <li><strong>Spike-Timing Dependent Plasticity (STDP):</strong> Timing of pre/post spikes matters</li>
+               <li><strong>Rate-based plasticity:</strong> Overall activity levels determine changes</li>
+               <li><strong>Homeostatic plasticity:</strong> Networks maintain stable overall activity</li>
+             </ul>
+             
+             <h2>Network Reorganization</h2>
+             <p>As synapses change strength, the network's behavior evolves:</p>
+             <ul>
+               <li>Frequently used pathways become "superhighways" for information flow</li>
+               <li>Network develops preferred patterns of activity (attractors)</li>
+               <li>Memory traces emerge from strengthened connection patterns</li>
+               <li>Unused connections weaken and may be pruned away</li>
+             </ul>
+             
+             <h2>Experimental Procedure</h2>
+             <ol>
+               <li>Reset the network to start with random connectivity</li>
+               <li>Observe initial activity patterns with default settings</li>
+               <li>Run for extended time and watch how patterns stabilize</li>
+               <li>Use "Show Weights" to reveal current synaptic strengths</li>
+               <li>Notice which connections have strengthened vs. weakened</li>
+             </ol>
+             
+             <h2>Biological Significance</h2>
+             <p>This process underlies all forms of learning - from motor skills to memories. Diseases like Alzheimer's disrupt these plasticity mechanisms, leading to memory loss.</p>`,
+             
+          4: `<h1>Lesson 4: Pattern Recognition and Memory</h1>
+             <h2>Emergent Computation</h2>
+             <p>When properly trained, neural networks can recognize patterns and recall memories from partial cues. This lesson demonstrates associative memory and pattern completion.</p>
+             
+             <h2>Pattern Storage Mechanism</h2>
+             <p>Specific patterns of neural activity can be "stored" in the network through:</p>
+             <ul>
+               <li><strong>Activation Pattern:</strong> A specific subset of neurons firing together in sequence</li>
+               <li><strong>Strengthened Connections:</strong> Synapses between pattern neurons become stronger through Hebbian learning</li>
+               <li><strong>Memory Trace:</strong> The pattern leaves a lasting change in network connectivity</li>
+               <li><strong>Distributed Storage:</strong> Memory is spread across many synapses, not localized</li>
+             </ul>
+             
+             <h2>Pattern Recall Process</h2>
+             <p>Once stored, patterns can be recalled through:</p>
+             <ul>
+               <li><strong>Partial Cue:</strong> Activating just part of the original pattern</li>
+               <li><strong>Pattern Completion:</strong> The network fills in the missing pieces automatically</li>
+               <li><strong>Attractor Dynamics:</strong> Activity converges to the nearest stored pattern</li>
+               <li><strong>Content-Addressable Memory:</strong> Any part can retrieve the whole</li>
+             </ul>
+             
+             <h2>Types of Memory Networks</h2>
+             <ul>
+               <li><strong>Hopfield Networks:</strong> Store fixed-point attractors</li>
+               <li><strong>Associative Memory:</strong> Link different patterns together</li>
+               <li><strong>Sequence Memory:</strong> Store temporal patterns and sequences</li>
+             </ul>
+             
+             <h2>Experimental Protocol</h2>
+             <ol>
+               <li>Click "Inject Pattern" to store a specific activity pattern in the network</li>
+               <li>Watch how the pattern spreads and strengthens connections</li>
+               <li>Wait for activity to settle down</li>
+               <li>Click "Test Memory" to provide a partial cue</li>
+               <li>Observe whether the network recalls the full pattern</li>
+               <li>Try multiple pattern injections to see interference effects</li>
+             </ol>
+             
+             <h2>What to Observe</h2>
+             <ul>
+               <li>How quickly the injected pattern spreads through the network</li>
+               <li>Whether the pattern becomes self-sustaining</li>
+               <li>How partial cues trigger pattern completion</li>
+               <li>Competition between different stored patterns</li>
+               <li>The role of network connectivity in memory capacity</li>
+             </ul>
+             
+             <h2>Real-World Applications</h2>
+             <p>These principles are used in:</p>
+             <ul>
+               <li>Artificial neural networks for pattern recognition</li>
+               <li>Associative memory systems in AI</li>
+               <li>Understanding memory disorders and treatments</li>
+               <li>Brain-computer interfaces</li>
+             </ul>`
+        };
+        
+        fallback.innerHTML = fullContent[currentLesson] || `<p style="color:#e6e9ef">Lesson ${currentLesson} content not available.</p>`;
+        fallback.style.display = 'block';
+        frame.style.display = 'none';
+      });
+  }
 
   // Initialize
   createNetworkTopology();
@@ -871,7 +1760,7 @@
     renderer.setSize(innerWidth, innerHeight);
   });
 
-})(); // end IIFE - clean close of script
+})(); // end IIFE
 </script>
 
 </body>

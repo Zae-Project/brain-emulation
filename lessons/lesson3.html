@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 3: Network Plasticity</title>
+    <style>
+        body {
+            font-family: Inter, system-ui, sans-serif;
+            background: #0f1419;
+            color: #e6e9ef;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 { color: #ff9bf0; margin-top: 24px; }
+        h1 { font-size: 28px; margin-bottom: 16px; }
+        h2 { font-size: 22px; margin-bottom: 12px; }
+        ul, ol { margin-left: 20px; }
+        li { margin-bottom: 8px; }
+        strong { color: #ff9bf0; }
+        p { margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Lesson 3: Network Plasticity</h1>
+    
+    <h2>Learning and Adaptation</h2>
+    <p>Real neural networks aren't static - they continuously change their connectivity based on experience through synaptic plasticity. This is the biological foundation of learning, memory, and adaptation.</p>
+    
+    <h2>Hebbian Learning Principle</h2>
+    <p>The famous principle "neurons that fire together, wire together" describes the fundamental mechanism of synaptic plasticity:</p>
+    <ul>
+        <li><strong>Correlation detection:</strong> When pre- and post-synaptic neurons are active simultaneously</li>
+        <li><strong>Synaptic strengthening:</strong> The synapse between them becomes stronger (increased weight)</li>
+        <li><strong>Activity-dependent:</strong> Strengthening depends on correlated neural activity</li>
+        <li><strong>Associative learning:</strong> Forms the basis for associating related inputs</li>
+    </ul>
+    
+    <h2>Types of Synaptic Plasticity</h2>
+    <ul>
+        <li><strong>Long-Term Potentiation (LTP):</strong> Persistent strengthening of synapses lasting hours to days</li>
+        <li><strong>Long-Term Depression (LTD):</strong> Weakening of synapses, important for forgetting</li>
+        <li><strong>Spike-Timing Dependent Plasticity (STDP):</strong> Timing of pre/post spikes determines direction of change</li>
+        <li><strong>Homeostatic plasticity:</strong> Global mechanisms that maintain network stability</li>
+        <li><strong>Metaplasticity:</strong> Plasticity of plasticity itself - learning how to learn</li>
+    </ul>
+    
+    <h2>Network Reorganization</h2>
+    <p>As synapses change strength over time, the network's behavior evolves:</p>
+    <ul>
+        <li><strong>Pathway formation:</strong> Frequently used connections become "superhighways" for information</li>
+        <li><strong>Attractor states:</strong> Network develops preferred patterns of activity</li>
+        <li><strong>Memory consolidation:</strong> Important patterns become more stable over time</li>
+        <li><strong>Synaptic pruning:</strong> Unused connections weaken and may be eliminated</li>
+        <li><strong>Critical periods:</strong> Times when plasticity is especially high</li>
+    </ul>
+    
+    <h2>Mechanisms of Plasticity</h2>
+    <p>At the cellular level, plasticity involves:</p>
+    <ul>
+        <li><strong>Neurotransmitter release:</strong> Changes in probability and amount of transmitter release</li>
+        <li><strong>Receptor modifications:</strong> Changes in number and sensitivity of postsynaptic receptors</li>
+        <li><strong>Structural changes:</strong> Growth of new dendritic spines and synaptic connections</li>
+        <li><strong>Gene expression:</strong> Activity-dependent changes in protein synthesis</li>
+    </ul>
+    
+    <h2>Learning Rules</h2>
+    <p>Different mathematical rules capture various aspects of plasticity:</p>
+    <ul>
+        <li><strong>Hebb's rule:</strong> Δw = η × pre × post</li>
+        <li><strong>BCM rule:</strong> Includes sliding threshold for stability</li>
+        <li><strong>STDP rule:</strong> Weight change depends on spike timing</li>
+        <li><strong>Oja's rule:</strong> Normalized Hebbian learning</li>
+    </ul>
+    
+    <h2>Experimental Procedure</h2>
+    <ol>
+        <li>Reset the network to start with random connectivity</li>
+        <li>Observe initial activity patterns with default settings</li>
+        <li>Run for extended time and watch how patterns evolve and stabilize</li>
+        <li>Use "Show Weights" to reveal current synaptic strengths</li>
+        <li>Notice which connections have strengthened vs. weakened over time</li>
+        <li>Try injecting specific patterns and see how they modify the network</li>
+    </ol>
+    
+    <h2>What to Observe</h2>
+    <ul>
+        <li><strong>Weight evolution:</strong> How synaptic strengths change over time</li>
+        <li><strong>Pattern emergence:</strong> Development of preferred activity patterns</li>
+        <li><strong>Stability vs. plasticity:</strong> Balance between learning and maintaining memories</li>
+        <li><strong>Competitive dynamics:</strong> Stronger connections getting stronger (rich-get-richer)</li>
+        <li><strong>Network efficiency:</strong> Development of more efficient connectivity patterns</li>
+    </ul>
+    
+    <h2>Biological Significance</h2>
+    <p>Plasticity underlies many cognitive functions:</p>
+    <ul>
+        <li><strong>Learning and memory:</strong> Formation and storage of new information</li>
+        <li><strong>Development:</strong> Refinement of neural circuits during growth</li>
+        <li><strong>Recovery:</strong> Compensation after brain injury</li>
+        <li><strong>Adaptation:</strong> Adjusting to environmental changes</li>
+        <li><strong>Skill acquisition:</strong> Learning motor and cognitive skills</li>
+    </ul>
+    
+    <h2>Disorders of Plasticity</h2>
+    <p>When plasticity goes wrong:</p>
+    <ul>
+        <li><strong>Alzheimer's disease:</strong> Loss of synaptic connections and plasticity</li>
+        <li><strong>Autism:</strong> Altered synaptic development and plasticity</li>
+        <li><strong>Addiction:</strong> Pathological plasticity in reward circuits</li>
+        <li><strong>PTSD:</strong> Maladaptive memory formation</li>
+        <li><strong>Depression:</strong> Reduced plasticity and network flexibility</li>
+    </ul>
+    
+    <h2>Try This</h2>
+    <ul>
+        <li>Can you train the network to prefer certain activity patterns?</li>
+        <li>What happens when you repeatedly stimulate the same neurons?</li>
+        <li>How long do plastic changes persist in the network?</li>
+        <li>Can you create "memories" that interfere with each other?</li>
+    </ul>
+</body>
+</html>
