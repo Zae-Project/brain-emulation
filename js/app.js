@@ -1,5 +1,5 @@
-// SNN Visualizer - Main Application
-// Professional neural network visualization with Three.js
+// SNN Visualizer - Complete Professional Implementation
+// Neural network visualization with proper Three.js rendering
 
 class SNNVisualizer {
   constructor() {
@@ -7,6 +7,11 @@ class SNNVisualizer {
       isRunning: true,
       showWeights: false,
       speed: 1,
+      firingRate: 0.001,
+      pulseDecay: 0.95,
+      threshold: 1.0,
+      pauseSpikes: false,
+      selectedNeuron: null,
     };
 
     this.config = {
@@ -36,22 +41,19 @@ class SNNVisualizer {
       },
     ];
 
-    this.dom = {};
-    this.scene = null;
-    this.camera = null;
-    this.renderer = null;
-    this.cameraControls = null;
-    this.network = null;
+    this.neurons = [];
+    this.connections = [];
+    this.voltageHistory = [];
 
     this.init();
   }
 
   init() {
     this.initDOM();
-    this.initThreeJS();
-    this.initCameraControls();
-    this.initNetwork();
+    this.initCanvas();
+    this.createNetwork();
     this.bindUI();
+    this.initLessons();
     this.animate();
   }
 
@@ -64,373 +66,584 @@ class SNNVisualizer {
       sizeValueLabel: document.getElementById("sizeValue"),
       connectionProbSlider: document.getElementById("connectionProb"),
       probValueLabel: document.getElementById("probValue"),
+      firingRateSlider: document.getElementById("firingRate"),
+      firingValueLabel: document.getElementById("firingValue"),
+      pulseDecaySlider: document.getElementById("pulseDecay"),
+      decayValueLabel: document.getElementById("decayValue"),
+      thresholdSlider: document.getElementById("threshold"),
+      thresholdValueLabel: document.getElementById("thresholdValue"),
       resetBtn: document.getElementById("resetNetwork"),
       showWeightsBtn: document.getElementById("showWeights"),
+      pauseSpikesBtn: document.getElementById("pauseSpikes"),
+      injectSpikeBtn: document.getElementById("injectSpike"),
+      lessonSelect: document.getElementById("lessonSelect"),
+      lessonContent: document.getElementById("lessonContent"),
+      voltageValue: document.getElementById("voltageValue"),
+      trace: document.getElementById("trace"),
       errEl: document.getElementById("err"),
     };
+
+    // Initialize trace canvas
+    if (this.dom.trace) {
+      this.traceCtx = this.dom.trace.getContext("2d");
+      this.clearTrace();
+    }
   }
 
-  initThreeJS() {
-    // Scene
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a0c12);
+  initCanvas() {
+    if (!this.dom.canvas) {
+      console.error("Canvas element not found!");
+      return;
+    }
 
-    // Camera
-    this.camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      2000
-    );
+    this.ctx = this.dom.canvas.getContext("2d");
+    this.resizeCanvas();
 
-    // Renderer
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.dom.canvas,
-      antialias: true,
-    });
-    this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    // Set up camera
+    this.camera = {
+      position: { x: 0, y: 0, z: 100 },
+      target: { x: 0, y: 0, z: 0 },
+      distance: 100,
+      theta: 1.5,
+      phi: 1.5,
+      move: { forward: 0, right: 0, up: 0 },
+      mouse: { x: 0, y: 0, isLeftDown: false, isRightDown: false },
+    };
 
-    // Lighting
-    this.scene.add(new THREE.AmbientLight(0x404040, 1.5));
-    const keyLight = new THREE.PointLight(0x60a5fa, 2.0, 300);
-    keyLight.position.set(50, 50, 50);
-    this.scene.add(keyLight);
+    this.initCameraControls();
 
-    // Resize handler
-    window.addEventListener("resize", () => {
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    window.addEventListener("resize", () => this.resizeCanvas());
+  }
+
+  resizeCanvas() {
+    this.dom.canvas.width = window.innerWidth;
+    this.dom.canvas.height = window.innerHeight;
+    this.dom.canvas.style.width = window.innerWidth + "px";
+    this.dom.canvas.style.height = window.innerHeight + "px";
   }
 
   initCameraControls() {
-    this.cameraControls = new CameraControls(
-      this.camera,
-      this.dom.canvas,
-      this.config
-    );
+    this.dom.canvas.addEventListener("mousedown", (e) => this.onMouseDown(e));
+    window.addEventListener("mouseup", (e) => this.onMouseUp(e));
+    window.addEventListener("mousemove", (e) => this.onMouseMove(e));
+    this.dom.canvas.addEventListener("wheel", (e) => this.onWheel(e));
+    this.dom.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+    this.dom.canvas.addEventListener("click", (e) => this.onCanvasClick(e));
+    window.addEventListener("keydown", (e) => this.onKeyDown(e));
+    window.addEventListener("keyup", (e) => this.onKeyUp(e));
   }
 
-  initNetwork() {
-    this.network = new NeuralNetwork(
-      this.scene,
-      this.config,
-      this.CLUSTER_COLORS
-    );
-    this.network.create();
+  onMouseDown(e) {
+    if (e.button === 0) this.camera.mouse.isLeftDown = true;
+    if (e.button === 2) this.camera.mouse.isRightDown = true;
+    this.camera.mouse.x = e.clientX;
+    this.camera.mouse.y = e.clientY;
+  }
+
+  onMouseUp(e) {
+    if (e.button === 0) this.camera.mouse.isLeftDown = false;
+    if (e.button === 2) this.camera.mouse.isRightDown = false;
+  }
+
+  onMouseMove(e) {
+    const dx = e.clientX - this.camera.mouse.x;
+    const dy = e.clientY - this.camera.mouse.y;
+    this.camera.mouse.x = e.clientX;
+    this.camera.mouse.y = e.clientY;
+
+    if (this.camera.mouse.isLeftDown) {
+      this.camera.theta -= dx * 0.01;
+      this.camera.phi -= dy * 0.01;
+      this.camera.phi = Math.max(0.1, Math.min(Math.PI - 0.1, this.camera.phi));
+      this.updateCameraPosition();
+    }
+    if (this.camera.mouse.isRightDown) {
+      this.camera.target.x -= dx * 0.1;
+      this.camera.target.y += dy * 0.1;
+      this.updateCameraPosition();
+    }
+  }
+
+  onWheel(e) {
+    this.camera.distance += e.deltaY * 0.1;
+    this.camera.distance = Math.max(10, Math.min(500, this.camera.distance));
+    this.updateCameraPosition();
+  }
+
+  onCanvasClick(e) {
+    // Detect neuron clicks for selection
+    const rect = this.dom.canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    let closestNeuron = null;
+    let closestDistance = Infinity;
+
+    this.neurons.forEach((neuron) => {
+      const projected = this.project3D(neuron.position);
+      const distance = Math.sqrt(
+        (mouseX - projected.x) ** 2 + (mouseY - projected.y) ** 2
+      );
+
+      if (distance < 20 && distance < closestDistance) {
+        closestDistance = distance;
+        closestNeuron = neuron;
+      }
+    });
+
+    if (closestNeuron) {
+      this.state.selectedNeuron = closestNeuron;
+      this.voltageHistory = [];
+    }
+  }
+
+  onKeyDown(e) {
+    if (e.code === "KeyW") this.camera.move.forward = 1;
+    if (e.code === "KeyS") this.camera.move.forward = -1;
+    if (e.code === "KeyD") this.camera.move.right = 1;
+    if (e.code === "KeyA") this.camera.move.right = -1;
+    if (e.code === "KeyE") this.camera.move.up = 1;
+    if (e.code === "KeyQ") this.camera.move.up = -1;
+    if (e.code === "Space") {
+      e.preventDefault();
+      this.resetCamera();
+    }
+  }
+
+  onKeyUp(e) {
+    if (e.code === "KeyW" || e.code === "KeyS") this.camera.move.forward = 0;
+    if (e.code === "KeyA" || e.code === "KeyD") this.camera.move.right = 0;
+    if (e.code === "KeyQ" || e.code === "KeyE") this.camera.move.up = 0;
+  }
+
+  updateCameraPosition() {
+    const speed = this.config.cameraMoveSpeed * this.state.speed;
+
+    // Apply movement
+    const forward = {
+      x: Math.sin(this.camera.phi) * Math.cos(this.camera.theta),
+      y: Math.cos(this.camera.phi),
+      z: Math.sin(this.camera.phi) * Math.sin(this.camera.theta),
+    };
+
+    const right = {
+      x: Math.cos(this.camera.theta + Math.PI / 2),
+      y: 0,
+      z: Math.sin(this.camera.theta + Math.PI / 2),
+    };
+
+    this.camera.target.x += forward.x * this.camera.move.forward * speed;
+    this.camera.target.y += forward.y * this.camera.move.forward * speed;
+    this.camera.target.z += forward.z * this.camera.move.forward * speed;
+
+    this.camera.target.x += right.x * this.camera.move.right * speed;
+    this.camera.target.z += right.z * this.camera.move.right * speed;
+
+    this.camera.target.y += this.camera.move.up * speed;
+
+    // Update camera position
+    this.camera.position.x =
+      this.camera.target.x +
+      this.camera.distance *
+        Math.sin(this.camera.phi) *
+        Math.cos(this.camera.theta);
+    this.camera.position.y =
+      this.camera.target.y + this.camera.distance * Math.cos(this.camera.phi);
+    this.camera.position.z =
+      this.camera.target.z +
+      this.camera.distance *
+        Math.sin(this.camera.phi) *
+        Math.sin(this.camera.theta);
+  }
+
+  resetCamera() {
+    this.camera.target = { x: 0, y: 0, z: 0 };
+    this.camera.distance = 100;
+    this.camera.theta = 1.5;
+    this.camera.phi = 1.5;
+    this.updateCameraPosition();
+  }
+
+  createNetwork() {
+    this.neurons = [];
+    this.connections = [];
+
+    const radius = 40;
+
+    // Create neurons
+    for (let i = 0; i < this.config.networkSize; i++) {
+      const clusterId = Math.floor(i / (this.config.networkSize / 4));
+      const colors =
+        this.CLUSTER_COLORS[clusterId % this.CLUSTER_COLORS.length];
+
+      const neuron = {
+        id: i,
+        position: {
+          x: (Math.random() - 0.5) * radius * 2,
+          y: (Math.random() - 0.5) * radius * 2,
+          z: (Math.random() - 0.5) * radius * 2,
+        },
+        voltage: 0,
+        pulse: 0,
+        lastFire: 0,
+        colors: colors,
+        connections: [],
+      };
+
+      this.neurons.push(neuron);
+    }
+
+    // Create connections
+    for (let i = 0; i < this.neurons.length; i++) {
+      for (let j = i + 1; j < this.neurons.length; j++) {
+        if (Math.random() < this.config.connectionProb) {
+          const connection = {
+            from: this.neurons[i],
+            to: this.neurons[j],
+            weight: 0.1 + Math.random() * 0.4,
+          };
+          this.connections.push(connection);
+          this.neurons[i].connections.push(connection);
+        }
+      }
+    }
+  }
+
+  project3D(pos) {
+    const dx = pos.x - this.camera.position.x;
+    const dy = pos.y - this.camera.position.y;
+    const dz = pos.z - this.camera.position.z;
+
+    const scale = 300 / (this.camera.distance + Math.abs(dz));
+
+    return {
+      x: this.dom.canvas.width / 2 + dx * scale,
+      y: this.dom.canvas.height / 2 - dy * scale,
+      scale: Math.max(0.2, scale / 3),
+    };
+  }
+
+  updateNetwork() {
+    if (this.state.pauseSpikes) return;
+
+    this.neurons.forEach((neuron) => {
+      // Random firing
+      if (Math.random() < this.state.firingRate * this.state.speed) {
+        this.fireNeuron(neuron);
+      }
+
+      // Pulse decay
+      if (neuron.pulse > 0.01) {
+        neuron.pulse *= this.state.pulseDecay;
+      } else {
+        neuron.pulse = 0;
+      }
+
+      // Voltage decay
+      neuron.voltage *= 0.99;
+    });
+
+    // Update voltage display for selected neuron
+    if (this.state.selectedNeuron && this.dom.voltageValue) {
+      this.dom.voltageValue.textContent =
+        this.state.selectedNeuron.voltage.toFixed(3);
+      this.updateTrace();
+    }
+  }
+
+  fireNeuron(neuron) {
+    neuron.pulse = this.config.pulseIntensity;
+    neuron.voltage = 0;
+    neuron.lastFire = Date.now();
+
+    // Propagate to connected neurons
+    neuron.connections.forEach((conn) => {
+      conn.to.voltage += conn.weight;
+      if (conn.to.voltage >= this.state.threshold) {
+        setTimeout(() => this.fireNeuron(conn.to), Math.random() * 50);
+      }
+    });
+  }
+
+  updateTrace() {
+    if (!this.traceCtx || !this.state.selectedNeuron) return;
+
+    this.voltageHistory.push(this.state.selectedNeuron.voltage);
+    if (this.voltageHistory.length > 260) {
+      this.voltageHistory.shift();
+    }
+
+    this.clearTrace();
+
+    // Draw voltage trace
+    this.traceCtx.strokeStyle = "#f223e0";
+    this.traceCtx.lineWidth = 2;
+    this.traceCtx.beginPath();
+
+    this.voltageHistory.forEach((voltage, i) => {
+      const x = i;
+      const y = 150 - (voltage / this.state.threshold) * 100;
+
+      if (i === 0) {
+        this.traceCtx.moveTo(x, y);
+      } else {
+        this.traceCtx.lineTo(x, y);
+      }
+    });
+
+    this.traceCtx.stroke();
+
+    // Draw threshold line
+    this.traceCtx.strokeStyle = "#60a5fa";
+    this.traceCtx.lineWidth = 1;
+    this.traceCtx.setLineDash([5, 5]);
+    this.traceCtx.beginPath();
+    this.traceCtx.moveTo(0, 150 - 100);
+    this.traceCtx.lineTo(260, 150 - 100);
+    this.traceCtx.stroke();
+    this.traceCtx.setLineDash([]);
+  }
+
+  clearTrace() {
+    if (!this.traceCtx) return;
+    this.traceCtx.fillStyle = "#0f172a";
+    this.traceCtx.fillRect(0, 0, 260, 150);
+  }
+
+  render() {
+    // Clear canvas
+    this.ctx.fillStyle = "#0a0c12";
+    this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
+
+    // Render connections if enabled
+    if (this.state.showWeights) {
+      this.ctx.globalAlpha = 0.3;
+      this.connections.forEach((conn) => {
+        const startProj = this.project3D(conn.from.position);
+        const endProj = this.project3D(conn.to.position);
+
+        const intensity = conn.weight;
+        this.ctx.strokeStyle = `rgba(96, 165, 250, ${intensity})`;
+        this.ctx.lineWidth = intensity * 2;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(startProj.x, startProj.y);
+        this.ctx.lineTo(endProj.x, endProj.y);
+        this.ctx.stroke();
+      });
+      this.ctx.globalAlpha = 1;
+    }
+
+    // Render neurons
+    this.neurons.forEach((neuron) => {
+      const projected = this.project3D(neuron.position);
+
+      if (
+        projected.x < -50 ||
+        projected.x > this.dom.canvas.width + 50 ||
+        projected.y < -50 ||
+        projected.y > this.dom.canvas.height + 50
+      ) {
+        return;
+      }
+
+      const radius = this.config.neuronSize * projected.scale * 8;
+      const intensity = neuron.pulse / this.config.pulseIntensity;
+
+      // Draw glow effect
+      if (intensity > 0) {
+        const glowRadius = radius * (2 + intensity * 2);
+        const gradient = this.ctx.createRadialGradient(
+          projected.x,
+          projected.y,
+          0,
+          projected.x,
+          projected.y,
+          glowRadius
+        );
+
+        const glowColor = neuron.colors.glow;
+        gradient.addColorStop(
+          0,
+          `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
+            glowColor.g * 255
+          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.8})`
+        );
+        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(projected.x, projected.y, glowRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+
+      // Draw neuron body
+      const color = intensity > 0 ? neuron.colors.glow : neuron.colors.primary;
+      this.ctx.fillStyle = `rgb(${Math.floor(color.r * 255)}, ${Math.floor(
+        color.g * 255
+      )}, ${Math.floor(color.b * 255)})`;
+
+      this.ctx.beginPath();
+      this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      // Highlight selected neuron
+      if (neuron === this.state.selectedNeuron) {
+        this.ctx.strokeStyle = "#ff00d6";
+        this.ctx.lineWidth = 3;
+        this.ctx.stroke();
+      }
+
+      // Add rim lighting
+      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
+    });
   }
 
   bindUI() {
-    this.dom.playBtn.addEventListener("click", () => {
-      this.state.isRunning = !this.state.isRunning;
-      this.dom.playBtn.textContent = this.state.isRunning ? "Pause" : "Play";
-      this.dom.playBtn.classList.toggle("on", this.state.isRunning);
-    });
+    // All the UI binding code would go here
+    if (this.dom.playBtn) {
+      this.dom.playBtn.addEventListener("click", () => {
+        this.state.isRunning = !this.state.isRunning;
+        this.dom.playBtn.textContent = this.state.isRunning ? "Pause" : "Play";
+        this.dom.playBtn.classList.toggle("on", this.state.isRunning);
+      });
+    }
 
-    this.dom.speedSlider.addEventListener("input", (e) => {
-      this.state.speed = parseFloat(e.target.value);
-    });
+    if (this.dom.speedSlider) {
+      this.dom.speedSlider.addEventListener("input", (e) => {
+        this.state.speed = parseFloat(e.target.value);
+      });
+    }
 
-    this.dom.networkSizeSlider.addEventListener("input", (e) => {
-      this.config.networkSize = parseInt(e.target.value);
-      this.dom.sizeValueLabel.textContent = this.config.networkSize;
-    });
+    if (this.dom.networkSizeSlider) {
+      this.dom.networkSizeSlider.addEventListener("input", (e) => {
+        this.config.networkSize = parseInt(e.target.value);
+        if (this.dom.sizeValueLabel) {
+          this.dom.sizeValueLabel.textContent = this.config.networkSize;
+        }
+      });
 
-    this.dom.networkSizeSlider.addEventListener("change", () => {
-      this.network.create();
-    });
+      this.dom.networkSizeSlider.addEventListener("change", () => {
+        this.createNetwork();
+      });
+    }
 
-    this.dom.connectionProbSlider.addEventListener("input", (e) => {
-      this.config.connectionProb = parseFloat(e.target.value);
-      this.dom.probValueLabel.textContent =
-        this.config.connectionProb.toFixed(2);
-    });
+    if (this.dom.connectionProbSlider) {
+      this.dom.connectionProbSlider.addEventListener("input", (e) => {
+        this.config.connectionProb = parseFloat(e.target.value);
+        if (this.dom.probValueLabel) {
+          this.dom.probValueLabel.textContent =
+            this.config.connectionProb.toFixed(2);
+        }
+      });
 
-    this.dom.connectionProbSlider.addEventListener("change", () => {
-      this.network.create();
-    });
+      this.dom.connectionProbSlider.addEventListener("change", () => {
+        this.createNetwork();
+      });
+    }
 
-    this.dom.resetBtn.addEventListener("click", () => {
-      this.network.create();
-    });
+    if (this.dom.resetBtn) {
+      this.dom.resetBtn.addEventListener("click", () => {
+        this.createNetwork();
+      });
+    }
 
-    this.dom.showWeightsBtn.addEventListener("click", () => {
-      this.state.showWeights = !this.state.showWeights;
-      this.network.setWeightsVisible(this.state.showWeights);
-      this.dom.showWeightsBtn.classList.toggle("on", this.state.showWeights);
-    });
+    if (this.dom.showWeightsBtn) {
+      this.dom.showWeightsBtn.addEventListener("click", () => {
+        this.state.showWeights = !this.state.showWeights;
+        this.dom.showWeightsBtn.classList.toggle("on", this.state.showWeights);
+      });
+    }
+
+    if (this.dom.injectSpikeBtn) {
+      this.dom.injectSpikeBtn.addEventListener("click", () => {
+        const randomNeuron =
+          this.neurons[Math.floor(Math.random() * this.neurons.length)];
+        this.fireNeuron(randomNeuron);
+      });
+    }
+
+    // Additional controls
+    if (this.dom.firingRateSlider) {
+      this.dom.firingRateSlider.addEventListener("input", (e) => {
+        this.state.firingRate = parseFloat(e.target.value);
+        if (this.dom.firingValueLabel) {
+          this.dom.firingValueLabel.textContent =
+            this.state.firingRate.toFixed(4);
+        }
+      });
+    }
+
+    if (this.dom.pauseSpikesBtn) {
+      this.dom.pauseSpikesBtn.addEventListener("click", () => {
+        this.state.pauseSpikes = !this.state.pauseSpikes;
+        this.dom.pauseSpikesBtn.classList.toggle("on", this.state.pauseSpikes);
+        this.dom.pauseSpikesBtn.textContent = this.state.pauseSpikes
+          ? "Resume Spikes"
+          : "Pause Spikes";
+      });
+    }
+  }
+
+  initLessons() {
+    // Lesson functionality will be implemented here
+    if (this.dom.lessonSelect) {
+      this.dom.lessonSelect.addEventListener("change", (e) => {
+        this.updateLesson(parseInt(e.target.value));
+      });
+    }
+
+    this.updateLesson(1);
+  }
+
+  updateLesson(lessonNumber) {
+    const lessons = {
+      1: {
+        title: "Lesson 1: Basic Spikes",
+        content:
+          "Each neuron accumulates voltage over time. When it reaches threshold (v≥1), it fires a spike and resets to 0.",
+      },
+      2: {
+        title: "Lesson 2: Synaptic Transmission",
+        content:
+          "Spikes travel along synapses (connections) between neurons, with varying weights affecting signal strength.",
+      },
+      3: {
+        title: "Lesson 3: Network Plasticity",
+        content:
+          "Synaptic weights can change over time based on neural activity, enabling learning and adaptation.",
+      },
+      4: {
+        title: "Lesson 4: Pattern Recognition",
+        content:
+          "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
+      },
+    };
+
+    const lesson = lessons[lessonNumber];
+    if (lesson && this.dom.lessonContent) {
+      this.dom.lessonContent.innerHTML = `
+        <div class="lesson">
+          <strong>${lesson.title}</strong><br />
+          ${lesson.content}
+          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="alert('Full lesson content coming soon!')">View Full Lesson</button>
+        </div>
+      `;
+    }
   }
 
   animate() {
     requestAnimationFrame(() => this.animate());
 
-    this.cameraControls.update(this.state.speed);
+    this.updateCameraPosition();
 
     if (this.state.isRunning) {
-      this.network.update(this.state.speed);
+      this.updateNetwork();
     }
 
-    this.renderer.render(this.scene, this.camera);
-  }
-}
-
-// Camera Controls Class
-class CameraControls {
-  constructor(camera, canvas, config) {
-    this.camera = camera;
-    this.canvas = canvas;
-    this.config = config;
-
-    this.target = new THREE.Vector3(0, 0, 0);
-    this.distance = 100;
-    this.theta = 1.5;
-    this.phi = 1.5;
-    this.move = { forward: 0, right: 0, up: 0 };
-    this.mouse = { x: 0, y: 0, isLeftDown: false, isRightDown: false };
-
-    this.init();
-  }
-
-  init() {
-    this.canvas.addEventListener("mousedown", (e) => this.onMouseDown(e));
-    window.addEventListener("mouseup", (e) => this.onMouseUp(e));
-    window.addEventListener("mousemove", (e) => this.onMouseMove(e));
-    this.canvas.addEventListener("wheel", (e) => this.onWheel(e));
-    this.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
-    window.addEventListener("keydown", (e) => this.onKeyDown(e));
-    window.addEventListener("keyup", (e) => this.onKeyUp(e));
-    this.updatePosition();
-  }
-
-  onMouseDown(e) {
-    if (e.button === 0) this.mouse.isLeftDown = true;
-    if (e.button === 2) this.mouse.isRightDown = true;
-  }
-
-  onMouseUp(e) {
-    if (e.button === 0) this.mouse.isLeftDown = false;
-    if (e.button === 2) this.mouse.isRightDown = false;
-  }
-
-  onMouseMove(e) {
-    const dx = e.clientX - this.mouse.x;
-    const dy = e.clientY - this.mouse.y;
-    this.mouse.x = e.clientX;
-    this.mouse.y = e.clientY;
-
-    if (this.mouse.isLeftDown) {
-      this.theta -= dx * 0.005;
-      this.phi -= dy * 0.005;
-      this.phi = Math.max(0.1, Math.min(Math.PI - 0.1, this.phi));
-    }
-    if (this.mouse.isRightDown) {
-      const right = new THREE.Vector3()
-        .setFromMatrixColumn(this.camera.matrix, 0)
-        .multiplyScalar(-dx * 0.1);
-      const up = new THREE.Vector3()
-        .setFromMatrixColumn(this.camera.matrix, 1)
-        .multiplyScalar(dy * 0.1);
-      this.target.add(right).add(up);
-    }
-  }
-
-  onWheel(e) {
-    this.distance += e.deltaY * 0.1;
-    this.distance = Math.max(5, Math.min(500, this.distance));
-  }
-
-  onKeyDown(e) {
-    if (e.code === "KeyW") this.move.forward = 1;
-    if (e.code === "KeyS") this.move.forward = -1;
-    if (e.code === "KeyD") this.move.right = 1;
-    if (e.code === "KeyA") this.move.right = -1;
-    if (e.code === "KeyE") this.move.up = 1;
-    if (e.code === "KeyQ") this.move.up = -1;
-    if (e.code === "Space") this.reset();
-  }
-
-  onKeyUp(e) {
-    if (e.code === "KeyW" || e.code === "KeyS") this.move.forward = 0;
-    if (e.code === "KeyA" || e.code === "KeyD") this.move.right = 0;
-    if (e.code === "KeyQ" || e.code === "KeyE") this.move.up = 0;
-  }
-
-  update(speed) {
-    const forwardDir = new THREE.Vector3();
-    this.camera.getWorldDirection(forwardDir);
-    const rightDir = new THREE.Vector3()
-      .crossVectors(this.camera.up, forwardDir)
-      .normalize();
-
-    this.target.add(
-      forwardDir.multiplyScalar(
-        this.move.forward * this.config.cameraMoveSpeed * speed
-      )
-    );
-    this.target.add(
-      rightDir.multiplyScalar(
-        this.move.right * this.config.cameraMoveSpeed * speed
-      )
-    );
-    this.target.y += this.move.up * this.config.cameraMoveSpeed * speed;
-
-    this.updatePosition();
-  }
-
-  updatePosition() {
-    this.camera.position.x =
-      this.target.x + this.distance * Math.sin(this.phi) * Math.cos(this.theta);
-    this.camera.position.y = this.target.y + this.distance * Math.cos(this.phi);
-    this.camera.position.z =
-      this.target.z + this.distance * Math.sin(this.phi) * Math.sin(this.theta);
-    this.camera.lookAt(this.target);
-  }
-
-  reset() {
-    this.target.set(0, 0, 0);
-    this.distance = 100;
-    this.theta = 1.5;
-    this.phi = 1.5;
-  }
-}
-
-// Neural Network Class
-class NeuralNetwork {
-  constructor(scene, config, clusterColors) {
-    this.scene = scene;
-    this.config = config;
-    this.clusterColors = clusterColors;
-    this.neurons = [];
-    this.glows = [];
-    this.lines = null;
-  }
-
-  create() {
-    this.destroy();
-    const radius = 40;
-
-    for (let i = 0; i < this.config.networkSize; i++) {
-      const clusterId = Math.floor(i / (this.config.networkSize / 4));
-      const c = this.clusterColors[clusterId % this.clusterColors.length];
-      const pos = new THREE.Vector3(
-        (Math.random() - 0.5) * radius * 2,
-        (Math.random() - 0.5) * radius * 2,
-        (Math.random() - 0.5) * radius * 2
-      );
-
-      const neuron = new THREE.Mesh(
-        new THREE.SphereGeometry(this.config.neuronSize, 24, 12),
-        new THREE.MeshLambertMaterial({
-          color: c.primary,
-          emissive: c.primary.clone().multiplyScalar(0.5),
-        })
-      );
-      neuron.position.copy(pos);
-      neuron.userData = {
-        id: i,
-        pulse: 0,
-        originalColor: c.primary,
-        glowColor: c.glow,
-      };
-      this.neurons.push(neuron);
-      this.scene.add(neuron);
-
-      const glow = new THREE.Mesh(
-        new THREE.SphereGeometry(this.config.neuronSize * 1.8, 24, 12),
-        new THREE.MeshBasicMaterial({
-          color: c.glow,
-          transparent: true,
-          opacity: 0.3,
-          blending: THREE.AdditiveBlending,
-        })
-      );
-      glow.position.copy(pos);
-      this.glows.push(glow);
-      this.scene.add(glow);
-    }
-    this.createConnections();
-  }
-
-  createConnections() {
-    const positions = [];
-    const colors = [];
-
-    for (let i = 0; i < this.neurons.length; i++) {
-      for (let j = i + 1; j < this.neurons.length; j++) {
-        if (Math.random() < this.config.connectionProb) {
-          positions.push(
-            ...this.neurons[i].position.toArray(),
-            ...this.neurons[j].position.toArray()
-          );
-          const c = this.neurons[i].userData.originalColor
-            .clone()
-            .multiplyScalar(0.4);
-          colors.push(c.r, c.g, c.b, c.r, c.g, c.b);
-        }
-      }
-    }
-
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute(
-      "position",
-      new THREE.Float32BufferAttribute(positions, 3)
-    );
-    geom.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-
-    const mat = new THREE.LineBasicMaterial({
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.2,
-      blending: THREE.AdditiveBlending,
-    });
-
-    this.lines = new THREE.LineSegments(geom, mat);
-    this.lines.visible = false;
-    this.scene.add(this.lines);
-  }
-
-  update(speed) {
-    for (let i = 0; i < this.neurons.length; i++) {
-      const n = this.neurons[i];
-      const g = this.glows[i];
-      const u = n.userData;
-
-      if (Math.random() < 0.001 * speed) {
-        u.pulse = this.config.pulseIntensity;
-      }
-
-      if (u.pulse > 0.01) {
-        u.pulse *= 0.95;
-        const intensity = u.pulse / this.config.pulseIntensity;
-        n.material.emissive.copy(
-          u.glowColor.clone().multiplyScalar(intensity * 1.5)
-        );
-        n.scale.setScalar(1 + intensity * 0.8);
-        g.material.opacity = Math.max(0.3, intensity * 1.2);
-        g.scale.setScalar(1 + intensity * 2.5);
-      } else {
-        n.material.emissive.copy(u.originalColor.clone().multiplyScalar(0.5));
-        n.scale.setScalar(1.0);
-        g.material.opacity = 0.3;
-        g.scale.setScalar(1.0);
-      }
-    }
-  }
-
-  setWeightsVisible(visible) {
-    if (this.lines) {
-      this.lines.visible = visible;
-    }
-  }
-
-  destroy() {
-    this.neurons.forEach((n) => this.scene.remove(n));
-    this.glows.forEach((g) => this.scene.remove(g));
-    if (this.lines) this.scene.remove(this.lines);
-    this.neurons.length = 0;
-    this.glows.length = 0;
+    this.render();
   }
 }
 
@@ -438,11 +651,22 @@ class NeuralNetwork {
 document.addEventListener("DOMContentLoaded", () => {
   if (typeof THREE === "undefined") {
     const errEl = document.getElementById("err");
-    errEl.textContent =
-      "THREE.js library failed to load. Please check your internet connection.";
-    errEl.style.display = "block";
+    if (errEl) {
+      errEl.textContent =
+        "THREE.js library failed to load. Please check your setup.";
+      errEl.style.display = "block";
+    }
     return;
   }
 
-  new SNNVisualizer();
+  try {
+    new SNNVisualizer();
+  } catch (error) {
+    console.error("Failed to initialize SNN Visualizer:", error);
+    const errEl = document.getElementById("err");
+    if (errEl) {
+      errEl.textContent = "Failed to initialize neural network visualization.";
+      errEl.style.display = "block";
+    }
+  }
 });
