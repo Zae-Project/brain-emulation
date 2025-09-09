@@ -15,9 +15,9 @@
       radial-gradient(1400px 900px at 30% 0%, #1e293b22, transparent 70%),
       radial-gradient(1000px 600px at 80% 100%, #1e1b4b22, transparent 60%);}    
     #hud{position:fixed;left:20px;top:20px;display:flex;gap:14px;align-items:center;background:rgba(18,21,28,0.85);padding:12px 16px;border-radius:16px;border:1px solid #1e293b;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 8px 25px rgba(0,0,0,0.4)}
-    .btn{border:0;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,#1e293b,#0f172a);color:#c4d1e0;cursor:pointer;border:1px solid #334155;transition:all 0.2s}
-    .btn:hover{background:linear-gradient(135deg,#334155,#1e293b)}
-    .btn.on{background:linear-gradient(135deg,#1e40af,#1d4ed8);box-shadow:0 0 0 1px #3b82f6 inset;color:#fff}
+    .btn{border:1px solid rgba(255,255,255,0.06);border-radius:12px;background:linear-gradient(135deg,#0b1220,#081018);color:#e6f7ff;cursor:pointer;padding:10px 14px;transition:all 0.18s ease;box-shadow:0 2px 6px rgba(0,0,0,0.6)}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+    .btn.on{background:linear-gradient(135deg,#00f0ff,#9a00ff);color:#fff;border-color:rgba(160,255,255,0.55);box-shadow:0 0 12px rgba(0,240,255,0.12),0 0 28px rgba(154,0,255,0.06) inset}
     .range{accent-color:#3b82f6}
     #panel{position:fixed;right:20px;top:20px;width:300px;background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5)}
     #panel h4{margin:0 0 8px;font-weight:600;color:#f1f5f9;font-size:15px}
@@ -31,6 +31,77 @@
     .toggle.active{background:#1e40af;color:#fff}
     #info{position:fixed;right:20px;bottom:20px;width:320px;background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5);font-size:13px;line-height:1.6}
     .lesson{background:#0f172a;padding:12px;border-radius:8px;margin:8px 0;border-left:3px solid #3b82f6}
+
+    /* Panel borders and consistent dark panels */
+    #hud, #panel, #controls, #info, #lessonPanel, #lessonModal > div {
+      background: linear-gradient(180deg, rgba(18,21,28,0.96), rgba(16,18,22,0.96));
+      border: 1px solid rgba(180,180,190,0.08); /* very thin grey border */
+    }
+
+    /* Neon buttons and active state */
+    .btn {
+      border: 1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(135deg,#0b1220,#081018);
+      color: #e6f7ff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      transition: all 0.18s ease;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    }
+    .btn.on {
+      background: linear-gradient(135deg,#00f0ff,#9a00ff);
+      color: #fff;
+      border-color: rgba(160,255,255,0.55);
+      box-shadow: 0 0 12px rgba(0,240,255,0.12), 0 0 28px rgba(154,0,255,0.06) inset;
+    }
+
+    /* Neon range thumb/track where supported + fallback accent color */
+    .range { 
+      accent-color: #00f0ff; 
+    }
+    input[type="range"]::-webkit-slider-thumb{
+      background: linear-gradient(180deg,#00f0ff,#9a00ff);
+      box-shadow: 0 0 8px rgba(0,240,255,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    input[type="range"]::-moz-range-thumb{
+      background: linear-gradient(180deg,#00f0ff,#9a00ff);
+      box-shadow: 0 0 8px rgba(0,240,255,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    /* Lesson modal/title: force transparent backgrounds and dark text to avoid white boxes */
+    #lessonFullContent, #lessonFullContent h1, #lessonFullContent p, #lessonFullContent h2, #lessonFullContent h3 {
+      background: transparent !important;
+      color: var(--text) !important;
+      margin: 0 0 8px 0;
+      line-height: 1.5;
+    }
+    /* small card used inside right-hand info sections */
+    .lesson {
+      background: linear-gradient(180deg,#0b1116,#0f172a);
+      border: 1px solid rgba(150,150,160,0.06); /* very thin grey border */
+      color: var(--text);
+    }
+
+    /* Make the info panels visually boxed with thin border */
+    #panel, #controls, #info {
+      border-radius: 12px;
+      border: 1px solid rgba(160,160,170,0.06);
+      background: linear-gradient(180deg, rgba(7,9,12,0.85), rgba(14,16,20,0.92));
+    }
+
+    /* small adjustments for sprites (canvas textures) - ensure sharp rendering */
+    .sprite-label { image-rendering: -moz-crisp-edges; image-rendering: pixelated; }
+
+    /* Ensure the lesson select and other inputs are clearly visible */
+    select, input, button {
+      color: #e6f7ff;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+    }
   </style>
 </head>
 <body>
@@ -634,37 +705,67 @@
       return;
     }
 
-    // Build a new line color array based on supplied connections (if connGeom length matches)
+    // Build sprites for supplied connections
     if (connGeom) {
-      // attempt to color matching lines brighter, otherwise create sprites for weights only
       conns.forEach((c, idx) => {
-        // create a small canvas sprite showing weight
         const from = c.from, to = c.to;
         if (from >= 0 && to >= 0 && from < neurons.length && to < neurons.length) {
           const fromPos = neurons[from].position;
           const toPos = neurons[to].position;
           const mid = new THREE.Vector3().addVectors(fromPos, toPos).multiplyScalar(0.5);
 
+          // Create a canvas sprite with white background + thin grey border
           const canvas = document.createElement('canvas');
-          canvas.width = 64; canvas.height = 28;
+          canvas.width = 128; canvas.height = 40;
           const ctx = canvas.getContext('2d');
-          ctx.fillStyle = c.type === 'inhibitory' ? '#ef4444' : '#60a5fa';
-          ctx.fillRect(0,0,canvas.width,canvas.height);
-          ctx.font = '12px Inter';
-          ctx.fillStyle = '#0b1220';
-          ctx.textAlign = 'center';
-          ctx.fillText((c.weight||0).toFixed(3), canvas.width/2, 18);
 
+          // background white panel
+          const r = 6; // rounded rect radius
+          ctx.fillStyle = "#ffffff";
+          roundRect(ctx, 2, 2, canvas.width-4, canvas.height-4, r, true, false);
+
+          // thin grey border
+          ctx.strokeStyle = "#cfcfcf";
+          ctx.lineWidth = 1;
+          roundRect(ctx, 2, 2, canvas.width-4, canvas.height-4, r, false, true);
+
+          // small neon bar indicating type/strength
+          const barColor = (c.type === 'inhibitory') ? '#ff416c' : '#00f0ff';
+          ctx.fillStyle = barColor;
+          ctx.fillRect(8, 8, Math.max(18, Math.min(96, (c.weight || 0) * 96)), 10);
+
+          // weight text (dark on white)
+          ctx.fillStyle = "#081018";
+          ctx.font = 'bold 12px Inter, system-ui, Helvetica, Arial';
+          ctx.textAlign = 'right';
+          ctx.fillText((c.weight || 0).toFixed(3), canvas.width - 12, 26);
+
+          // Convert to texture and sprite
           const tex = new THREE.CanvasTexture(canvas);
-          const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent:true, opacity:0.9 });
+          tex.minFilter = THREE.LinearFilter;
+          const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true });
           const sprite = new THREE.Sprite(spriteMat);
           sprite.position.copy(mid);
-          sprite.scale.set(3.0, 1.2, 1.0);
+          sprite.scale.set(6.0, 1.8, 1.0);
           scene.add(sprite);
           connectionLabels.push(sprite);
         }
       });
     }
+  }
+
+  // helper: rounded rectangle for canvas
+  function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+    if (typeof r === 'undefined') r = 5;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y,   x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x,   y + h, r);
+    ctx.arcTo(x,   y + h, x,   y,   r);
+    ctx.arcTo(x,   y,   x + w, y,   r);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
   }
 
   // Minimal lesson content and modal helpers (restore original lesson behavior)
