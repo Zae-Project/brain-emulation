@@ -100,7 +100,7 @@ async def handler(ws,path):
                     CTRL["paused"] = False
                     print("✓ Simulation RESUMED")
                 elif d.get("cmd") == "speed": 
-                    new_speed = max(5, min(200, int(d["dt_ms"])))
+                    new_speed = max(5, min(200, int(d["dt_ms"])))  # FIXED: use dt_ms key
                     CTRL["dt_ms"] = new_speed
                     print(f"✓ Simulation speed: {new_speed}ms timestep")
                 elif d.get("cmd") == "setInput":
