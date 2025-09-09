@@ -9,7 +9,15 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.165.0/build/three.min.js"></script>
+    <script>
+      // Fallback if CDN fails
+      if (typeof THREE === "undefined") {
+        document.write(
+          '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r165/three.min.js"><\/script>'
+        );
+      }
+    </script>
     <style>
       :root {
         --bg: #0a0c12;
@@ -342,6 +350,16 @@
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         "use strict";
+
+        // Check if THREE.js is loaded
+        if (typeof THREE === "undefined") {
+          console.error("THREE.js failed to load");
+          const errEl = document.getElementById("err");
+          errEl.textContent =
+            "THREE.js library failed to load. Please check your internet connection.";
+          errEl.style.display = "block";
+          return;
+        }
 
         // --- CONFIG & STATE ---
         const state = {
