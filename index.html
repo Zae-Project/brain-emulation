@@ -745,13 +745,6 @@
       function initNeuralNetwork() {
         console.log("Initializing Neural Network...");
 
-        // Check if Three.js is loaded
-        if (typeof THREE === "undefined") {
-          console.log("Waiting for Three.js to load...");
-          setTimeout(initNeuralNetwork, 100);
-          return;
-        }
-
         console.log("Three.js loaded! Creating 3D neural network...");
 
         // Initialize CLUSTER_COLORS after Three.js is loaded
