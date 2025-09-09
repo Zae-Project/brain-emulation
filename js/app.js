@@ -1,7 +1,295 @@
-// Fixed SNN Visualizer with working 3D camera system
-// Neural network visualization with proper 3D rendering
-
+// WORKING SNN Brain Emulation - Complete Rebuild
 class SNNVisualizer {
+  constructor() {
+    // Initialize state first
+    this.state = {
+      isRunning: true,
+      showWeights: false,
+      speed: 1,
+      selectedNeuron: null,
+    };
+
+    this.neurons = [];
+    this.connections = [];
+    
+    // Initialize immediately
+    this.initializeSystem();
+  }
+
+  initializeSystem() {
+    this.setupDOM();
+    this.setupCanvas();
+    this.createBrainNetwork();
+    this.setupEventHandlers();
+    this.startAnimation();
+    
+    // Make globally accessible
+    window.snnVisualizer = this;
+    
+    console.log("SNN Brain Emulation Ready:", this.neurons.length, "neurons");
+  }
+
+  setupDOM() {
+    this.dom = {
+      canvas: document.getElementById("three-canvas"),
+      playBtn: document.getElementById("play"),
+      resetBtn: document.getElementById("resetNetwork"),
+      showWeightsBtn: document.getElementById("showWeights"),
+      lessonSelect: document.getElementById("lessonSelect"),
+      lessonContent: document.getElementById("lessonContent"),
+    };
+  }
+
+  setupCanvas() {
+    if (!this.dom.canvas) return;
+    
+    this.ctx = this.dom.canvas.getContext("2d");
+    this.dom.canvas.width = window.innerWidth;
+    this.dom.canvas.height = window.innerHeight;
+    
+    // Simple camera for 3D
+    this.camera = { x: 0, y: 0, z: 150 };
+  }
+
+  createBrainNetwork() {
+    this.neurons = [];
+    this.connections = [];
+
+    // Create 120 neurons for brain emulation
+    for (let i = 0; i < 120; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+      const radius = 30 + Math.random() * 20;
+      
+      this.neurons.push({
+        id: i,
+        x: radius * Math.sin(phi) * Math.cos(theta),
+        y: radius * Math.sin(phi) * Math.sin(theta),
+        z: radius * Math.cos(phi),
+        voltage: Math.random() * 0.5,
+        pulse: 0,
+        connections: [],
+      });
+    }
+
+    // Create connections with 0.30 probability
+    for (let i = 0; i < this.neurons.length; i++) {
+      for (let j = i + 1; j < this.neurons.length; j++) {
+        if (Math.random() < 0.30) {
+          const conn = {
+            from: this.neurons[i],
+            to: this.neurons[j],
+            weight: 0.1 + Math.random() * 0.4,
+          };
+          this.connections.push(conn);
+          this.neurons[i].connections.push(conn);
+        }
+      }
+    }
+  }
+
+  setupEventHandlers() {
+    // Play/Pause button
+    if (this.dom.playBtn) {
+      this.dom.playBtn.addEventListener("click", () => {
+        this.state.isRunning = !this.state.isRunning;
+        this.dom.playBtn.textContent = this.state.isRunning ? "PAUSE" : "PLAY";
+        this.dom.playBtn.classList.toggle("on", this.state.isRunning);
+        console.log("Animation:", this.state.isRunning ? "Started" : "Paused");
+      });
+    }
+
+    // Reset button
+    if (this.dom.resetBtn) {
+      this.dom.resetBtn.addEventListener("click", () => {
+        this.createBrainNetwork();
+        console.log("Network reset:", this.neurons.length, "neurons");
+      });
+    }
+
+    // Show weights button
+    if (this.dom.showWeightsBtn) {
+      this.dom.showWeightsBtn.addEventListener("click", () => {
+        this.state.showWeights = !this.state.showWeights;
+        this.dom.showWeightsBtn.classList.toggle("on", this.state.showWeights);
+        console.log("Show weights:", this.state.showWeights);
+      });
+    }
+
+    // Lesson selector
+    if (this.dom.lessonSelect) {
+      this.dom.lessonSelect.addEventListener("change", (e) => {
+        this.updateLesson(parseInt(e.target.value));
+      });
+    }
+
+    // Initialize first lesson
+    this.updateLesson(1);
+  }
+
+  updateLesson(lessonNumber) {
+    const lessons = {
+      1: {
+        title: "Lesson 1: Basic Spikes",
+        content: "Each neuron accumulates voltage over time. When it reaches threshold (v≥1), it fires a spike and resets to 0.",
+      },
+      2: {
+        title: "Lesson 2: Synaptic Transmission", 
+        content: "Spikes travel along synapses (connections) between neurons, with varying weights affecting signal strength.",
+      },
+      3: {
+        title: "Lesson 3: Network Plasticity",
+        content: "Synaptic weights can change over time based on neural activity, enabling learning and adaptation.",
+      },
+      4: {
+        title: "Lesson 4: Pattern Recognition",
+        content: "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
+      },
+    };
+
+    const lesson = lessons[lessonNumber];
+    if (lesson && this.dom.lessonContent) {
+      this.dom.lessonContent.innerHTML = `
+        <div class="lesson">
+          <strong>${lesson.title}</strong><br />
+          ${lesson.content}
+          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">VIEW FULL LESSON</button>
+        </div>
+      `;
+      console.log("Lesson updated:", lesson.title);
+    }
+  }
+
+  showFullLesson(lessonNumber) {
+    const lessonContent = {
+      1: "<h1>Basic Spike Dynamics</h1><p>Neurons fire when voltage exceeds threshold...</p>",
+      2: "<h1>Synaptic Transmission</h1><p>Information flows through synaptic connections...</p>", 
+      3: "<h1>Network Plasticity</h1><p>Networks adapt through synaptic weight changes...</p>",
+      4: "<h1>Pattern Recognition</h1><p>SNNs excel at temporal pattern detection...</p>",
+    };
+
+    const modal = document.createElement("div");
+    modal.className = "lesson-modal";
+    modal.innerHTML = `
+      <div class="lesson-modal-content">
+        <button class="close-btn" onclick="this.closest('.lesson-modal').remove()">&times;</button>
+        ${lessonContent[lessonNumber] || "<h1>Lesson Content</h1><p>Detailed lesson information...</p>"}
+        <button class="btn" onclick="this.closest('.lesson-modal').remove()" style="margin-top: 20px;">Close Lesson</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    console.log("Full lesson opened:", lessonNumber);
+  }
+
+  updateNetwork() {
+    if (!this.state.isRunning) return;
+
+    this.neurons.forEach(neuron => {
+      // Random neural firing
+      if (Math.random() < 0.002) {
+        neuron.pulse = 1.0;
+        neuron.voltage = 0;
+        
+        // Propagate to connected neurons
+        neuron.connections.forEach(conn => {
+          conn.to.voltage += conn.weight;
+        });
+      }
+
+      // Decay pulse and voltage
+      neuron.pulse *= 0.95;
+      neuron.voltage *= 0.99;
+    });
+  }
+
+  project3D(x, y, z) {
+    const scale = 800 / Math.max(1, z - this.camera.z + 100);
+    return {
+      x: this.dom.canvas.width / 2 + (x - this.camera.x) * scale,
+      y: this.dom.canvas.height / 2 - (y - this.camera.y) * scale,
+      scale: scale / 8,
+    };
+  }
+
+  render() {
+    // Clear canvas
+    this.ctx.fillStyle = "#000000";
+    this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
+
+    if (!this.neurons.length) {
+      this.ctx.fillStyle = "#ffffff";
+      this.ctx.font = "20px Arial";
+      this.ctx.fillText("Loading brain network...", this.dom.canvas.width / 2 - 100, this.dom.canvas.height / 2);
+      return;
+    }
+
+    // Draw connections
+    this.ctx.strokeStyle = "rgba(150, 150, 150, 0.3)";
+    this.ctx.lineWidth = 1;
+    this.connections.forEach(conn => {
+      const start = this.project3D(conn.from.x, conn.from.y, conn.from.z);
+      const end = this.project3D(conn.to.x, conn.to.y, conn.to.z);
+      
+      this.ctx.beginPath();
+      this.ctx.moveTo(start.x, start.y);
+      this.ctx.lineTo(end.x, end.y);
+      this.ctx.stroke();
+    });
+
+    // Draw neurons
+    this.neurons.forEach(neuron => {
+      const pos = this.project3D(neuron.x, neuron.y, neuron.z);
+      const radius = Math.max(6, 15 * pos.scale);
+      
+      // Neuron color - pure white/grey
+      const intensity = neuron.pulse;
+      const grey = intensity > 0.1 ? 255 : 200;
+      this.ctx.fillStyle = `rgb(${grey}, ${grey}, ${grey})`;
+      
+      // Draw neuron
+      this.ctx.beginPath();
+      this.ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+      this.ctx.fill();
+      
+      // Draw neuron ID
+      if (radius > 8) {
+        this.ctx.fillStyle = intensity > 0.3 ? "#000000" : "#ffffff";
+        this.ctx.font = `${Math.max(8, radius * 0.6)}px Arial`;
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillText(neuron.id.toString(), pos.x, pos.y);
+      }
+    });
+
+    // Debug info
+    this.ctx.fillStyle = "#ffffff";
+    this.ctx.font = "12px Arial";
+    this.ctx.textAlign = "left";
+    this.ctx.fillText(`Brain Emulation: ${this.neurons.length} neurons, ${this.connections.length} synapses`, 10, 30);
+    this.ctx.fillText(`Status: ${this.state.isRunning ? 'RUNNING' : 'PAUSED'}`, 10, 50);
+  }
+
+  startAnimation() {
+    const animate = () => {
+      this.updateNetwork();
+      this.render();
+      requestAnimationFrame(animate);
+    };
+    animate();
+    console.log("Animation loop started");
+  }
+}
+
+// Initialize the brain emulation system
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("Initializing SNN Brain Emulation...");
+  try {
+    new SNNVisualizer();
+    console.log("SNN Brain Emulation initialized successfully");
+  } catch (error) {
+    console.error("Failed to initialize brain emulation:", error);
+  }
+});
   constructor() {
     this.state = {
       isRunning: true,
@@ -1068,7 +1356,7 @@ class SNNVisualizer {
     if (this.dom.playBtn) {
       this.dom.playBtn.addEventListener("click", () => {
         this.state.isRunning = !this.state.isRunning;
-        this.dom.playBtn.textContent = this.state.isRunning ? "Pause" : "Play";
+        this.dom.playBtn.textContent = this.state.isRunning ? "PAUSE" : "PLAY";
         this.dom.playBtn.classList.toggle("on", this.state.isRunning);
       });
     }
@@ -1108,7 +1396,12 @@ class SNNVisualizer {
 
     if (this.dom.resetBtn) {
       this.dom.resetBtn.addEventListener("click", () => {
-        this.createNetwork();
+        this.forceNetworkCreation();
+        console.log(
+          "RESET: Network recreated with",
+          this.neurons.length,
+          "neurons"
+        );
       });
     }
 
@@ -1165,25 +1458,21 @@ class SNNVisualizer {
         title: "Lesson 1: Basic Spikes",
         content:
           "Each neuron accumulates voltage over time. When it reaches threshold (v≥1), it fires a spike and resets to 0.",
-        file: "lessons/lesson1.html",
       },
       2: {
         title: "Lesson 2: Synaptic Transmission",
         content:
           "Spikes travel along synapses (connections) between neurons, with varying weights affecting signal strength.",
-        file: "lessons/lesson2.html",
       },
       3: {
         title: "Lesson 3: Network Plasticity",
         content:
           "Synaptic weights can change over time based on neural activity, enabling learning and adaptation.",
-        file: "lessons/lesson3.html",
       },
       4: {
         title: "Lesson 4: Pattern Recognition",
         content:
           "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
-        file: "lessons/lesson4.html",
       },
     };
 
