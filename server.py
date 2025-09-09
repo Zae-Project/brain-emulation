@@ -1,9 +1,5 @@
 ﻿import json, threading, queue, asyncio, websockets, time
 from brian2 import *; from brian2 import prefs
-import os
-import mimetypes
-from pathlib import Path
-
 prefs.codegen.target="numpy"
 
 PORT=8766; NUM=50
@@ -190,42 +186,12 @@ async def handler(ws,path):
     finally: 
         clients.discard(ws)
 
-# New: HTTP handler to serve static files
-async def http_handler(path, request_headers):
-    """Serves static files for the web interface."""
-    if "Upgrade" in request_headers and request_headers["Upgrade"] == "websocket":
-        return None  # Let the WebSocket server handle it
-
-    if path == "/":
-        path = "/index.html"
-    
-    filepath = Path(__file__).parent / path.lstrip('/')
-    
-    if not filepath.is_file():
-        print(f"HTTP: File not found: {filepath}")
-        return (websockets.http.HTTPStatus.NOT_FOUND, [], b"404 Not Found")
-
-    try:
-        mime_type, _ = mimetypes.guess_type(filepath)
-        if mime_type is None:
-            mime_type = "application/octet-stream"
-        
-        with open(filepath, "rb") as f:
-            content = f.read()
-        
-        headers = [("Content-Type", mime_type)]
-        return (websockets.http.HTTPStatus.OK, headers, content)
-    except Exception as e:
-        print(f"HTTP: Error serving {filepath}: {e}")
-        return (websockets.http.HTTPStatus.INTERNAL_SERVER_ERROR, [], b"500 Internal Server Error")
-
 async def main():
     print(f"Starting Brian2 SNN server...")
-    print(f"Open http://localhost:{PORT} in your browser.")
     print(f"WebSocket server at ws://localhost:{PORT}")
     print(f"Neurons: {NUM}, Initial state: {'paused' if CTRL['paused'] else 'running'}")
     
-    async with websockets.serve(handler, "localhost", PORT, process_request=http_handler):
+    async with websockets.serve(handler,"localhost",PORT):
         await asyncio.Future()
 
 def create_realistic_network():
