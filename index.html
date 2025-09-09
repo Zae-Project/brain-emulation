@@ -458,194 +458,194 @@
     }
   });
 
-  // DYNAMIC CONNECTION VISUALIZATION
-  function updateConnectionVisualization(connectionsData) {
-    // Clear existing connection labels
-    connectionLabels.forEach(label => {
-      if (label.parent) label.parent.remove(label);
-    });
-    connectionLabels.length = 0;
-
-    if (!showWeights || !connectionsData || connectionsData.length === 0) return;
-
-    connections = connectionsData;
-
-    // Create beautiful connection lines
-    const positions = [];
-    const colors = [];
+  // FIXED: Add missing animate function
+  function animate(){
+    requestAnimationFrame(animate);
     
-    connections.forEach((conn, index) => {
-      if (conn.from < neurons.length && conn.to < neurons.length) {
-        const fromPos = neurons[conn.from].position;
-        const toPos = neurons[conn.to].position;
+    for(let i = 0; i < neurons.length; i++){
+      const n = neurons[i], g = glows[i], u = n.userData;
+      
+      if(u.pulse > 0){
+        u.pulse *= 0.88;
+        const p = u.pulse / 1.2;
         
-        positions.push(fromPos.x, fromPos.y, fromPos.z);
-        positions.push(toPos.x, toPos.y, toPos.z);
+        if(u.type === 'excitatory'){
+          // Violet firing for excitatory
+          n.material.emissive.setRGB(p * 0.95, p * 0.15, p * 0.95);
+          g.material.color.setRGB(0.95, 0.15 + p * 0.85, 0.95);
+        } else {
+          // Orange firing for inhibitory
+          n.material.emissive.setRGB(p * 1.0, p * 0.5, p * 0.1);
+          g.material.color.setRGB(1.0, 0.5 + p * 0.5, 0.1);
+        }
         
-        // Color based on connection type and strength
-        const color = conn.type === 'excitatory' ? 
-          new THREE.Color(0.2, 0.8, 1.0) : 
-          new THREE.Color(1.0, 0.2, 0.2);
-        
-        const intensity = Math.min(conn.weight * 3, 1.0);
-        color.multiplyScalar(intensity);
-        
-        colors.push(color.r, color.g, color.b);
-        colors.push(color.r, color.g, color.b);
-
-        // Store connection info for outgoing array
-        const fromId = conn.from;
-        if (!outgoing[fromId]) outgoing[fromId] = [];
-        outgoing[fromId].push(index);
+        g.material.opacity = p * 0.9;
+        g.scale.setScalar((u.type === 'excitatory' ? 5 : 4) + p * 3);
+      } else {
+        // Reset to base colors
+        if(u.type === 'excitatory'){
+          g.material.color.setRGB(0.23, 0.51, 0.98);
+        } else {
+          g.material.color.setRGB(0.94, 0.26, 0.26);
+        }
       }
-    });
+      
+      // Voltage-based color modulation
+      const v = Math.max(0, Math.min(1, u.volt || 0));
+      if(u.type === 'excitatory'){
+        const hue = 0.62 - v * 0.15;  // Blue to violet
+        n.material.color.setHSL(hue, 0.85 + v * 0.1, 0.35 + v * 0.4);
+      } else {
+        const hue = 0.0 + v * 0.08;   // Red to orange
+        n.material.color.setHSL(hue, 0.9, 0.4 + v * 0.3);
+      }
+      
+      n.material.metalness = 0.9 + v * 0.1;
+      n.material.roughness = 0.1 - v * 0.05;
+    }
     
-    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    col = connGeom.getAttribute('color');
-
-    console.log(`Visualized ${connections.length} stunning connections`);
+    // Premium connection lighting effects
+    if (connGeom && col) {
+      const colors=connGeom.getAttribute('color');
+      for(let i=0;i<colors.array.length;i+=3){
+        if (showWeights) {
+          // Keep connections bright when showing weights
+          colors.array[i] = Math.max(0.3, colors.array[i] * 0.999);
+          colors.array[i+1] = Math.max(0.5, colors.array[i+1] * 0.999);
+          colors.array[i+2] = Math.max(0.8, colors.array[i+2] * 0.999);
+        } else {
+          // Very subtle connection fade for premium look
+          colors.array[i]=Math.max(0.02, colors.array[i]*0.995);
+          colors.array[i+1]=Math.max(0.04, colors.array[i+1]*0.995);
+          colors.array[i+2]=Math.max(0.08, colors.array[i+2]*0.995);
+        }
+      }
+      colors.needsUpdate=true;
+    }
+    
+    drawTrace();
+    renderer.render(scene,camera);
   }
 
-  // FIXED: Embedded lesson content
-  const lessonContent = {
-    1: {
-      title: "Basic Spike Dynamics",
-      content: `
-        <h1>Lesson 1: Basic Spike Dynamics</h1>
-        <h2>Learning Objectives</h2>
-        <p>Understand how individual neurons integrate input current and generate action potentials (spikes) when reaching threshold voltage.</p>
+  // FIXED: Add missing openLessonModal function
+  function openLessonModal() {
+    const modal = document.getElementById('lessonModal');
+    const content = document.getElementById('lessonFullContent');
+    
+    if (!modal || !content) return;
+    
+    modal.style.display = 'block';
+    
+    const lesson = lessonContent[currentLesson];
+    if (lesson) {
+      content.innerHTML = lesson.content;
+    } else {
+      content.innerHTML = `
+        <div style="text-align:center;padding:40px;color:#ef4444;">
+          <h3>Lesson ${currentLesson} Content</h3>
+          <p>Lesson content not available.</p>
+        </div>
+      `;
+    }
+  }
+
+  // FIXED: Simplified educational controls setup
+  function setupEducationalControls() {
+    // Show weights button
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
         
-        <h2>Theory</h2>
-        <p><strong>Leaky Integrate-and-Fire Model:</strong></p>
-        <p>Each neuron follows the equation: <code>dv/dt = (-v + I_input)/tau</code></p>
-        <ul>
-          <li><strong>v</strong>: membrane voltage</li>
-          <li><strong>I_input</strong>: input current</li>
-          <li><strong>tau</strong>: time constant (8ms)</li>
-          <li><strong>Threshold</strong>: v = 1.0</li>
-          <li><strong>Reset</strong>: v = 0 after spike</li>
-        </ul>
-
-        <h2>Interactive Experiments</h2>
-        <h3>Experiment 1.1: Single Neuron Response</h3>
-        <ol>
-          <li><strong>Click on any neuron</strong> to select it</li>
-          <li><strong>Observe the voltage trace</strong> in the right panel</li>
-          <li><strong>Adjust Input Current</strong> using the slider (try 0.1 to 1.0)</li>
-          <li><strong>Watch how voltage accumulates</strong> toward threshold</li>
-        </ol>
-
-        <h3>Key Observations</h3>
-        <ul>
-          <li><strong>Low current (< 0.5)</strong>: Voltage rises slowly, may not reach threshold</li>
-          <li><strong>Medium current (0.5-1.0)</strong>: Regular spiking with predictable intervals</li>
-          <li><strong>High current (> 1.0)</strong>: Rapid firing, short intervals between spikes</li>
-        </ul>
-
-        <h2>Questions to Explore</h2>
-        <ol>
-          <li>What is the minimum current needed for spiking?</li>
-          <li>How does firing rate change with input current?</li>
-          <li>What happens to voltage between spikes?</li>
-        </ol>
-      `
-    },
-    2: {
-      title: "Synaptic Transmission",
-      content: `
-        <h1>Lesson 2: Synaptic Transmission</h1>
-        <h2>Learning Objectives</h2>
-        <p>Explore how neurons communicate through synaptic connections and how network interactions emerge.</p>
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
         
-        <h2>Theory</h2>
-        <p><strong>Synaptic Communication:</strong></p>
-        <ul>
-          <li>When a neuron spikes, it sends current to connected neurons</li>
-          <li>Synaptic weight determines the strength of this influence</li>
-          <li>Multiple inputs can sum to push neurons over threshold</li>
-        </ul>
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels.length = 0;
+        }
+      });
+    }
 
-        <h2>Interactive Experiments</h2>
-        <h3>Experiment 2.1: Network Propagation</h3>
-        <ol>
-          <li><strong>Set Input Current to 0.5</strong></li>
-          <li><strong>Increase Synaptic Weight</strong> from 0.1 to 0.3</li>
-          <li><strong>Click "Show Weights"</strong> to visualize connections</li>
-          <li><strong>Watch</strong> how spikes spread through the network</li>
-        </ol>
+    // View lesson button
+    const viewBtn = document.getElementById('viewLesson');
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        openLessonModal();
+      });
+    }
 
-        <h3>Key Concepts</h3>
-        <ul>
-          <li><strong>Weak synapses</strong>: Isolated activity</li>
-          <li><strong>Strong synapses</strong>: Cascading waves</li>
-          <li><strong>Network amplification</strong>: Single inputs trigger multiple spikes</li>
-        </ul>
-      `
-    },
-    3: {
-      title: "Network Plasticity", 
-      content: `
-        <h1>Lesson 3: Network Plasticity</h1>
-        <h2>Learning Objectives</h2>
-        <p>Understand how neural networks adapt and self-organize through activity-dependent changes.</p>
-        
-        <h2>Theory</h2>
-        <p><strong>Critical Dynamics:</strong></p>
-        <ul>
-          <li><strong>Subcritical</strong>: Activity dies out quickly</li>
-          <li><strong>Critical</strong>: Sustained, balanced activity</li>
-          <li><strong>Supercritical</strong>: Explosive synchronization</li>
-        </ul>
+    // Modal close
+    const closeModal = document.getElementById('closeModal');
+    const modal = document.getElementById('lessonModal');
+    
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
 
-        <h2>Interactive Experiments</h2>
-        <h3>Experiment 3.1: Phase Transitions</h3>
-        <ol>
-          <li><strong>Start with Connection Probability = 0.02</strong></li>
-          <li><strong>Gradually increase to 0.15</strong></li>
-          <li><strong>Observe</strong> the sudden change in network behavior</li>
-          <li><strong>Find the critical point</strong> where dynamics shift</li>
-        </ol>
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+  }
 
-        <h3>Real-World Applications</h3>
-        <ul>
-          <li><strong>Brain development</strong>: Networks self-organize during growth</li>
-          <li><strong>Learning</strong>: Synaptic changes encode memories</li>
-          <li><strong>Recovery</strong>: Networks reorganize after injury</li>
-        </ul>
-      `
-    },
-    4: {
-      title: "Pattern Recognition",
-      content: `
-        <h1>Lesson 4: Pattern Recognition</h1>
-        <h2>Learning Objectives</h2>
-        <p>Explore how spiking networks can detect, learn, and recall temporal patterns.</p>
-        
-        <h2>Theory</h2>
-        <p><strong>Neural Memory:</strong></p>
-        <ul>
-          <li><strong>Encoding</strong>: Patterns strengthen specific connections</li>
-          <li><strong>Storage</strong>: Connection patterns persist over time</li>
-          <li><strong>Recall</strong>: Partial inputs trigger full patterns</li>
-        </ul>
+  // UI Controls - FIXED pause and speed functionality
+  const btn = document.getElementById('play'), rng = document.getElementById('speed');
+  
+  btn.onclick = () => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    
+    const isCurrentlyPaused = btn.classList.contains('on');
+    
+    if (isCurrentlyPaused) {
+      btn.classList.remove('on');
+      btn.textContent = 'Play';
+      ws.send(JSON.stringify({cmd:'pause'}));
+    } else {
+      btn.classList.add('on');
+      btn.textContent = 'Pause';
+      ws.send(JSON.stringify({cmd:'play'}));
+    }
+  };
+  
+  rng.oninput = () => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const speed = parseInt(rng.value, 10);
+    const dt_ms = Math.max(5, 200 - speed);
+    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
+  };
 
-        <h2>Interactive Experiments</h2>
-        <h3>Experiment 4.1: Teaching Patterns</h3>
-        <ol>
-          <li><strong>Click "Inject Pattern"</strong> multiple times</li>
-          <li><strong>Watch</strong> neurons [0, 5, 10, 15, 20] become active together</li>
-          <li><strong>Observe</strong> how repeated patterns strengthen connections</li>
-        </ol>
+  // Initialize everything
+  console.log('Initializing educational controls...');
+  setupEducationalControls();
+  
+  console.log('Connecting to WebSocket...');
+  connectWS();
+  
+  console.log('Starting animation loop...');
+  animate();
 
-        <h3>Experiment 4.2: Memory Recall</h3>
-        <ol>
-          <li><strong>After teaching, click "Test Memory"</strong></li>
-          <li><strong>Only neurons [0, 5] are stimulated</strong></li>
-          <li><strong>Watch</strong> if the network completes the full pattern</li>
-        </ol>
+  // Handle window resize
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
 
-        <h3>Applications</h3>
+})();
+</script>
+</body>
+</html>
         <ul>
           <li><strong>Biological memory</strong>: How brains store experiences</li>
           <li><strong>Artificial intelligence</strong>: Pattern recognition systems</li>
