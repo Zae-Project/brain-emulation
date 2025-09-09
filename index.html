@@ -102,9 +102,40 @@
   const showErr=m=>{const e=document.getElementById('err');e.textContent=m;e.style.display='block'};
   if(!window.THREE){showErr('Three.js missing (three.min.js)');return}
 
+  // WebSocket connection
+  let ws;
+  function connectWS() {
+    try {
+      ws = new WebSocket(`ws://localhost:${PORT}`);
+      
+      ws.onopen = () => {
+        console.log('Connected to SNN server');
+        document.getElementById('err').style.display = 'none';
+      };
+      
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        showErr('Connection failed. Make sure server.py is running.');
+      };
+      
+      ws.onclose = () => {
+        console.log('WebSocket connection closed');
+        setTimeout(connectWS, 2000); // Retry connection
+      };
+      
+      // Add message handler here (will be set up later)
+      ws.onmessage = handleMessage;
+      
+    } catch (error) {
+      console.error('Failed to create WebSocket:', error);
+      showErr('Failed to connect to server');
+    }
+  }
+
   const DPR=Math.min(window.devicePixelRatio||1,2);
 
   const NUM=50, R=38, PORT=8766, Y_OFFSET = -25;
+  
   const scene=new THREE.Scene(); scene.background=new THREE.Color(0x080a10);
   const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.1,2000); camera.position.set(0,-15,110);
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setPixelRatio(DPR); renderer.setSize(innerWidth,innerHeight); document.body.appendChild(renderer.domElement);
@@ -153,6 +184,7 @@
   const colors=new Float32Array(connIdx.length*2*3); 
   for(let i=0;i<colors.length;i+=3){colors[i]=0.12;colors[i+1]=0.22;colors[i+2]=0.35;}
   connGeom.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  const col = connGeom.getAttribute('color');
   const lineMat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.6,blending:THREE.AdditiveBlending});
   const lines=new THREE.LineSegments(connGeom,lineMat); 
   scene.add(lines);
@@ -261,26 +293,8 @@
   // Educational variables
   let showWeights = false;
   let currentLesson = 1;
-  let lessonContent = {
-    1: {
-      title: "Basic Spikes",
-      content: "Each neuron accumulates voltage over time. When it reaches threshold (v=1), it fires a spike and resets to 0.<br><br><strong>Try:</strong> Adjust input current and watch firing rates change."
-    },
-    2: {
-      title: "Synaptic Connections", 
-      content: "When a neuron spikes, it sends current to connected neurons through synapses. Stronger weights = bigger influence.<br><br><strong>Try:</strong> Increase synaptic weight and see how spikes spread through the network."
-    },
-    3: {
-      title: "Network Dynamics",
-      content: "The interplay between excitation, connectivity, and timing creates complex patterns. This is the basis of neural computation.<br><br><strong>Try:</strong> Change connection probability and observe emergent patterns."
-    },
-    4: {
-      title: "Pattern Recognition",
-      content: "Networks can learn and recall specific patterns through synaptic plasticity. Memories emerge from connection strengths.<br><br><strong>Try:</strong> Use pattern injection and test memory recall capabilities."
-    }
-  };
 
-  // Educational controls
+  // Educational controls setup
   function setupEducationalControls() {
     // Lesson switching
     document.querySelectorAll('.toggle').forEach(btn => {
@@ -289,7 +303,6 @@
         btn.classList.add('active');
         currentLesson = parseInt(btn.id.replace('lesson', ''));
         updateLessonContent();
-        updateLessonControls();
       });
     });
 
@@ -297,112 +310,74 @@
     const inputCurrent = document.getElementById('inputCurrent');
     const inputValue = document.getElementById('inputValue');
     if (inputCurrent && inputValue) {
-      inputCurrent.oninput = () => {
+      inputCurrent.addEventListener('input', () => {
         inputValue.textContent = inputCurrent.value;
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
         }
-      };
+      });
     }
 
     const synapseWeight = document.getElementById('synapseWeight');
     const weightValue = document.getElementById('weightValue');
     if (synapseWeight && weightValue) {
-      synapseWeight.oninput = () => {
+      synapseWeight.addEventListener('input', () => {
         weightValue.textContent = synapseWeight.value;
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
         }
-      };
+      });
     }
 
     const connectionProb = document.getElementById('connectionProb');
     const probValue = document.getElementById('probValue');
     if (connectionProb && probValue) {
-      connectionProb.oninput = () => {
+      connectionProb.addEventListener('input', () => {
         probValue.textContent = connectionProb.value;
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
         }
-      };
+      });
     }
 
-    // Reset and visualization buttons
+    // Buttons
     const resetBtn = document.getElementById('resetNetwork');
     if (resetBtn) {
-      resetBtn.onclick = () => {
+      resetBtn.addEventListener('click', () => {
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({cmd:'reset'}));
         }
-      };
+      });
     }
 
     const showWeightsBtn = document.getElementById('showWeights');
     if (showWeightsBtn) {
-      showWeightsBtn.onclick = () => {
+      showWeightsBtn.addEventListener('click', () => {
         showWeights = !showWeights;
         showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({cmd:'toggleWeights'}));
         }
-      };
-    }
-
-    // Pattern buttons for lesson 4
-    const injectBtn = document.getElementById('injectPattern');
-    if (injectBtn) {
-      injectBtn.onclick = () => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'injectPattern'}));
-        }
-      };
-    }
-
-    const testBtn = document.getElementById('testMemory');
-    if (testBtn) {
-      testBtn.onclick = () => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({cmd:'testMemory'}));
-        }
-      };
+      });
     }
   }
 
   function updateLessonContent() {
-    const lesson = lessonContent[currentLesson];
+    const lessons = {
+      1: "Learn how individual neurons integrate input and generate spikes when reaching threshold.",
+      2: "Explore how neurons communicate through synaptic connections and network interactions.",
+      3: "Understand how networks adapt and learn through activity-dependent changes."
+    };
+    
     const contentDiv = document.getElementById('lessonContent');
-    if (contentDiv) {
+    if (contentDiv && lessons[currentLesson]) {
       contentDiv.innerHTML = `
         <div class="lesson">
-          <strong>Lesson ${currentLesson}: ${lesson.title}</strong><br>
-          ${lesson.content}
+          <strong>Lesson ${currentLesson}</strong><br>
+          ${lessons[currentLesson]}
         </div>
       `;
     }
-  }
-
-  function updateLessonControls() {
-    // Show/hide controls based on current lesson
-    const allControls = ['inputCurrent', 'synapseWeight', 'connectionProb', 'showWeights', 'resetNetwork', 'injectPattern', 'testMemory'];
-    
-    // Hide all first
-    allControls.forEach(id => {
-      const element = document.getElementById(id);
-      if (element) element.style.display = 'none';
-    });
-
-    // Show relevant controls for each lesson
-    const lessonControls = {
-      1: ['inputCurrent', 'resetNetwork'],
-      2: ['inputCurrent', 'synapseWeight', 'showWeights', 'resetNetwork'], 
-      3: ['inputCurrent', 'synapseWeight', 'connectionProb', 'resetNetwork'],
-      4: ['inputCurrent', 'synapseWeight', 'injectPattern', 'testMemory', 'resetNetwork']
-    };
-
-    lessonControls[currentLesson].forEach(id => {
-      const element = document.getElementById(id);
-      if (element) element.style.display = 'block';
-    });
   }
 
   const drawTrace=()=>{
@@ -434,31 +409,19 @@
     c.stroke();
     c.setLineDash([]);
     
-    // Draw voltage trace - ensure we have data
-    if(traceBuf.length < 2) {
-      // If no trace data, show current voltage as a flat line
-      if(currentVoltage !== undefined) {
-        c.strokeStyle='#f223e0'; 
-        c.lineWidth=2;
-        c.beginPath();
-        const y = 148 - Math.max(0, Math.min(2, currentVoltage)) * 65;
-        c.moveTo(2, y);
-        c.lineTo(258, y);
-        c.stroke();
-      }
-      return;
+    // Draw voltage trace
+    if(traceBuf.length >= 2) {
+      c.strokeStyle='#f223e0'; 
+      c.lineWidth=2;
+      c.beginPath(); 
+      const L=traceBuf.length; 
+      for(let i=0;i<L;i++){
+        const x=i/(L-1)*256+2;
+        const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65;
+        i?c.lineTo(x,y):c.moveTo(x,y);
+      } 
+      c.stroke();
     }
-    
-    c.strokeStyle='#f223e0'; 
-    c.lineWidth=2;
-    c.beginPath(); 
-    const L=traceBuf.length; 
-    for(let i=0;i<L;i++){
-      const x=i/(L-1)*256+2;
-      const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65;
-      i?c.lineTo(x,y):c.moveTo(x,y);
-    } 
-    c.stroke();
     
     // Add voltage scale labels
     c.fillStyle='#94a3b8';
@@ -468,7 +431,8 @@
     c.fillText('0.0V', 5, 145);
   };
 
-  ws.onmessage=e=>{
+  // WebSocket message handler
+  function handleMessage(e) {
     const d=JSON.parse(e.data);
     if(d.volt){ 
       for(const k in d.volt){ 
@@ -478,13 +442,7 @@
           neurons[i].userData.volt=v; 
           if(selected===i){ 
             traceBuf.push(v); 
-            if(traceBuf.length>200) traceBuf.shift(); // Keep more history
-            
-            // Ensure trace buffer doesn't go stale
-            if(traceBuf.length === 1) {
-              // If only one point, duplicate it to show a line
-              traceBuf.push(v);
-            }
+            if(traceBuf.length>200) traceBuf.shift();
           } 
         } 
       } 
@@ -496,17 +454,6 @@
         const n=neurons[i]; 
         n.userData.pulse=1.2; 
         
-        // Add visual feedback for spikes in selected neuron
-        if(selected === i) {
-          // Add a spike marker to trace buffer
-          for(let j = 0; j < 3; j++) {
-            traceBuf.push(1.5); // Spike visualization
-          }
-          if(traceBuf.length > 200) {
-            traceBuf.splice(0, traceBuf.length - 200);
-          }
-        }
-        
         (outgoing[i]||[]).forEach(seg=>{
           const a=seg*2*3, b=(seg*2+1)*3; 
           col.array[a]=col.array[b]=0.9; 
@@ -516,16 +463,69 @@
         col.needsUpdate=true;
       }); 
     }
-  };
+  }
 
+  // UI Controls
   const btn=document.getElementById('play'), rng=document.getElementById('speed');
   btn.onclick=()=>{
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
     const playing=!btn.classList.toggle('on'); 
     btn.textContent=playing?'Pause':'Play'; 
-    ws.send(JSON.stringify({cmd:playing?'play':'pause'}))
+    ws.send(JSON.stringify({cmd:playing?'play':'pause'}));
   };
-  rng.oninput=()=>ws.send(JSON.stringify({cmd:'speed',dt_ms:parseInt(rng.value,10)}));
+  rng.oninput=()=>{
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({cmd:'speed',dt_ms:parseInt(rng.value,10)}));
+  };
 
+  // Animation loop
+  function animate(){
+    requestAnimationFrame(animate);
+    
+    for(let i=0;i<NUM;i++){
+      const n=neurons[i], g=glows[i], u=n.userData;
+      if(u.pulse>0){
+        u.pulse*=0.85;
+        const p=u.pulse/1.2;
+        n.material.emissive.setRGB(p*0.8,p*0.4,0);
+        g.material.opacity=p*0.8;
+        g.scale.setScalar(8+p*4);
+      }
+      
+      const v=Math.max(0,Math.min(1,u.volt||0));
+      const hue=0.6-v*0.2;
+      n.material.color.setHSL(hue,0.8,0.3+v*0.4);
+    }
+    
+    const colors=connGeom.getAttribute('color');
+    for(let i=0;i<colors.array.length;i+=3){
+      colors.array[i]=Math.max(0.12,colors.array[i]*0.98);
+      colors.array[i+1]=Math.max(0.22,colors.array[i+1]*0.98);
+      colors.array[i+2]=Math.max(0.35,colors.array[i+2]*0.98);
+    }
+    colors.needsUpdate=true;
+    
+    drawTrace();
+    renderer.render(scene,camera);
+  }
+
+  // Initialize everything
+  setupEducationalControls();
+  updateLessonContent();
+  connectWS();
+  animate();
+
+  // Handle window resize
+  addEventListener('resize',()=>{
+    camera.aspect=innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+
+})();
+</script>
+</body>
+</html>
   // Initialize educational features when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
     setupEducationalControls();
