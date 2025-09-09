@@ -130,7 +130,7 @@
         border-radius: 16px;
         padding: 16px;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-        max-height: 300px;
+        max-height: calc(100vh - 40px);
         overflow-y: auto;
       }
       .control-group {
@@ -171,7 +171,7 @@
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         font-size: 13px;
         line-height: 1.6;
-        z-index: 100; /* Ensure it's on top */
+        z-index: 10;
       }
       .lesson {
         background: #0f172a;
@@ -179,86 +179,6 @@
         border-radius: 8px;
         margin: 8px 0;
         border-left: 3px solid #3b82f6;
-      }
-
-      /* Panel borders and consistent dark panels */
-      #hud,
-      #panel,
-      #controls,
-      #info,
-      #lessonPanel,
-      #navControls,
-      #neuronInfo,
-      #zoomLevel,
-      #lessonModal {
-        position: fixed;
-        z-index: 10; /* Ensure all UI is on top */
-      }
-
-      #lessonModal {
-        z-index: 20; /* Modal should be on top of everything */
-      }
-
-      #three-canvas {
-        position: fixed;
-        inset: 0;
-        z-index: 0; /* Place canvas behind all UI */
-        cursor: grab;
-      }
-
-      #three-canvas:active {
-        cursor: grabbing;
-      }
-
-      /* Original styles for panels */
-      #hud {
-        left: 20px;
-        top: 20px;
-        display: flex;
-        gap: 14px;
-        align-items: center;
-        background: rgba(18, 21, 28, 0.85);
-        padding: 12px 16px;
-        border-radius: 16px;
-        border: 1px solid #1e293b;
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-      }
-      #panel {
-        right: 20px;
-        top: 20px;
-        width: 300px;
-        background: var(--panel);
-        border: 1px solid #1e293b;
-        border-radius: 16px;
-        padding: 16px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-      }
-      #controls {
-        left: 20px;
-        bottom: 20px;
-        width: 300px;
-        background: var(--panel);
-        border: 1px solid #1e293b;
-        border-radius: 16px;
-        padding: 16px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-        max-height: 300px;
-        overflow-y: auto;
-      }
-      #info {
-        right: 20px;
-        bottom: 20px;
-        width: 320px;
-        background: var(--panel);
-        border: 1px solid #1e293b;
-        border-radius: 16px;
-        padding: 16px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-        font-size: 13px;
-        line-height: 1.6;
-        z-index: 100; /* Ensure it's on top */
       }
       #lessonPanel {
         left: 20px;
@@ -273,85 +193,10 @@
         -webkit-backdrop-filter: blur(8px);
         backdrop-filter: blur(8px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-      }
-      #navControls {
-        right: 20px;
-        top: 200px;
-        background: rgba(12, 8, 18, 0.9);
-        border: 1px solid rgba(200, 200, 200, 0.06);
-        border-radius: 12px;
-        padding: 12px;
-        color: #f3f2ff;
-        font-size: 11px;
-        line-height: 1.4;
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
-        max-width: 180px;
-      }
-      #neuronInfo {
-        left: 20px;
-        top: 300px;
-        width: 280px;
-        background: rgba(12, 8, 18, 0.95);
-        border: 1px solid rgba(200, 200, 200, 0.06);
-        border-radius: 12px;
-        padding: 14px;
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
-        display: none;
-        z-index: 100;
-      }
-      #zoomLevel {
-        right: 20px;
-        bottom: 120px;
-        background: rgba(12, 8, 18, 0.8);
-        border: 1px solid rgba(200, 200, 200, 0.06);
-        border-radius: 8px;
-        padding: 6px 10px;
-        font-size: 11px;
-        color: #94a3b8;
-        z-index: 100;
-      }
-
-      /* Common styles for lesson content */
-      #lessonFullContent {
-        color: #e6e9ef;
-        background: transparent;
-      }
-      #lessonFullContent h1,
-      #lessonFullContent h2,
-      #lessonFullContent h3,
-      #lessonFullContent strong {
-        background: transparent !important;
-        color: #ff9bf0 !important; /* neon magenta title color */
-        margin: 0 0 8px 0;
-      }
-      /* Small lesson card title emphasis */
-      .lesson strong {
-        color: #ff9bf0;
-      }
-
-      /* Lesson iframe (full lesson) */
-      #lessonModal > div {
-        overflow: hidden;
-      }
-      #lessonFrame {
-        width: 100%;
-        height: 60vh;
-        border: none;
-        border-radius: 10px;
-        background: transparent;
-        display: block;
-      }
-      #lessonFallback {
-        padding: 12px 0;
-        color: #cbd5e1;
-        line-height: 1.6;
-      }
-
-      /* Navigation controls HUD */
-      #navControls {
         position: fixed;
+        z-index: 10;
+      }
+      #navControls {
         right: 20px;
         top: 200px;
         background: rgba(12, 8, 18, 0.9);
@@ -364,70 +209,35 @@
         -webkit-backdrop-filter: blur(8px);
         backdrop-filter: blur(8px);
         max-width: 180px;
+        position: fixed;
+        z-index: 10;
       }
-
       #navControls h5 {
         margin: 0 0 8px 0;
         color: #ff9bf0;
         font-size: 12px;
         font-weight: 600;
       }
-
       .nav-tip {
         margin: 4px 0;
         color: #94a3b8;
       }
-      /* Selected neuron info panel */
-      #neuronInfo {
+      #three-canvas {
         position: fixed;
-        left: 20px;
-        top: 300px;
-        width: 280px;
-        background: rgba(12, 8, 18, 0.95);
-        border: 1px solid rgba(200, 200, 200, 0.06);
-        border-radius: 12px;
-        padding: 14px;
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
-        display: none;
-        z-index: 100;
+        inset: 0;
+        z-index: 0;
+        cursor: grab;
       }
-
-      #neuronInfo h5 {
-        margin: 0 0 8px 0;
-        color: #ff9bf0;
-        font-size: 13px;
-        font-weight: 600;
-      }
-
-      .neuron-detail {
-        margin: 6px 0;
-        font-size: 12px;
-        color: #e6f7ff;
-      }
-
-      .neuron-detail strong {
-        color: #00f0ff;
-      }
-
-      /* Zoom level indicator */
-      #zoomLevel {
-        position: fixed;
-        right: 20px;
-        bottom: 120px;
-        background: rgba(12, 8, 18, 0.8);
-        border: 1px solid rgba(200, 200, 200, 0.06);
-        border-radius: 8px;
-        padding: 6px 10px;
-        font-size: 11px;
-        color: #94a3b8;
-        z-index: 100;
+      #three-canvas:active {
+        cursor: grabbing;
       }
     </style>
   </head>
   <body>
     <canvas id="three-canvas"></canvas>
     <div id="overlay"></div>
+
+    <!-- TOP BAR -->
     <div id="hud">
       <div style="font-weight: 600; color: #f1f5f9">SNN • Neural Network</div>
       <button id="play" class="btn on">Pause</button>
@@ -437,12 +247,61 @@
           id="speed"
           class="range"
           type="range"
-          min="10"
-          max="150"
-          value="50"
-      /></label>
+          min="0.1"
+          max="5"
+          step="0.1"
+          value="1"
+        />
+      </label>
     </div>
 
+    <!-- LESSONS BAR -->
+    <div id="lessonPanel">
+      <label for="lessonSelect" style="color: #94a3b8; font-weight: 500"
+        >Lesson:</label
+      >
+      <select id="lessonSelect">
+        <option value="1">Lesson 1: Basic Spike Dynamics</option>
+        <option value="2">Lesson 2: Synaptic Transmission</option>
+        <option value="3">Lesson 3: Network Plasticity</option>
+        <option value="4">Lesson 4: Pattern Recognition</option>
+      </select>
+    </div>
+
+    <!-- LEFT CONTROLS -->
+    <div id="controls">
+      <h4 style="margin: 0 0 12px; color: #f1f5f9">Learning Controls</h4>
+      <div class="control-group">
+        <label for="networkSize"
+          >Network Size: <span id="sizeValue">50</span></label
+        >
+        <input
+          type="range"
+          id="networkSize"
+          min="10"
+          max="200"
+          step="5"
+          value="50"
+        />
+      </div>
+      <div class="control-group">
+        <label for="connectionProb"
+          >Connection Probability: <span id="probValue">0.10</span></label
+        >
+        <input
+          type="range"
+          id="connectionProb"
+          min="0"
+          max="0.5"
+          step="0.01"
+          value="0.10"
+        />
+      </div>
+      <button id="resetNetwork" class="btn">Reset Network</button>
+      <button id="showWeights" class="btn">Show Weights</button>
+    </div>
+
+    <!-- RIGHT INFO -->
     <div id="panel">
       <h4 id="sel">Select Neuron</h4>
       <div style="margin-bottom: 8px; font-size: 12px; color: #94a3b8">
@@ -457,238 +316,15 @@
       <canvas id="trace" width="260" height="150"></canvas>
     </div>
 
-    <!-- Re-added lesson panel (restore missing settings UI) -->
-    <div
-      id="lessonPanel"
-      style="
-        position: fixed;
-        left: 20px;
-        top: 80px;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        background: rgba(18, 21, 28, 0.85);
-        padding: 10px 16px;
-        border-radius: 12px;
-        border: 1px solid #1e293b;
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-      "
-    >
-      <label for="lessonSelect" style="color: #94a3b8; font-weight: 500"
-        >Lesson:</label
-      >
-      <select id="lessonSelect">
-        <option value="1">Lesson 1: Basic Spike Dynamics</option>
-        <option value="2">Lesson 2: Synaptic Transmission</option>
-        <option value="3">Lesson 3: Network Plasticity</option>
-        <option value="4">Lesson 4: Pattern Recognition</option>
-      </select>
-      <div style="display: flex; gap: 8px">
-        <button
-          id="prevLesson"
-          class="btn"
-          style="padding: 6px 10px; font-size: 12px"
-        >
-          ← Prev
-        </button>
-        <button
-          id="nextLesson"
-          class="btn"
-          style="padding: 6px 10px; font-size: 12px"
-        >
-          Next →
-        </button>
-        <button
-          id="viewLesson"
-          class="btn"
-          style="
-            padding: 6px 10px;
-            font-size: 12px;
-            background: #f223e0;
-            color: #fff;
-          "
-        >
-          📖 View Full
-        </button>
-      </div>
-    </div>
-
-    <div id="controls">
-      <h4 style="margin: 0 0 12px; color: #f1f5f9">Learning Controls</h4>
-      <div class="control-group">
-        <label>Lesson Mode:</label>
-        <div style="display: flex; gap: 6px; flex-wrap: wrap">
-          <div class="toggle active" id="lesson1">Basic Spikes</div>
-          <div class="toggle" id="lesson2">Synapses</div>
-          <div class="toggle" id="lesson3">Plasticity</div>
-          <div class="toggle" id="lesson4">Patterns</div>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <label for="inputCurrent"
-          >Input Current: <span id="inputValue">0.5</span></label
-        >
-        <input
-          type="range"
-          id="inputCurrent"
-          min="0"
-          max="2"
-          step="0.1"
-          value="0.5"
-        />
-      </div>
-
-      <div class="control-group">
-        <label for="synapseWeight"
-          >Synaptic Weight: <span id="weightValue">0.2</span></label
-        >
-        <input
-          type="range"
-          id="synapseWeight"
-          min="0"
-          max="1"
-          step="0.05"
-          value="0.2"
-        />
-      </div>
-
-      <div class="control-group">
-        <label for="networkSize"
-          >Network Size: <span id="sizeValue">50</span></label
-        >
-        <input
-          type="range"
-          id="networkSize"
-          min="10"
-          max="100"
-          step="5"
-          value="50"
-        />
-      </div>
-
-      <div class="control-group">
-        <label for="connectionProb"
-          >Connection Probability: <span id="probValue">0.045</span></label
-        >
-        <input
-          type="range"
-          id="connectionProb"
-          min="0"
-          max="0.2"
-          step="0.005"
-          value="0.045"
-        />
-      </div>
-
-      <button id="resetNetwork" class="btn">Reset Network</button>
-      <button id="showWeights" class="btn">Show Weights</button>
-
-      <div class="control-group" id="patternControls" style="display: none">
-        <button
-          id="injectPattern"
-          class="btn"
-          style="width: 100%; margin-bottom: 8px"
-        >
-          Inject Pattern
-        </button>
-        <button id="testMemory" class="btn" style="width: 100%">
-          Test Memory
-        </button>
-      </div>
-    </div>
-    <div
-      id="lessonModal"
-      style="
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(4px);
-        z-index: 1000;
-        overflow-y: auto;
-      "
-    >
-      <div
-        style="
-          max-width: 800px;
-          margin: 40px auto;
-          background: #12151c;
-          border: 1px solid #334155;
-          border-radius: 16px;
-          padding: 18px 20px;
-          position: relative;
-        "
-      >
-        <button
-          id="closeModal"
-          style="
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-size: 24px;
-            cursor: pointer;
-          "
-        >
-          ×
-        </button>
-        <iframe
-          id="lessonFrame"
-          src=""
-          title="Lesson content"
-          sandbox="allow-same-origin allow-scripts allow-forms"
-        ></iframe>
-        <div id="lessonFallback" style="display: none"></div>
-      </div>
-    </div>
-
-    <!-- Add navigation help panel -->
     <div id="navControls">
-      <h5>🎮 Navigation</h5>
-      <div class="nav-tip"><strong>Mouse Drag:</strong> Rotate view</div>
-      <div class="nav-tip"><strong>Mouse Wheel:</strong> Zoom in/out</div>
-      <div class="nav-tip"><strong>Right Click:</strong> Pan camera</div>
-      <div class="nav-tip"><strong>Click Neuron:</strong> Inspect details</div>
-      <div class="nav-tip"><strong>Double Click:</strong> Focus on neuron</div>
-      <div class="nav-tip"><strong>Space:</strong> Reset view</div>
+      <h5>🎮 Fly Controls</h5>
+      <div class="nav-tip"><strong>L-Click Drag:</strong> Rotate</div>
+      <div class="nav-tip"><strong>R-Click Drag:</strong> Pan</div>
+      <div class="nav-tip"><strong>WASD:</strong> Move</div>
+      <div class="nav-tip"><strong>Q/E:</strong> Up/Down</div>
+      <div class="nav-tip"><strong>Wheel:</strong> Zoom</div>
+      <div class="nav-tip"><strong>Space:</strong> Reset View</div>
     </div>
-
-    <!-- Selected neuron detailed info -->
-    <div id="neuronInfo">
-      <h5>🔍 Neuron Inspector</h5>
-      <div class="neuron-detail">
-        <strong>ID:</strong> <span id="neuronId">--</span>
-      </div>
-      <div class="neuron-detail">
-        <strong>Type:</strong> <span id="neuronType">--</span>
-      </div>
-      <div class="neuron-detail">
-        <strong>Cluster:</strong> <span id="neuronCluster">--</span>
-      </div>
-      <div class="neuron-detail">
-        <strong>Voltage:</strong> <span id="neuronVoltage">--</span>
-      </div>
-      <div class="neuron-detail">
-        <strong>Last Spike:</strong> <span id="neuronLastSpike">--</span>
-      </div>
-      <div class="neuron-detail">
-        <strong>Connections In:</strong> <span id="neuronConnIn">--</span>
-      </div>
-      <div class="neuron-detail">
-        <strong>Connections Out:</strong> <span id="neuronConnOut">--</span>
-      </div>
-      <div class="neuron-detail">
-        <strong>Activity Rate:</strong> <span id="neuronActivity">--</span>
-      </div>
-    </div>
-
-    <!-- Zoom level indicator -->
-    <div id="zoomLevel">Zoom: <span id="zoomValue">100%</span></div>
 
     <div id="info">
       <h4 style="margin: 0 0 8px; color: #f1f5f9">Learning Guide</h4>
@@ -700,78 +336,28 @@
         </div>
       </div>
     </div>
+
     <div id="err"></div>
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        // WebSocket connection
-        let ws;
-        function connectWS() {
-          try {
-            ws = new WebSocket("ws://localhost:8766");
-            ws.onopen = () => {
-              console.log("Connected to SNN server");
-              document.getElementById("err").style.display = "none";
-            };
-            ws.onerror = () => {
-              const errEl = document.getElementById("err");
-              errEl.textContent =
-                "Connection failed. Make sure server.py is running.";
-              errEl.style.display = "block";
-            };
-            ws.onclose = () => setTimeout(connectWS, 2000);
-            ws.onmessage = handleMessage;
-          } catch (error) {
-            const errEl = document.getElementById("err");
-            errEl.textContent = "Failed to connect to server";
-            errEl.style.display = "block";
-          }
-        }
+        "use strict";
 
-        // --- THREE.JS SETUP ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0c12);
+        // --- CONFIG & STATE ---
+        const state = {
+          isRunning: true,
+          showWeights: false,
+          speed: 1,
+        };
 
-        const camera = new THREE.PerspectiveCamera(
-          75,
-          window.innerWidth / window.innerHeight,
-          0.1,
-          1000
-        );
-        camera.position.set(0, 0, 80);
-        camera.lookAt(0, 0, 0);
+        const config = {
+          networkSize: 50,
+          connectionProb: 0.1,
+          neuronSize: 1.0,
+          pulseIntensity: 1.5,
+          cameraMoveSpeed: 0.2,
+        };
 
-        const canvas = document.getElementById("three-canvas");
-        const renderer = new THREE.WebGLRenderer({
-          canvas: canvas,
-          antialias: true,
-          powerPreference: "high-performance",
-        });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-        window.addEventListener("resize", () => {
-          camera.aspect = window.innerWidth / window.innerHeight;
-          camera.updateProjectionMatrix();
-          renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // --- LIGHTING ---
-        scene.add(new THREE.AmbientLight(0x404040, 0.8));
-        const keyLight = new THREE.PointLight(0x4080ff, 1.5, 250);
-        keyLight.position.set(50, 50, 50);
-        keyLight.castShadow = true;
-        scene.add(keyLight);
-        const fillLight = new THREE.PointLight(0xff6060, 1.0, 200);
-        fillLight.position.set(-30, -30, 40);
-        scene.add(fillLight);
-        const backLight = new THREE.PointLight(0x60ff60, 0.8, 150);
-        backLight.position.set(0, 0, -50);
-        scene.add(backLight);
-
-        // --- CORE SNN STATE ---
         const CLUSTER_COLORS = [
           {
             primary: new THREE.Color(0.0, 0.8, 1.0),
@@ -789,263 +375,329 @@
             primary: new THREE.Color(1.0, 0.5, 0.0),
             glow: new THREE.Color(1.0, 0.7, 0.3),
           },
-          {
-            primary: new THREE.Color(1.0, 0.0, 0.4),
-            glow: new THREE.Color(1.0, 0.3, 0.6),
-          },
         ];
-        const neurons = [],
-          glows = [];
-        let connections = [],
-          connGeom,
-          col,
-          lines;
-        let isRunning = true;
-        let showWeights = false;
+
+        // --- DOM ELEMENTS ---
+        const dom = {
+          canvas: document.getElementById("three-canvas"),
+          playBtn: document.getElementById("play"),
+          speedSlider: document.getElementById("speed"),
+          networkSizeSlider: document.getElementById("networkSize"),
+          sizeValueLabel: document.getElementById("sizeValue"),
+          connectionProbSlider: document.getElementById("connectionProb"),
+          probValueLabel: document.getElementById("probValue"),
+          resetBtn: document.getElementById("resetNetwork"),
+          showWeightsBtn: document.getElementById("showWeights"),
+        };
+
+        // --- THREE.JS SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0c12);
+        const camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          2000
+        );
+        const renderer = new THREE.WebGLRenderer({
+          canvas: dom.canvas,
+          antialias: true,
+        });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        scene.add(new THREE.AmbientLight(0x404040, 1.5));
+        const keyLight = new THREE.PointLight(0x60a5fa, 2.0, 300);
+        keyLight.position.set(50, 50, 50);
+        scene.add(keyLight);
 
         // --- CAMERA CONTROLS ---
-        let cameraTarget = new THREE.Vector3(0, 0, 0);
-        let cameraDistance = 80;
-        let cameraTheta = 0,
-          cameraPhi = Math.PI / 2;
-        let isDragging = false,
-          isPanning = false;
-        let lastMouseX = 0,
-          lastMouseY = 0;
+        const cameraControls = {
+          target: new THREE.Vector3(0, 0, 0),
+          distance: 100,
+          theta: 1.5,
+          phi: 1.5,
+          move: { forward: 0, right: 0, up: 0 },
+          mouse: { x: 0, y: 0, isLeftDown: false, isRightDown: false },
 
-        function updateCameraPosition() {
-          camera.position.x =
-            cameraTarget.x +
-            cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
-          camera.position.y =
-            cameraTarget.y + cameraDistance * Math.cos(cameraPhi);
-          camera.position.z =
-            cameraTarget.z +
-            cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
-          camera.lookAt(cameraTarget);
-        }
-
-        canvas.addEventListener("mousedown", (e) => {
-          if (e.button === 0) isDragging = true;
-          else if (e.button === 2) isPanning = true;
-          lastMouseX = e.clientX;
-          lastMouseY = e.clientY;
-        });
-        window.addEventListener("mouseup", (e) => {
-          if (e.button === 0) isDragging = false;
-          else if (e.button === 2) isPanning = false;
-        });
-        window.addEventListener("mousemove", (e) => {
-          const deltaX = e.clientX - lastMouseX;
-          const deltaY = e.clientY - lastMouseY;
-          lastMouseX = e.clientX;
-          lastMouseY = e.clientY;
-
-          if (isDragging) {
-            cameraTheta -= deltaX * 0.005;
-            cameraPhi -= deltaY * 0.005;
-            cameraPhi = Math.max(0.1, Math.min(Math.PI - 0.1, cameraPhi));
-          }
-          if (isPanning) {
-            const panSpeed = 0.1;
-            const right = new THREE.Vector3()
-              .setFromMatrixColumn(camera.matrix, 0)
-              .multiplyScalar(-deltaX * panSpeed);
-            const up = new THREE.Vector3()
-              .setFromMatrixColumn(camera.matrix, 1)
-              .multiplyScalar(deltaY * panSpeed);
-            cameraTarget.add(right).add(up);
-          }
-          if (isDragging || isPanning) updateCameraPosition();
-        });
-        canvas.addEventListener("wheel", (e) => {
-          cameraDistance += e.deltaY * 0.05;
-          cameraDistance = Math.max(10, Math.min(200, cameraDistance));
-          updateCameraPosition();
-        });
-        canvas.addEventListener("contextmenu", (e) => e.preventDefault());
-
-        // --- SNN CREATION ---
-        function createNetworkTopology() {
-          neurons.forEach((n) => scene.remove(n));
-          glows.forEach((g) => scene.remove(g));
-          if (lines) scene.remove(lines);
-          neurons.length = 0;
-          glows.length = 0;
-
-          const networkSize = parseInt(
-            document.getElementById("networkSize").value
-          );
-          const N_EXC = Math.round(networkSize * 0.8);
-          const N_INH = networkSize - N_EXC;
-          const radius = 25;
-
-          for (let i = 0; i < N_EXC; i++) {
-            const clusterId = Math.floor(i / (N_EXC / 4));
-            const c = CLUSTER_COLORS[clusterId];
-            const pos = new THREE.Vector3(
-              (Math.random() - 0.5) * radius * 2,
-              (Math.random() - 0.5) * radius * 2,
-              (Math.random() - 0.5) * radius * 2
+          init() {
+            dom.canvas.addEventListener("mousedown", (e) =>
+              this.onMouseDown(e)
             );
-            const neuron = new THREE.Mesh(
-              new THREE.SphereGeometry(1.5, 32, 16),
-              new THREE.MeshLambertMaterial({
-                color: c.primary,
-                emissive: c.primary.clone().multiplyScalar(0.5),
-              })
+            window.addEventListener("mouseup", (e) => this.onMouseUp(e));
+            window.addEventListener("mousemove", (e) => this.onMouseMove(e));
+            dom.canvas.addEventListener("wheel", (e) => this.onWheel(e));
+            dom.canvas.addEventListener("contextmenu", (e) =>
+              e.preventDefault()
             );
-            neuron.position.copy(pos);
-            neuron.userData = {
-              id: i,
-              cluster: clusterId,
-              pulse: 0,
-              type: "excitatory",
-              originalColor: c.primary,
-              glowColor: c.glow,
-            };
-            neurons.push(neuron);
-            scene.add(neuron);
+            window.addEventListener("keydown", (e) => this.onKeyDown(e));
+            window.addEventListener("keyup", (e) => this.onKeyUp(e));
+            this.update();
+          },
+          onMouseDown(e) {
+            if (e.button === 0) this.mouse.isLeftDown = true;
+            if (e.button === 2) this.mouse.isRightDown = true;
+          },
+          onMouseUp(e) {
+            if (e.button === 0) this.mouse.isLeftDown = false;
+            if (e.button === 2) this.mouse.isRightDown = false;
+          },
+          onMouseMove(e) {
+            const dx = e.clientX - this.mouse.x;
+            const dy = e.clientY - this.mouse.y;
+            this.mouse.x = e.clientX;
+            this.mouse.y = e.clientY;
 
-            const glow = new THREE.Mesh(
-              new THREE.SphereGeometry(2.5, 16, 16),
-              new THREE.MeshBasicMaterial({
-                color: c.glow,
-                transparent: true,
-                opacity: 0.2,
-                blending: THREE.AdditiveBlending,
-              })
+            if (this.mouse.isLeftDown) {
+              this.theta -= dx * 0.005;
+              this.phi -= dy * 0.005;
+              this.phi = Math.max(0.1, Math.min(Math.PI - 0.1, this.phi));
+            }
+            if (this.mouse.isRightDown) {
+              const right = new THREE.Vector3()
+                .setFromMatrixColumn(camera.matrix, 0)
+                .multiplyScalar(-dx * 0.1);
+              const up = new THREE.Vector3()
+                .setFromMatrixColumn(camera.matrix, 1)
+                .multiplyScalar(dy * 0.1);
+              this.target.add(right).add(up);
+            }
+          },
+          onWheel(e) {
+            this.distance += e.deltaY * 0.1;
+            this.distance = Math.max(5, Math.min(500, this.distance));
+          },
+          onKeyDown(e) {
+            if (e.code === "KeyW") this.move.forward = 1;
+            if (e.code === "KeyS") this.move.forward = -1;
+            if (e.code === "KeyD") this.move.right = 1;
+            if (e.code === "KeyA") this.move.right = -1;
+            if (e.code === "KeyE") this.move.up = 1;
+            if (e.code === "KeyQ") this.move.up = -1;
+            if (e.code === "Space") this.reset();
+          },
+          onKeyUp(e) {
+            if (e.code === "KeyW" || e.code === "KeyS") this.move.forward = 0;
+            if (e.code === "KeyA" || e.code === "KeyD") this.move.right = 0;
+            if (e.code === "KeyQ" || e.code === "KeyE") this.move.up = 0;
+          },
+          update() {
+            const forwardDir = new THREE.Vector3();
+            camera.getWorldDirection(forwardDir);
+            const rightDir = new THREE.Vector3()
+              .crossVectors(camera.up, forwardDir)
+              .normalize();
+
+            this.target.add(
+              forwardDir.multiplyScalar(
+                this.move.forward * config.cameraMoveSpeed * state.speed
+              )
             );
-            glow.position.copy(pos);
-            glows.push(glow);
-            scene.add(glow);
-          }
-          // ... (inhibitory neuron creation can be added here if needed)
+            this.target.add(
+              rightDir.multiplyScalar(
+                this.move.right * config.cameraMoveSpeed * state.speed
+              )
+            );
+            this.target.y +=
+              this.move.up * config.cameraMoveSpeed * state.speed;
 
-          createConnectionNetwork();
-        }
+            camera.position.x =
+              this.target.x +
+              this.distance * Math.sin(this.phi) * Math.cos(this.theta);
+            camera.position.y =
+              this.target.y + this.distance * Math.cos(this.phi);
+            camera.position.z =
+              this.target.z +
+              this.distance * Math.sin(this.phi) * Math.sin(this.theta);
+            camera.lookAt(this.target);
+          },
+          reset() {
+            this.target.set(0, 0, 0);
+            this.distance = 100;
+            this.theta = 1.5;
+            this.phi = 1.5;
+          },
+        };
+        cameraControls.init();
 
-        function createConnectionNetwork() {
-          const positions = [];
-          const colors = [];
-          const connectionData = [];
-          const prob = parseFloat(
-            document.getElementById("connectionProb").value
-          );
+        // --- NETWORK ---
+        const network = {
+          neurons: [],
+          glows: [],
+          lines: null,
 
-          for (let i = 0; i < neurons.length; i++) {
-            for (let j = i + 1; j < neurons.length; j++) {
-              if (Math.random() < prob) {
-                positions.push(
-                  ...neurons[i].position.toArray(),
-                  ...neurons[j].position.toArray()
-                );
-                const c = CLUSTER_COLORS[neurons[i].userData.cluster].primary
-                  .clone()
-                  .multiplyScalar(0.4);
-                colors.push(c.r, c.g, c.b, c.r, c.g, c.b);
-                connectionData.push({ from: i, to: j });
+          create() {
+            this.destroy();
+            const radius = 40;
+            for (let i = 0; i < config.networkSize; i++) {
+              const clusterId = Math.floor(i / (config.networkSize / 4));
+              const c = CLUSTER_COLORS[clusterId % CLUSTER_COLORS.length];
+              const pos = new THREE.Vector3(
+                (Math.random() - 0.5) * radius * 2,
+                (Math.random() - 0.5) * radius * 2,
+                (Math.random() - 0.5) * radius * 2
+              );
+
+              const neuron = new THREE.Mesh(
+                new THREE.SphereGeometry(config.neuronSize, 24, 12),
+                new THREE.MeshLambertMaterial({
+                  color: c.primary,
+                  emissive: c.primary.clone().multiplyScalar(0.5),
+                })
+              );
+              neuron.position.copy(pos);
+              neuron.userData = {
+                id: i,
+                pulse: 0,
+                originalColor: c.primary,
+                glowColor: c.glow,
+              };
+              this.neurons.push(neuron);
+              scene.add(neuron);
+
+              const glow = new THREE.Mesh(
+                new THREE.SphereGeometry(config.neuronSize * 1.8, 24, 12),
+                new THREE.MeshBasicMaterial({
+                  color: c.glow,
+                  transparent: true,
+                  opacity: 0.3,
+                  blending: THREE.AdditiveBlending,
+                })
+              );
+              glow.position.copy(pos);
+              this.glows.push(glow);
+              scene.add(glow);
+            }
+            this.createConnections();
+          },
+
+          createConnections() {
+            const positions = [];
+            const colors = [];
+            for (let i = 0; i < this.neurons.length; i++) {
+              for (let j = i + 1; j < this.neurons.length; j++) {
+                if (Math.random() < config.connectionProb) {
+                  positions.push(
+                    ...this.neurons[i].position.toArray(),
+                    ...this.neurons[j].position.toArray()
+                  );
+                  const c = this.neurons[i].userData.originalColor
+                    .clone()
+                    .multiplyScalar(0.4);
+                  colors.push(c.r, c.g, c.b, c.r, c.g, c.b);
+                }
               }
             }
-          }
-          connGeom = new THREE.BufferGeometry();
-          connGeom.setAttribute(
-            "position",
-            new THREE.Float32BufferAttribute(positions, 3)
-          );
-          connGeom.setAttribute(
-            "color",
-            new THREE.Float32BufferAttribute(colors, 3)
-          );
-          const lineMat = new THREE.LineBasicMaterial({
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.3,
-            blending: THREE.AdditiveBlending,
-          });
-          lines = new THREE.LineSegments(connGeom, lineMat);
-          lines.visible = showWeights;
-          scene.add(lines);
-          connections = connectionData;
-        }
+            const geom = new THREE.BufferGeometry();
+            geom.setAttribute(
+              "position",
+              new THREE.Float32BufferAttribute(positions, 3)
+            );
+            geom.setAttribute(
+              "color",
+              new THREE.Float32BufferAttribute(colors, 3)
+            );
+            const mat = new THREE.LineBasicMaterial({
+              vertexColors: true,
+              transparent: true,
+              opacity: 0.2,
+              blending: THREE.AdditiveBlending,
+            });
+            this.lines = new THREE.LineSegments(geom, mat);
+            this.lines.visible = state.showWeights;
+            scene.add(this.lines);
+          },
 
-        // --- ANIMATION LOOP ---
-        function animate() {
-          requestAnimationFrame(animate);
-
-          if (isRunning) {
-            for (let i = 0; i < neurons.length; i++) {
-              const n = neurons[i],
-                g = glows[i],
+          update() {
+            for (let i = 0; i < this.neurons.length; i++) {
+              const n = this.neurons[i],
+                g = this.glows[i],
                 u = n.userData;
-              if (Math.random() < 0.005) u.pulse = 1.2; // Random firing
-              if (u.pulse > 0) {
-                u.pulse *= 0.9;
-                const intensity = u.pulse / 1.2;
-                if (n.material.emissive)
-                  n.material.emissive.copy(
-                    u.glowColor.clone().multiplyScalar(intensity * 2)
-                  );
-                n.scale.setScalar(1 + intensity * 0.5);
-                g.material.opacity = 0.2 + intensity * 0.8;
-                g.scale.setScalar(1 + intensity * 3.0);
+              if (Math.random() < 0.001 * state.speed)
+                u.pulse = config.pulseIntensity;
+
+              if (u.pulse > 0.01) {
+                u.pulse *= 0.95; // Decay
+                const intensity = u.pulse / config.pulseIntensity;
+                n.material.emissive.copy(
+                  u.glowColor.clone().multiplyScalar(intensity * 1.5)
+                );
+                n.scale.setScalar(1 + intensity * 0.8);
+                g.material.opacity = Math.max(0.3, intensity * 1.2);
+                g.scale.setScalar(1 + intensity * 2.5);
               } else {
-                if (n.material.emissive)
-                  n.material.emissive.copy(
-                    u.originalColor.clone().multiplyScalar(0.4)
-                  );
+                n.material.emissive.copy(
+                  u.originalColor.clone().multiplyScalar(0.5)
+                );
                 n.scale.setScalar(1.0);
-                g.material.opacity = 0.2;
+                g.material.opacity = 0.3;
                 g.scale.setScalar(1.0);
               }
             }
+          },
+
+          destroy() {
+            this.neurons.forEach((n) => scene.remove(n));
+            this.glows.forEach((g) => scene.remove(g));
+            if (this.lines) scene.remove(this.lines);
+            this.neurons.length = 0;
+            this.glows.length = 0;
+          },
+        };
+
+        // --- UI BINDINGS ---
+        function bindUI() {
+          dom.playBtn.addEventListener("click", () => {
+            state.isRunning = !state.isRunning;
+            dom.playBtn.textContent = state.isRunning ? "Pause" : "Play";
+            dom.playBtn.classList.toggle("on", state.isRunning);
+          });
+          dom.speedSlider.addEventListener(
+            "input",
+            (e) => (state.speed = parseFloat(e.target.value))
+          );
+          dom.networkSizeSlider.addEventListener("input", (e) => {
+            config.networkSize = parseInt(e.target.value);
+            dom.sizeValueLabel.textContent = config.networkSize;
+          });
+          dom.networkSizeSlider.addEventListener("change", () =>
+            network.create()
+          );
+          dom.connectionProbSlider.addEventListener("input", (e) => {
+            config.connectionProb = parseFloat(e.target.value);
+            dom.probValueLabel.textContent = config.connectionProb.toFixed(2);
+          });
+          dom.connectionProbSlider.addEventListener("change", () =>
+            network.create()
+          );
+          dom.resetBtn.addEventListener("click", () => network.create());
+          dom.showWeightsBtn.addEventListener("click", () => {
+            state.showWeights = !state.showWeights;
+            network.lines.visible = state.showWeights;
+            dom.showWeightsBtn.classList.toggle("on", state.showWeights);
+          });
+        }
+
+        // --- MAIN LOOP ---
+        function animate() {
+          requestAnimationFrame(animate);
+          cameraControls.update();
+          if (state.isRunning) {
+            network.update();
           }
           renderer.render(scene, camera);
         }
 
-        // --- UI CONTROLS ---
-        document.getElementById("play").addEventListener("click", (e) => {
-          isRunning = !isRunning;
-          e.target.textContent = isRunning ? "Pause" : "Play";
-          e.target.classList.toggle("on", isRunning);
-        });
-        document
-          .getElementById("resetNetwork")
-          .addEventListener("click", createNetworkTopology);
-        document
-          .getElementById("showWeights")
-          .addEventListener("click", (e) => {
-            showWeights = !showWeights;
-            if (lines) lines.visible = showWeights;
-            e.target.classList.toggle("on", showWeights);
-          });
-        document
-          .getElementById("networkSize")
-          .addEventListener("input", (e) => {
-            document.getElementById("sizeValue").textContent = e.target.value;
-          });
-        document
-          .getElementById("networkSize")
-          .addEventListener("change", createNetworkTopology);
-        document
-          .getElementById("connectionProb")
-          .addEventListener("input", (e) => {
-            document.getElementById("probValue").textContent = e.target.value;
-          });
-        document
-          .getElementById("connectionProb")
-          .addEventListener("change", createNetworkTopology);
-
         // --- INITIALIZATION ---
-        connectWS();
-        createNetworkTopology();
-        updateCameraPosition();
-        animate();
-        console.log("Neural network initialized successfully!");
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
-        function handleMessage(e) {
-          /* Stub */
-        }
+        bindUI();
+        network.create();
+        animate();
       });
     </script>
   </body>
