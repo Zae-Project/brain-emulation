@@ -54,7 +54,7 @@ class SNNVisualizer {
   init() {
     this.initDOM();
     this.initCanvas();
-    this.createNetwork();
+    this.forceNetworkCreation(); // FORCE NETWORK CREATION IMMEDIATELY
     this.bindUI();
     this.initLessons();
 
@@ -585,6 +585,64 @@ class SNNVisualizer {
 
     console.log(
       `Network created: ${this.neurons.length} neurons, ${this.connections.length} connections`
+    );
+  }
+
+  // Force immediate network creation and display
+  forceNetworkCreation() {
+    this.neurons = [];
+    this.connections = [];
+
+    // Create 120 neurons in a visible sphere around origin
+    for (let i = 0; i < 120; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+      const radius = 20 + Math.random() * 25;
+
+      const neuron = {
+        id: i,
+        position: {
+          x: radius * Math.sin(phi) * Math.cos(theta),
+          y: radius * Math.sin(phi) * Math.sin(theta),
+          z: radius * Math.cos(phi),
+        },
+        voltage: Math.random() * 0.5,
+        pulse: 0,
+        lastFire: 0,
+        colors: {
+          primary: { r: 0.9, g: 0.9, b: 0.9 },
+          glow: { r: 1.0, g: 1.0, b: 1.0 },
+        },
+        connections: [],
+      };
+      this.neurons.push(neuron);
+    }
+
+    // Create connections with 0.30 probability
+    for (let i = 0; i < this.neurons.length; i++) {
+      for (let j = i + 1; j < this.neurons.length; j++) {
+        if (Math.random() < 0.3) {
+          const connection = {
+            from: this.neurons[i],
+            to: this.neurons[j],
+            weight: 0.1 + Math.random() * 0.4,
+          };
+          this.connections.push(connection);
+          this.neurons[i].connections.push(connection);
+
+          const reverseConnection = {
+            from: this.neurons[j],
+            to: this.neurons[i],
+            weight: 0.1 + Math.random() * 0.4,
+          };
+          this.connections.push(reverseConnection);
+          this.neurons[j].connections.push(reverseConnection);
+        }
+      }
+    }
+
+    console.log(
+      `FORCED NETWORK: ${this.neurons.length} neurons, ${this.connections.length} connections`
     );
   }
 
@@ -1135,7 +1193,7 @@ class SNNVisualizer {
         <div class="lesson">
           <strong>${lesson.title}</strong><br />
           ${lesson.content}
-          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">View Full Lesson</button>
+          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">VIEW FULL LESSON</button>
         </div>
       `;
     }
