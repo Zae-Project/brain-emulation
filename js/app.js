@@ -346,7 +346,7 @@ class SNNVisualizer {
   }
 
   project3D(pos) {
-    // Working 3D projection
+    // Working 3D projection with proper zoom scaling
     const cam = this.camera;
 
     // Transform point relative to camera
@@ -370,18 +370,30 @@ class SNNVisualizer {
     const y2 = y1 * cosPitch - z1 * sinPitch;
     const z2 = y1 * sinPitch + z1 * cosPitch;
 
-    // Simple perspective projection with proper scaling
-    const distance = Math.max(10, z2);
-    const scale = 300 / distance;
+    // Enhanced perspective projection with better zoom scaling
+    const distance = Math.max(1, z2);
+    const baseScale = 800; // Increased base scale for better zoom response
+    const scale = baseScale / distance;
 
     const screenX = this.dom.canvas.width / 2 + x2 * scale;
     const screenY = this.dom.canvas.height / 2 - y2 * scale;
 
+    // Calculate camera distance for zoom-responsive scaling
+    const cameraDistance = Math.sqrt(
+      cam.position.x * cam.position.x +
+        cam.position.y * cam.position.y +
+        cam.position.z * cam.position.z
+    );
+
+    // Zoom factor that increases neuron size when closer
+    const zoomFactor = Math.max(0.5, Math.min(5.0, 200 / cameraDistance));
+
     return {
       x: screenX,
       y: screenY,
-      scale: Math.max(0.1, scale / 300),
+      scale: Math.max(0.1, (scale / baseScale) * zoomFactor),
       depth: z2,
+      zoomFactor: zoomFactor,
     };
   }
 
@@ -621,8 +633,8 @@ class SNNVisualizer {
 
     this.clearTrace();
 
-    // Draw voltage trace
-    this.traceCtx.strokeStyle = "#f223e0";
+    // Draw voltage trace with premium green
+    this.traceCtx.strokeStyle = "#13854b"; // Premium green accent
     this.traceCtx.lineWidth = 2;
     this.traceCtx.beginPath();
 
@@ -639,8 +651,8 @@ class SNNVisualizer {
 
     this.traceCtx.stroke();
 
-    // Draw threshold line
-    this.traceCtx.strokeStyle = "#60a5fa";
+    // Draw threshold line with premium blue
+    this.traceCtx.strokeStyle = "#5868c9"; // Premium blue accent
     this.traceCtx.lineWidth = 1;
     this.traceCtx.setLineDash([5, 5]);
     this.traceCtx.beginPath();
@@ -652,17 +664,16 @@ class SNNVisualizer {
 
   clearTrace() {
     if (!this.traceCtx) return;
-    this.traceCtx.fillStyle = "#0f172a";
+    this.traceCtx.fillStyle = "#000000"; // Pure black background
     this.traceCtx.fillRect(0, 0, 260, 150);
   }
 
   render() {
-    // Clear canvas
-    this.ctx.fillStyle = "#0a0c12";
+    // Clear canvas with pure black background
+    this.ctx.fillStyle = "#000000";
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
-    // ALWAYS render connections in grey
-    this.ctx.globalAlpha = 0.4;
+    // Render connections with extremely thin lines
     this.connections.forEach((conn) => {
       const startProj = this.project3D(conn.from.position);
       const endProj = this.project3D(conn.to.position);
@@ -679,7 +690,7 @@ class SNNVisualizer {
         (conn.from.pulse > 0.1 || conn.to.pulse > 0.1);
 
       if (isActive) {
-        // Active connection - show in cluster color
+        // Active connection - show in cluster color with extremely thin line
         const activeColor =
           conn.from.pulse > conn.to.pulse
             ? conn.from.colors.glow
@@ -690,12 +701,12 @@ class SNNVisualizer {
           activeColor.r * 255
         )}, ${Math.floor(activeColor.g * 255)}, ${Math.floor(
           activeColor.b * 255
-        )}, ${0.6 * intensity})`;
-        this.ctx.lineWidth = 1.5 + conn.weight * 2;
+        )}, ${0.8 * intensity})`;
+        this.ctx.lineWidth = 0.3; // Extremely thin active connections
       } else {
-        // Inactive connection - grey
-        this.ctx.strokeStyle = `rgba(100, 116, 139, 0.3)`;
-        this.ctx.lineWidth = 1;
+        // Inactive connection - extremely thin grey line
+        this.ctx.strokeStyle = `rgba(100, 116, 139, 0.15)`;
+        this.ctx.lineWidth = 0.2; // Ultra-thin inactive connections
       }
 
       this.ctx.beginPath();
@@ -703,29 +714,36 @@ class SNNVisualizer {
       this.ctx.lineTo(endProj.x, endProj.y);
       this.ctx.stroke();
     });
-    this.ctx.globalAlpha = 1;
 
-    // Render neurons
+    // Render neurons with zoom-responsive scaling
     this.neurons.forEach((neuron) => {
       const projected = this.project3D(neuron.position);
 
-      // Skip if behind camera or off screen
+      // Skip if behind camera or way off screen
       if (
         projected.depth <= 0 ||
-        projected.x < -100 ||
-        projected.x > this.dom.canvas.width + 100 ||
-        projected.y < -100 ||
-        projected.y > this.dom.canvas.height + 100
+        projected.x < -200 ||
+        projected.x > this.dom.canvas.width + 200 ||
+        projected.y < -200 ||
+        projected.y > this.dom.canvas.height + 200
       ) {
         return;
       }
 
-      const radius = this.config.neuronSize * projected.scale * 15;
+      // Zoom-responsive neuron size - grows significantly when zooming in
+      const baseRadius = 12; // Base neuron size
+      const radius = Math.max(
+        3,
+        baseRadius *
+          projected.scale *
+          projected.zoomFactor *
+          this.config.neuronSize
+      );
       const intensity = neuron.pulse / this.config.pulseIntensity;
 
-      // Draw glow effect when firing
+      // Draw glow effect when firing - scales with zoom
       if (intensity > 0.1) {
-        const glowRadius = radius * (1.5 + intensity * 1.2);
+        const glowRadius = radius * (1.8 + intensity * 2.0);
         const gradient = this.ctx.createRadialGradient(
           projected.x,
           projected.y,
@@ -740,13 +758,13 @@ class SNNVisualizer {
           0,
           `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
             glowColor.g * 255
-          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.4})`
+          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.6})`
         );
         gradient.addColorStop(
-          0.7,
+          0.5,
           `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
             glowColor.g * 255
-          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.1})`
+          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.3})`
         );
         gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
@@ -756,11 +774,12 @@ class SNNVisualizer {
         this.ctx.fill();
       }
 
-      // Draw neuron body with depth fade
+      // Draw neuron body with enhanced brightness
       const color =
         intensity > 0.1 ? neuron.colors.glow : neuron.colors.primary;
-      const depthFade = Math.min(1, 150 / Math.max(20, projected.depth));
-      const brightness = (intensity > 0.1 ? 0.8 : 0.7) * depthFade;
+      const depthFade = Math.min(1, 300 / Math.max(20, projected.depth));
+      const brightness = (intensity > 0.1 ? 1.0 : 0.9) * depthFade;
+
       this.ctx.fillStyle = `rgb(${Math.floor(
         color.r * 255 * brightness
       )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
@@ -771,23 +790,45 @@ class SNNVisualizer {
       this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
       this.ctx.fill();
 
-      // Highlight selected neuron
+      // Highlight selected neuron with premium accent color
       if (neuron === this.state.selectedNeuron) {
-        this.ctx.strokeStyle = "#ff00d6";
-        this.ctx.lineWidth = 3;
+        this.ctx.strokeStyle = "#13854b"; // Use accent-green
+        this.ctx.lineWidth = Math.max(2, radius * 0.15);
         this.ctx.stroke();
       }
 
-      // Add rim lighting
-      this.ctx.strokeStyle = `rgba(255, 255, 255, ${0.4 * depthFade})`;
-      this.ctx.lineWidth = 1;
+      // Add subtle rim lighting that scales with zoom
+      this.ctx.strokeStyle = `rgba(255, 255, 255, ${
+        0.6 * depthFade * Math.min(1, projected.zoomFactor)
+      })`;
+      this.ctx.lineWidth = Math.max(0.5, radius * 0.08);
       this.ctx.stroke();
 
       // Show weight information panels if enabled
-      if (this.state.showWeights && neuron.connections.length > 0) {
+      if (
+        this.state.showWeights &&
+        neuron.connections.length > 0 &&
+        radius > 8
+      ) {
         this.renderWeightPanel(neuron, projected);
       }
     });
+
+    // Debug info with premium styling
+    this.ctx.fillStyle = "#b3b1b1";
+    this.ctx.font = "11px Inter, monospace";
+    const cameraDistance = Math.sqrt(
+      this.camera.position.x * this.camera.position.x +
+        this.camera.position.y * this.camera.position.y +
+        this.camera.position.z * this.camera.position.z
+    );
+    this.ctx.fillText(
+      `CAM: ${Math.round(cameraDistance)} | NEURONS: ${
+        this.neurons.length
+      } | ZOOM: ${(200 / cameraDistance).toFixed(1)}x`,
+      10,
+      this.dom.canvas.height - 15
+    );
   }
 
   renderWeightPanel(neuron, projected) {
