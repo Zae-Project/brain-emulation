@@ -133,9 +133,9 @@ class SNNVisualizer {
       };
     }
 
-    // Set up working 3D camera system
+    // Set up working 3D camera system with proper centering
     this.camera = {
-      position: { x: 0, y: 0, z: 200 },
+      position: { x: 0, y: 0, z: 150 }, // Moved closer for visibility
       target: { x: 0, y: 0, z: 0 },
       rotation: { pitch: 0, yaw: 0 },
       distance: 100,
@@ -344,13 +344,13 @@ class SNNVisualizer {
   }
 
   resetCamera() {
-    this.camera.position = { x: 0, y: 0, z: 100 };
+    this.camera.position = { x: 0, y: 0, z: 150 }; // Closer to see network
     this.camera.target = { x: 0, y: 0, z: 0 };
     this.camera.rotation = { pitch: 0, yaw: 0 };
   }
 
   project3D(pos) {
-    // Working 3D projection with proper zoom scaling
+    // Working 3D projection with better visibility
     const cam = this.camera;
 
     // Transform point relative to camera
@@ -374,28 +374,27 @@ class SNNVisualizer {
     const y2 = y1 * cosPitch - z1 * sinPitch;
     const z2 = y1 * sinPitch + z1 * cosPitch;
 
-    // Enhanced perspective projection with better zoom scaling
+    // Enhanced perspective projection with better scaling
     const distance = Math.max(1, z2);
-    const baseScale = 800; // Increased base scale for better zoom response
+    const baseScale = 1200; // Increased for better visibility
     const scale = baseScale / distance;
 
     const screenX = this.dom.canvas.width / 2 + x2 * scale;
     const screenY = this.dom.canvas.height / 2 - y2 * scale;
 
-    // Calculate camera distance for zoom-responsive scaling
+    // Calculate zoom factor for responsive scaling
     const cameraDistance = Math.sqrt(
       cam.position.x * cam.position.x +
         cam.position.y * cam.position.y +
         cam.position.z * cam.position.z
     );
 
-    // Zoom factor that increases neuron size when closer
-    const zoomFactor = Math.max(0.5, Math.min(5.0, 200 / cameraDistance));
+    const zoomFactor = Math.max(0.8, Math.min(6.0, 250 / cameraDistance));
 
     return {
       x: screenX,
       y: screenY,
-      scale: Math.max(0.1, (scale / baseScale) * zoomFactor),
+      scale: Math.max(0.2, (scale / baseScale) * zoomFactor),
       depth: z2,
       zoomFactor: zoomFactor,
     };
@@ -535,11 +534,15 @@ class SNNVisualizer {
     this.neurons = [];
     this.connections = [];
 
+    // Use the proper default values: 120 neurons, 0.30 connection probability
+    const networkSize = 120;
+    const connectionProb = 0.3;
+
     // Create neurons in 3D space
     const radius = 60;
 
-    for (let i = 0; i < this.config.networkSize; i++) {
-      const clusterId = Math.floor(i / (this.config.networkSize / 4));
+    for (let i = 0; i < networkSize; i++) {
+      const clusterId = Math.floor(i / (networkSize / 4));
       const colors =
         this.CLUSTER_COLORS[clusterId % this.CLUSTER_COLORS.length];
 
@@ -560,10 +563,10 @@ class SNNVisualizer {
       this.neurons.push(neuron);
     }
 
-    // Create connections
+    // Create connections with 0.30 probability
     for (let i = 0; i < this.neurons.length; i++) {
       for (let j = i + 1; j < this.neurons.length; j++) {
-        if (Math.random() < this.config.connectionProb) {
+        if (Math.random() < connectionProb) {
           const connection = {
             from: this.neurons[i],
             to: this.neurons[j],
@@ -580,6 +583,92 @@ class SNNVisualizer {
           };
           this.connections.push(reverseConnection);
           this.neurons[j].connections.push(reverseConnection);
+        }
+      }
+    }
+
+    console.log(
+      `Network created: ${this.neurons.length} neurons, ${this.connections.length} connections`
+    );
+  }
+
+  // Force clean initialization on page load
+  forceCleanInit() {
+    // Override any bad defaults immediately
+    this.config = {
+      networkSize: 120,
+      connectionProbability: 0.3,
+      neuronSize: 1.0,
+      pulseIntensity: 2.0,
+      decayRate: 0.95,
+      threshold: 1.0,
+      inputCurrent: 0.1,
+    };
+
+    // Clean white/grey color palette
+    this.CLUSTER_COLORS = [
+      {
+        primary: { r: 0.95, g: 0.95, b: 0.95 },
+        glow: { r: 1.0, g: 0.8, b: 0.8 },
+      },
+      {
+        primary: { r: 0.85, g: 0.85, b: 0.85 },
+        glow: { r: 0.8, g: 1.0, b: 0.8 },
+      },
+      {
+        primary: { r: 0.75, g: 0.75, b: 0.75 },
+        glow: { r: 0.8, g: 0.9, b: 1.0 },
+      },
+      {
+        primary: { r: 0.65, g: 0.65, b: 0.65 },
+        glow: { r: 1.0, g: 0.9, b: 0.8 },
+      },
+    ];
+
+    // Proper camera positioning
+    this.camera.position = { x: 0, y: 0, z: 200 };
+
+    // Generate clean network immediately
+    this.generateCleanNetwork();
+  }
+
+  generateCleanNetwork() {
+    this.neurons = [];
+    this.connections = [];
+
+    // Create 120 neurons in properly centered 3D space
+    for (let i = 0; i < 120; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+      const radius = 35 + Math.random() * 35;
+
+      const neuron = {
+        id: i,
+        position: {
+          x: radius * Math.sin(phi) * Math.cos(theta),
+          y: radius * Math.sin(phi) * Math.sin(theta),
+          z: radius * Math.cos(phi),
+        },
+        voltage: Math.random() * 0.5,
+        pulse: 0,
+        connections: [],
+        colors: this.CLUSTER_COLORS[i % this.CLUSTER_COLORS.length],
+        lastFire: 0,
+      };
+      this.neurons.push(neuron);
+    }
+
+    // Create connections with 0.30 probability
+    for (let i = 0; i < this.neurons.length; i++) {
+      for (let j = 0; j < this.neurons.length; j++) {
+        if (i !== j && Math.random() < 0.3) {
+          const connection = {
+            from: this.neurons[i],
+            to: this.neurons[j],
+            weight: 0.1 + Math.random() * 0.4,
+          };
+          this.neurons[i].connections.push(connection);
+          this.connections.push(connection);
         }
       }
     }
@@ -807,6 +896,18 @@ class SNNVisualizer {
       })`;
       this.ctx.lineWidth = Math.max(0.5, radius * 0.08);
       this.ctx.stroke();
+
+      // Draw neuron ID number - ALWAYS VISIBLE
+      if (radius > 4) {
+        this.ctx.fillStyle = intensity > 0.3 ? "#000000" : "#ffffff";
+        this.ctx.font = `${Math.max(
+          8,
+          Math.min(14, radius * 0.7)
+        )}px Inter, sans-serif`;
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillText(neuron.id.toString(), projected.x, projected.y);
+      }
 
       // Show weight information panels if enabled
       if (
@@ -1187,17 +1288,73 @@ class SNNVisualizer {
     );
   }
 
+  renderWeightPanel(neuron, projected) {
+    if (!neuron.connections || neuron.connections.length === 0) return;
+
+    const panelWidth = 120;
+    const panelHeight = Math.min(100, 15 + neuron.connections.length * 12);
+    const offsetX = 25;
+    const offsetY = -panelHeight - 10;
+
+    const panelX = projected.x + offsetX;
+    const panelY = projected.y + offsetY;
+
+    // Draw panel background
+    this.ctx.fillStyle = "rgba(10, 10, 10, 0.95)";
+    this.ctx.strokeStyle = "#2a2a2a";
+    this.ctx.lineWidth = 1;
+    this.ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+    this.ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+
+    // Draw header
+    this.ctx.fillStyle = "#ffffff";
+    this.ctx.font = "10px Inter, sans-serif";
+    this.ctx.fontWeight = "600";
+    this.ctx.fillText(`Neuron ${neuron.id} Weights`, panelX + 5, panelY + 12);
+
+    // Draw connections
+    let yOffset = 25;
+    const maxConnections = Math.floor((panelHeight - 30) / 12);
+    const connectionsToShow = neuron.connections.slice(0, maxConnections);
+
+    connectionsToShow.forEach((conn, i) => {
+      const weight = conn.weight.toFixed(2);
+      const targetId = conn.to.id;
+
+      this.ctx.fillStyle = "#cccccc";
+      this.ctx.font = "9px Inter, sans-serif";
+      this.ctx.fontWeight = "400";
+      this.ctx.fillText(
+        `→${targetId}: ${weight}`,
+        panelX + 5,
+        panelY + yOffset
+      );
+
+      yOffset += 12;
+    });
+
+    // Show "..." if there are more connections
+    if (neuron.connections.length > maxConnections) {
+      this.ctx.fillStyle = "#808080";
+      this.ctx.fillText(
+        `+${neuron.connections.length - maxConnections} more...`,
+        panelX + 5,
+        panelY + yOffset
+      );
+    }
+  }
+
   animate() {
-    requestAnimationFrame(() => this.animate());
-
-    this.updateCameraPosition();
-
     if (this.state.isRunning) {
       this.updateNetwork();
+      this.updateCameraPosition();
     }
 
     this.render();
+    requestAnimationFrame(() => this.animate());
   }
+
+  // ...existing code...
 }
 
 // Initialize the application when DOM is loaded
@@ -1362,4 +1519,20 @@ window.addEventListener("load", () => {
       }
     }, 3000);
   }, 1000);
+});
+
+// Force clean initialization on page load
+window.addEventListener("DOMContentLoaded", () => {
+  if (window.app) {
+    window.app.forceCleanInit();
+  }
+});
+
+// Also force on window load
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    if (window.app) {
+      window.app.forceCleanInit();
+    }
+  }, 100);
 });
