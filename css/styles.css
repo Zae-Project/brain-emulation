@@ -395,7 +395,7 @@ canvas {
 
 #navControls {
   right: 16px;
-  top: 200px;
+  top: 400px;
   background: var(--surface-1);
   border: 1px solid var(--border);
   padding: 16px;
