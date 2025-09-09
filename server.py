@@ -20,32 +20,37 @@ def recreate_network():
     start_scope()
     tau = PARAMS["tau"] * ms
     # Fixed: Declare I_input as a parameter in the equations
-    eqs = "dv/dt=(-v + I_input)/tau : 1\nI_input : 1"
+    eqs = "dv/dt=(-v + I_input + I_noise)/tau : 1\nI_input : 1\nI_noise : 1"
     
     G = NeuronGroup(NUM, eqs, threshold='v>1', reset='v=0', method='euler')
     G.v = 'rand()*0.3'
     G.I_input = PARAMS["input_current"]
+    # Add continuous background noise to keep network active
+    G.I_noise = '0.05 + 0.02*randn()'  # Small random current
     
     S = Synapses(G, G, on_pre=f'v+={PARAMS["synapse_weight"]}')
     S.connect(p=PARAMS["connection_prob"])
     
-    # Remove PoissonInput since we're using direct current injection
+    # Add Poisson input to maintain baseline activity
+    P = PoissonInput(G, 'I_input', NUM, 2*Hz, weight=0.03)
     
     sm = SpikeMonitor(G)
     vm = StateMonitor(G, 'v', record=True)
     net = Network(collect())
 
-# Initial network setup - Fixed equation declaration
+# Initial network setup - Fixed with proper background activity
 start_scope()
 tau=8*ms
-# Declare I_input as a parameter in the neuron equations
-eqs="dv/dt=(-v + I_input)/tau : 1\nI_input : 1"
+# Add noise term to prevent network death
+eqs="dv/dt=(-v + I_input + I_noise)/tau : 1\nI_input : 1\nI_noise : 1"
 G=NeuronGroup(NUM,eqs,threshold='v>1',reset='v=0',method='euler'); 
 G.v='rand()*0.3'  # Lower initial voltages
-G.I_input = 0.1  # External input current - now this works!
+G.I_input = 0.1  # External input current
+G.I_noise = '0.05 + 0.02*randn()'  # Background noise
 
 S=Synapses(G,G,on_pre='v+=0.15'); S.connect(p=0.08)
-# Removed PoissonInput to use direct current control
+# Add Poisson input for sustained activity
+P=PoissonInput(G, 'I_input', NUM, 2*Hz, weight=0.03)
 sm=SpikeMonitor(G); vm=StateMonitor(G,'v',record=True)
 net=Network(collect())
 
@@ -95,6 +100,9 @@ async def handler(ws,path):
                     PARAMS["input_current"] = float(d["value"])
                     # Update all neurons with new input current
                     G.I_input = PARAMS["input_current"]
+                    # Also update noise level based on input
+                    noise_level = max(0.02, 0.1 - PARAMS["input_current"]*0.05)
+                    G.I_noise = f'{noise_level} + {noise_level*0.4}*randn()'
                     print(f"Input current set to {PARAMS['input_current']}")
                 elif d.get("cmd") == "setWeight":
                     PARAMS["synapse_weight"] = float(d["value"])
