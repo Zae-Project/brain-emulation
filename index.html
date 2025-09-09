@@ -273,6 +273,10 @@
     3: {
       title: "Network Dynamics",
       content: "The interplay between excitation, connectivity, and timing creates complex patterns. This is the basis of neural computation.<br><br><strong>Try:</strong> Change connection probability and observe emergent patterns."
+    },
+    4: {
+      title: "Pattern Recognition",
+      content: "Networks can learn and recall specific patterns through synaptic plasticity. Memories emerge from connection strengths.<br><br><strong>Try:</strong> Use pattern injection and test memory recall capabilities."
     }
   };
 
@@ -285,6 +289,7 @@
         btn.classList.add('active');
         currentLesson = parseInt(btn.id.replace('lesson', ''));
         updateLessonContent();
+        updateLessonControls();
       });
     });
 
@@ -337,7 +342,28 @@
       showWeightsBtn.onclick = () => {
         showWeights = !showWeights;
         showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
-        visualizeWeights();
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
+      };
+    }
+
+    // Pattern buttons for lesson 4
+    const injectBtn = document.getElementById('injectPattern');
+    if (injectBtn) {
+      injectBtn.onclick = () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'injectPattern'}));
+        }
+      };
+    }
+
+    const testBtn = document.getElementById('testMemory');
+    if (testBtn) {
+      testBtn.onclick = () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'testMemory'}));
+        }
       };
     }
   }
@@ -355,28 +381,28 @@
     }
   }
 
-  function visualizeWeights() {
-    if (showWeights) {
-      const colors = connGeom.getAttribute('color');
-      for (let s = 0; s < connIdx.length; s++) {
-        const strength = Math.random() * 0.8 + 0.2;
-        colors.array[s*6] = 0.2 + strength * 0.8;
-        colors.array[s*6+1] = 0.3 + strength * 0.7;
-        colors.array[s*6+2] = 0.8 - strength * 0.6;
-        colors.array[s*6+3] = colors.array[s*6];
-        colors.array[s*6+4] = colors.array[s*6+1];
-        colors.array[s*6+5] = colors.array[s*6+2];
-      }
-      colors.needsUpdate = true;
-    } else {
-      const colors = connGeom.getAttribute('color');
-      for(let i=0;i<colors.array.length;i+=3){
-        colors.array[i]=0.12;
-        colors.array[i+1]=0.22;
-        colors.array[i+2]=0.35;
-      }
-      colors.needsUpdate = true;
-    }
+  function updateLessonControls() {
+    // Show/hide controls based on current lesson
+    const allControls = ['inputCurrent', 'synapseWeight', 'connectionProb', 'showWeights', 'resetNetwork', 'injectPattern', 'testMemory'];
+    
+    // Hide all first
+    allControls.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) element.style.display = 'none';
+    });
+
+    // Show relevant controls for each lesson
+    const lessonControls = {
+      1: ['inputCurrent', 'resetNetwork'],
+      2: ['inputCurrent', 'synapseWeight', 'showWeights', 'resetNetwork'], 
+      3: ['inputCurrent', 'synapseWeight', 'connectionProb', 'resetNetwork'],
+      4: ['inputCurrent', 'synapseWeight', 'injectPattern', 'testMemory', 'resetNetwork']
+    };
+
+    lessonControls[currentLesson].forEach(id => {
+      const element = document.getElementById(id);
+      if (element) element.style.display = 'block';
+    });
   }
 
   const drawTrace=()=>{
@@ -504,18 +530,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     setupEducationalControls();
     updateLessonContent();
-  });
-})();
-</script>
-</body>
-</html>
-  };
-  rng.oninput=()=>ws.send(JSON.stringify({cmd:'speed',dt_ms:parseInt(rng.value,10)}));
-
-  // Initialize educational features when DOM is ready
-  document.addEventListener('DOMContentLoaded', () => {
-    setupEducationalControls();
-    updateLessonContent();
+    updateLessonControls();
   });
 })();
 </script>
