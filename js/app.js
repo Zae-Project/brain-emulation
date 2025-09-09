@@ -290,7 +290,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("Failed to initialize brain emulation:", error);
   }
 });
-  constructor() {
     this.state = {
       isRunning: true,
       showWeights: false,
