@@ -411,6 +411,7 @@
   // Educational variables
   let showWeights = false;
   let currentLesson = 1;
+  let connectionLabels = []; // Store connection weight labels
 
   // FIXED: Embedded lesson content
   const lessonContent = {
@@ -709,9 +710,32 @@
       showWeightsBtn.addEventListener('click', () => {
         showWeights = !showWeights;
         showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
+        
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({cmd:'toggleWeights'}));
         }
+        
+        // If hiding weights, clear labels immediately
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels = [];
+          
+          // Reset connection line colors to subtle
+          if (connGeom && col) {
+            const colors = connGeom.getAttribute('color');
+            for(let i = 0; i < colors.array.length; i += 3) {
+              colors.array[i] = 0.05;
+              colors.array[i+1] = 0.08;
+              colors.array[i+2] = 0.12;
+            }
+            colors.needsUpdate = true;
+          }
+        }
+        
+        console.log(`Weights visibility: ${showWeights}`);
       });
     }
 
@@ -901,6 +925,259 @@
         col.needsUpdate=true;
       }); 
     }
+    // FIXED: Handle connection visualization
+    if(d.cmd === "showConnections" && d.connections) {
+      console.log(`Received ${d.connections.length} connections`);
+      updateConnectionVisualization(d.connections);
+    }
+  }
+
+  // FIXED: Add connection visualization function
+  function updateConnectionVisualization(connections) {
+    // Clear existing labels
+    connectionLabels.forEach(label => {
+      if (label.parent) label.parent.remove(label);
+    });
+    connectionLabels = [];
+
+    if (!showWeights || connections.length === 0) return;
+
+    // Create weight labels for each connection
+    connections.forEach(conn => {
+      if (conn.from < neurons.length && conn.to < neurons.length) {
+        const fromPos = neurons[conn.from].position;
+        const toPos = neurons[conn.to].position;
+        
+        // Calculate midpoint of connection
+        const midPoint = new THREE.Vector3(
+          (fromPos.x + toPos.x) / 2,
+          (fromPos.y + toPos.y) / 2,
+          (fromPos.z + toPos.z) / 2
+        );
+
+        // Create text sprite for weight
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 32;
+        
+        context.fillStyle = '#f223e0';
+        context.font = '12px Inter';
+        context.textAlign = 'center';
+        context.fillText(conn.weight.toFixed(2), 32, 20);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+          map: texture, 
+          transparent: true,
+          opacity: 0.8
+        });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.copy(midPoint);
+        sprite.scale.set(4, 2, 1);
+        
+        scene.add(sprite);
+        connectionLabels.push(sprite);
+      }
+    });
+
+    // Also enhance connection line visibility when showing weights
+    if (connGeom && col) {
+      const colors = connGeom.getAttribute('color');
+      for(let i = 0; i < colors.array.length; i += 3) {
+        if (showWeights) {
+          // Make connections more visible when showing weights
+          colors.array[i] = 0.3;     // Brighter red
+          colors.array[i+1] = 0.5;   // Brighter green  
+          colors.array[i+2] = 0.8;   // Brighter blue
+        } else {
+          // Reset to subtle appearance
+          colors.array[i] = 0.05;
+          colors.array[i+1] = 0.08;
+          colors.array[i+2] = 0.12;
+        }
+      }
+      colors.needsUpdate = true;
+    }
+
+    console.log(`Created ${connectionLabels.length} weight labels`);
+  }
+
+  // Educational controls setup
+  function setupEducationalControls() {
+    // Lesson dropdown functionality
+    const lessonSelect = document.getElementById('lessonSelect');
+    const prevBtn = document.getElementById('prevLesson');
+    const nextBtn = document.getElementById('nextLesson');
+    const viewBtn = document.getElementById('viewLesson');
+    
+    if (lessonSelect) {
+      lessonSelect.addEventListener('change', (e) => {
+        currentLesson = parseInt(e.target.value);
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    }
+    
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (currentLesson > 1) {
+          currentLesson--;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+    
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (currentLesson < 4) {
+          currentLesson++;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        openLessonModal();
+      });
+    }
+
+    // Modal controls
+    const closeModal = document.getElementById('closeModal');
+    const modal = document.getElementById('lessonModal');
+    
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    // Legacy lesson toggle buttons (keep for backwards compatibility)
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLesson = parseInt(btn.id.replace('lesson', ''));
+        lessonSelect.value = currentLesson;
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    });
+
+    // Input controls
+    const inputCurrent = document.getElementById('inputCurrent');
+    const inputValue = document.getElementById('inputValue');
+    if (inputCurrent && inputValue) {
+      inputCurrent.addEventListener('input', () => {
+        inputValue.textContent = inputCurrent.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
+        }
+      });
+    }
+
+    const synapseWeight = document.getElementById('synapseWeight');
+    const weightValue = document.getElementById('weightValue');
+    if (synapseWeight && weightValue) {
+      synapseWeight.addEventListener('input', () => {
+        weightValue.textContent = synapseWeight.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
+        }
+      });
+    }
+
+    const connectionProb = document.getElementById('connectionProb');
+    const probValue = document.getElementById('probValue');
+    if (connectionProb && probValue) {
+      connectionProb.addEventListener('input', () => {
+        probValue.textContent = connectionProb.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
+        }
+      });
+    }
+
+    // Buttons
+    const resetBtn = document.getElementById('resetNetwork');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'reset'}));
+        }
+      });
+    }
+
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
+        
+        // If hiding weights, clear labels immediately
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels = [];
+          
+          // Reset connection line colors to subtle
+          if (connGeom && col) {
+            const colors = connGeom.getAttribute('color');
+            for(let i = 0; i < colors.array.length; i += 3) {
+              colors.array[i] = 0.05;
+              colors.array[i+1] = 0.08;
+              colors.array[i+2] = 0.12;
+            }
+            colors.needsUpdate = true;
+          }
+        }
+        
+        console.log(`Weights visibility: ${showWeights}`);
+      });
+    }
+
+    // Pattern controls for lesson 4
+    const injectBtn = document.getElementById('injectPattern');
+    const testBtn = document.getElementById('testMemory');
+    
+    if (injectBtn) {
+      injectBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'injectPattern'}));
+        }
+      });
+    }
+
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'testMemory'}));
+        }
+      });
+    }
   }
 
   // Enhanced firing effects with premium violet colors
@@ -939,10 +1216,17 @@
     if (connGeom && col) {
       const colors=connGeom.getAttribute('color');
       for(let i=0;i<colors.array.length;i+=3){
-        // Very subtle connection fade for premium look
-        colors.array[i]=Math.max(0.02, colors.array[i]*0.995);
-        colors.array[i+1]=Math.max(0.04, colors.array[i+1]*0.995);
-        colors.array[i+2]=Math.max(0.08, colors.array[i+2]*0.995);
+        if (showWeights) {
+          // Keep connections bright when showing weights
+          colors.array[i] = Math.max(0.3, colors.array[i] * 0.999);
+          colors.array[i+1] = Math.max(0.5, colors.array[i+1] * 0.999);
+          colors.array[i+2] = Math.max(0.8, colors.array[i+2] * 0.999);
+        } else {
+          // Very subtle connection fade for premium look
+          colors.array[i]=Math.max(0.02, colors.array[i]*0.995);
+          colors.array[i+1]=Math.max(0.04, colors.array[i+1]*0.995);
+          colors.array[i+2]=Math.max(0.08, colors.array[i+2]*0.995);
+        }
       }
       colors.needsUpdate=true;
     }
@@ -965,51 +1249,6 @@
       // Currently showing "Pause" (running), so pause it
       btn.classList.remove('on');
       btn.textContent = 'Play';
-      ws.send(JSON.stringify({cmd:'pause'}));
-      console.log('Pausing simulation');
-    } else {
-      // Currently showing "Play" (paused), so resume it
-      btn.classList.add('on');
-      btn.textContent = 'Pause';
-      ws.send(JSON.stringify({cmd:'play'}));
-      console.log('Resuming simulation');
-    }
-  };
-  
-  // FIXED: Speed control that actually affects simulation speed
-  rng.oninput=()=>{
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    const speed = parseInt(rng.value, 10);
-    // Invert the scale: higher slider value = faster simulation = lower dt_ms
-    const dt_ms = Math.max(5, 200 - speed); // 10-150 becomes 195-50ms
-    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
-    console.log(`Speed set to ${speed} (${dt_ms}ms timestep)`);
-  };
-
-  // Initialize everything
-  console.log('Initializing educational controls...');
-  setupEducationalControls();
-  updateLessonContent();
-  updateLessonControls();
-  updateNavigationButtons();
-  
-  console.log('Connecting to WebSocket...');
-  connectWS();
-  
-  console.log('Starting animation loop...');
-  animate();
-
-  // Handle window resize
-  addEventListener('resize',()=>{
-    camera.aspect=innerWidth/innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth,innerHeight);
-  });
-
-})();
-</script>
-</body>
-</html>
       ws.send(JSON.stringify({cmd:'pause'}));
       console.log('Pausing simulation');
     } else {
