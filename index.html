@@ -285,9 +285,16 @@
 
   const connectionFlow = new ConnectionFlow();
 
-  // PREMIUM NEURAL NETWORK TOPOLOGY
+  // FIXED: Declare all variables properly
   const neurons = [], glows = [], connectionLabels = [];
   let connections = [];
+  let connGeom, col, lines;
+  let selected = null, traceBuf = [];
+  const outgoing = [];
+
+  // Educational variables
+  let showWeights = false;
+  let currentLesson = 1;
 
   function createStunningNetworkTopology() {
     // Clear existing
@@ -416,10 +423,40 @@
       glows.push(glow);
     }
 
+    // Initialize connection geometry
+    connGeom = new THREE.BufferGeometry();
+    const lineMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.3,
+      blending: THREE.AdditiveBlending
+    });
+    lines = new THREE.LineSegments(connGeom, lineMat);
+    scene.add(lines);
+
     console.log(`Created stunning network: ${N_EXC} excitatory + ${N_INH} inhibitory neurons`);
   }
 
   createStunningNetworkTopology();
+
+  // FIXED: Neuron selection with raycasting
+  const ray = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  const hdr = document.getElementById('sel');
+
+  addEventListener('click', e => {
+    if (e.button === 0) {
+      mouse.x = (e.clientX / innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+      ray.setFromCamera(mouse, camera);
+      const hit = ray.intersectObjects(neurons)[0];
+      if (hit) {
+        selected = hit.object.userData.id;
+        traceBuf = [];
+        hdr.textContent = 'Neuron #' + selected;
+      }
+    }
+  });
 
   // DYNAMIC CONNECTION VISUALIZATION
   function updateConnectionVisualization(connectionsData) {
@@ -434,11 +471,10 @@
     connections = connectionsData;
 
     // Create beautiful connection lines
-    const connectionGeometry = new THREE.BufferGeometry();
     const positions = [];
     const colors = [];
     
-    connections.forEach(conn => {
+    connections.forEach((conn, index) => {
       if (conn.from < neurons.length && conn.to < neurons.length) {
         const fromPos = neurons[conn.from].position;
         const toPos = neurons[conn.to].position;
@@ -456,163 +492,20 @@
         
         colors.push(color.r, color.g, color.b);
         colors.push(color.r, color.g, color.b);
+
+        // Store connection info for outgoing array
+        const fromId = conn.from;
+        if (!outgoing[fromId]) outgoing[fromId] = [];
+        outgoing[fromId].push(index);
       }
     });
     
-    connectionGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    connectionGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    
-    // Remove old lines
-    scene.children = scene.children.filter(child => !(child instanceof THREE.LineSegments));
-    
-    // Add new connection lines
-    const connectionMaterial = new THREE.LineBasicMaterial({
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.6,
-      blending: THREE.AdditiveBlending
-    });
-    
-    const connectionLines = new THREE.LineSegments(connectionGeometry, connectionMaterial);
-    scene.add(connectionLines);
+    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    col = connGeom.getAttribute('color');
 
     console.log(`Visualized ${connections.length} stunning connections`);
   }
-
-  // EPIC ANIMATION LOOP
-  function animate() {
-    requestAnimationFrame(animate);
-    
-    // Update neurons with STUNNING effects
-    neurons.forEach((neuron, i) => {
-      const userData = neuron.userData;
-      const glow = glows[i];
-      
-      if (userData.pulse > 0) {
-        userData.pulse *= 0.85;  // Smooth decay
-        const intensity = userData.pulse / 1.2;
-        
-        // EPIC firing effect
-        neuron.material.emissive.copy(userData.glowColor).multiplyScalar(intensity * 0.8);
-        neuron.scale.setScalar(1.0 + intensity * 0.3);
-        
-        // Stunning glow expansion
-        glow.material.opacity = intensity * 0.7;
-        glow.scale.setScalar(1.0 + intensity * 2.0);
-        
-        // Add particle flow to connected neurons
-        if (intensity > 0.5) {
-          connections.forEach(conn => {
-            if (conn.from === userData.id && Math.random() < 0.3) {
-              const targetNeuron = neurons[conn.to];
-              if (targetNeuron) {
-                connectionFlow.addFlow(
-                  neuron.position,
-                  targetNeuron.position,
-                  userData.glowColor,
-                  0.025
-                );
-              }
-            }
-          });
-        }
-      } else {
-        // Reset to base state
-        neuron.material.emissive.setRGB(0, 0, 0);
-        neuron.scale.setScalar(1.0);
-        glow.material.opacity = 0.0;
-        glow.scale.setScalar(1.0);
-      }
-      
-      // Voltage-based subtle color shift
-      const voltage = Math.max(0, Math.min(1, userData.volt || 0));
-      const baseColor = userData.originalColor.clone();
-      baseColor.lerp(userData.glowColor, voltage * 0.3);
-      neuron.material.color.copy(baseColor);
-      
-      // Subtle breathing effect based on voltage
-      neuron.material.opacity = 0.85 + voltage * 0.15;
-    });
-    
-    // Update flowing particles
-    connectionFlow.update();
-    
-    // Dynamic camera movement
-    const time = Date.now() * 0.0005;
-    camera.position.x = Math.cos(time * 0.3) * 5;
-    camera.position.y = Math.sin(time * 0.2) * 3;
-    camera.lookAt(0, 0, 0);
-    
-    // Dynamic accent lighting
-    accentLights.forEach((light, i) => {
-      const angle = time + i * Math.PI * 2 / accentLights.length;
-      light.intensity = 0.5 + Math.sin(angle) * 0.3;
-    });
-    
-    drawTrace();
-    renderer.render(scene, camera);
-  }
-
-  // WebSocket message handler
-  function handleMessage(e) {
-    const d = JSON.parse(e.data);
-    
-    if (d.volt) {
-      for (const k in d.volt) {
-        const i = +k;
-        if (neurons[i]) {
-          const v = d.volt[k];
-          neurons[i].userData.volt = v;
-          if (selected === i) {
-            traceBuf.push(v);
-            if (traceBuf.length > 200) traceBuf.shift();
-          }
-        }
-      }
-    }
-    
-    if (d.spikes) {
-      d.spikes.forEach(spike => {
-        const i = spike.i;
-        if (neurons[i]) {
-          const neuron = neurons[i];
-          neuron.userData.pulse = 1.2;
-          
-          // EPIC cluster synchronization effect
-          const cluster = neuron.userData.cluster;
-          
-          // If multiple neurons in same cluster fire together, create cluster burst
-          const clusterSpikes = d.spikes.filter(s => 
-            neurons[s.i] && neurons[s.i].userData.cluster === cluster
-          );
-          
-          if (clusterSpikes.length > 1) {
-            // CLUSTER BURST EFFECT!
-            neurons.forEach(n => {
-              if (n.userData.cluster === cluster) {
-                n.userData.pulse = Math.max(n.userData.pulse, 1.5);
-              }
-            });
-            
-            // Intensify cluster accent light
-            if (accentLights[cluster]) {
-              accentLights[cluster].intensity = 2.0;
-            }
-          }
-        }
-      });
-    }
-    
-    if (d.cmd === "showConnections" && d.connections) {
-      console.log(`Received ${d.connections.length} premium connections`);
-      updateConnectionVisualization(d.connections);
-    }
-  }
-
-  // Educational variables
-  let showWeights = false;
-  let currentLesson = 1;
-  let connectionLabels = []; // Store connection weight labels
 
   // FIXED: Embedded lesson content
   const lessonContent = {
@@ -637,7 +530,7 @@
         <h2>Interactive Experiments</h2>
         <h3>Experiment 1.1: Single Neuron Response</h3>
         <ol>
-          <li><strong>Click on any blue neuron</strong> to select it</li>
+          <li><strong>Click on any neuron</strong> to select it</li>
           <li><strong>Observe the voltage trace</strong> in the right panel</li>
           <li><strong>Adjust Input Current</strong> using the slider (try 0.1 to 1.0)</li>
           <li><strong>Watch how voltage accumulates</strong> toward threshold</li>
@@ -774,6 +667,113 @@
     const lesson = lessonContent[currentLesson];
     if (lesson) {
       content.innerHTML = lesson.content;
+    } else {
+      content.innerHTML = `
+        <div style="text-align:center;padding:40px;color:#ef4444;">
+          <h3>Lesson ${currentLesson} Content</h3>
+          <p>Lesson content not available.</p>
+        </div>
+      `;
+    }
+  }
+
+  // FIXED: Simplified educational controls setup
+  function setupEducationalControls() {
+    // Show weights button
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
+        
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels.length = 0;
+        }
+      });
+    }
+
+    // View lesson button
+    const viewBtn = document.getElementById('viewLesson');
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        openLessonModal();
+      });
+    }
+
+    // Modal close
+    const closeModal = document.getElementById('closeModal');
+    const modal = document.getElementById('lessonModal');
+    
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+  }
+
+  // UI Controls - FIXED pause and speed functionality
+  const btn = document.getElementById('play'), rng = document.getElementById('speed');
+  
+  btn.onclick = () => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    
+    const isCurrentlyPaused = btn.classList.contains('on');
+    
+    if (isCurrentlyPaused) {
+      btn.classList.remove('on');
+      btn.textContent = 'Play';
+      ws.send(JSON.stringify({cmd:'pause'}));
+    } else {
+      btn.classList.add('on');
+      btn.textContent = 'Pause';
+      ws.send(JSON.stringify({cmd:'play'}));
+    }
+  };
+  
+  rng.oninput = () => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const speed = parseInt(rng.value, 10);
+    const dt_ms = Math.max(5, 200 - speed);
+    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
+  };
+
+  // Initialize everything
+  console.log('Initializing educational controls...');
+  setupEducationalControls();
+  
+  console.log('Connecting to WebSocket...');
+  connectWS();
+  
+  console.log('Starting animation loop...');
+  animate();
+
+  // Handle window resize
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+})();
+</script>
+</body>
+</html>
     } else {
       content.innerHTML = `
         <div style="text-align:center;padding:40px;color:#ef4444;">
