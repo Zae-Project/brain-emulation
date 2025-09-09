@@ -135,13 +135,20 @@
 <script>
 (function(){
   const showErr=m=>{const e=document.getElementById('err');e.textContent=m;e.style.display='block'};
-  if(!window.THREE){showErr('Three.js missing (three.min.js)');return}
+  
+  // Check if Three.js is loaded properly
+  if(!window.THREE){
+    showErr('Three.js missing. Please download three.min.js from https://threejs.org/build/three.min.js');
+    return;
+  }
+
+  console.log('Three.js loaded successfully:', THREE.REVISION);
 
   // WebSocket connection
   let ws;
   function connectWS() {
     try {
-      ws = new WebSocket(`ws://localhost:${PORT}`);
+      ws = new WebSocket(`ws://localhost:8766`);
       
       ws.onopen = () => {
         console.log('Connected to SNN server');
@@ -155,10 +162,9 @@
       
       ws.onclose = () => {
         console.log('WebSocket connection closed');
-        setTimeout(connectWS, 2000); // Retry connection
+        setTimeout(connectWS, 2000);
       };
       
-      // Add message handler here (will be set up later)
       ws.onmessage = handleMessage;
       
     } catch (error) {
@@ -168,43 +174,102 @@
   }
 
   const DPR=Math.min(window.devicePixelRatio||1,2);
-
-  const NUM=50, R=38, PORT=8766, Y_OFFSET = -25;
+  const NUM=50, R=38, Y_OFFSET = -25;
   
-  const scene=new THREE.Scene(); scene.background=new THREE.Color(0x080a10);
-  const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.1,2000); camera.position.set(0,-15,110);
-  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setPixelRatio(DPR); renderer.setSize(innerWidth,innerHeight); document.body.appendChild(renderer.domElement);
+  // Initialize Three.js scene ONCE
+  console.log('Initializing Three.js scene...');
+  const scene=new THREE.Scene(); 
+  scene.background=new THREE.Color(0x080a10);
+  const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.1,2000); 
+  camera.position.set(0,-15,110);
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); 
+  renderer.setPixelRatio(DPR); 
+  renderer.setSize(innerWidth,innerHeight); 
+  document.body.appendChild(renderer.domElement);
 
-  // Change firing color from yellow to violet
-  scene.add(new THREE.AmbientLight(0x1e293b, 0.3));
-  const key=new THREE.PointLight(0x60a5fa, 0.8); key.position.set(80, 100, 120); scene.add(key);
-  const fill=new THREE.PointLight(0x3b82f6, 0.4); fill.position.set(-80, -50, -30); scene.add(fill);
-  const accent=new THREE.PointLight(0xf223e0, 0.2); accent.position.set(0, 50, 50); scene.add(accent); // Changed from yellow to violet
+  // Enhanced lighting for premium look
+  scene.add(new THREE.AmbientLight(0x1e293b, 0.4));
+  const key=new THREE.PointLight(0x60a5fa, 1.2); 
+  key.position.set(80, 100, 120); 
+  key.castShadow = true;
+  key.shadow.mapSize.width = 2048;
+  key.shadow.mapSize.height = 2048;
+  scene.add(key);
+  
+  const fill=new THREE.PointLight(0x3b82f6, 0.6); 
+  fill.position.set(-80, -50, -30); 
+  scene.add(fill);
+  
+  const accent=new THREE.PointLight(0xf223e0, 0.3); 
+  accent.position.set(0, 50, 50); 
+  scene.add(accent);
 
-  const glowTex=(()=>{const s=128,c=document.createElement('canvas');c.width=c.height=s;const g=c.getContext('2d');const grd=g.createRadialGradient(s/2,s/2,1,s/2,s/2,s/2);grd.addColorStop(0,'rgba(96,165,250,0.9)');grd.addColorStop(0.4,'rgba(59,130,246,0.6)');grd.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=grd;g.fillRect(0,0,s,s);const t=new THREE.CanvasTexture(c);t.magFilter=THREE.LinearFilter;return t;})();
+  // Enable shadows for premium look
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+  // Create glow texture
+  const glowTex=(()=>{
+    const s=128,c=document.createElement('canvas');
+    c.width=c.height=s;
+    const g=c.getContext('2d');
+    const grd=g.createRadialGradient(s/2,s/2,1,s/2,s/2,s/2);
+    grd.addColorStop(0,'rgba(96,165,250,0.9)');
+    grd.addColorStop(0.4,'rgba(59,130,246,0.6)');
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=grd;
+    g.fillRect(0,0,s,s);
+    const t=new THREE.CanvasTexture(c);
+    t.magFilter=THREE.LinearFilter;
+    return t;
+  })();
+
+  // FIXED: Declare all arrays ONCE at the top
   const neurons=[], glows=[], connIdx=[], outgoing=[];
-  const sphereGeo=new THREE.SphereGeometry(1.4, 32, 32);
-  const makeMat=()=>new THREE.MeshStandardMaterial({color:0x1e40af, emissive:0x0f172a, roughness:0.2, metalness:0.8});
+  let connGeom, col, lines;
+
+  // Create HIGH QUALITY neurons for premium look
+  console.log('Creating neurons...');
+  const sphereGeo=new THREE.SphereGeometry(1.6, 64, 64); // High detail geometry
+  const makeMat=()=>new THREE.MeshStandardMaterial({
+    color:0x1e40af, 
+    emissive:0x0f172a, 
+    roughness:0.1,  // More polished
+    metalness:0.9,  // More metallic/premium
+    envMapIntensity: 1.0
+  });
   
   for(let i=0;i<NUM;i++){
     const a=i/NUM*Math.PI*2;
     const x=Math.cos(a)*R;
     const y=Math.sin(a)*R + Y_OFFSET;
     const z=(i-NUM/2)*0.25;
+    
     const m=new THREE.Mesh(sphereGeo,makeMat()); 
     m.position.set(x,y,z); 
     m.userData={i,pulse:0,volt:0}; 
+    m.castShadow = true;  // Premium shadows
+    m.receiveShadow = true;
     scene.add(m); 
     neurons.push(m);
     
-    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0x3b82f6,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false})); 
+    // Enhanced glow effect for premium look
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({
+      map:glowTex,
+      color:0x3b82f6,
+      transparent:true,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })); 
     s.position.copy(m.position); 
-    s.scale.set(8,8,1); 
+    s.scale.set(6,6,1); // Slightly smaller, more refined glow
     scene.add(s); 
     glows.push(s);
   }
 
+  console.log(`Created ${neurons.length} neurons`);
+
+  // Create connections AFTER neurons exist
   const pos=[]; 
   for(let i=0;i<NUM;i++){
     for(let j=0;j<NUM;j++){
@@ -215,16 +280,33 @@
       }
     }
   }
-  const connGeom=new THREE.BufferGeometry(); 
+  
+  connGeom=new THREE.BufferGeometry(); 
   connGeom.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   const colors=new Float32Array(connIdx.length*2*3); 
-  for(let i=0;i<colors.length;i+=3){colors[i]=0.12;colors[i+1]=0.22;colors[i+2]=0.35;}
+  // Much more subtle connection colors for premium look
+  for(let i=0;i<colors.length;i+=3){
+    colors[i]=0.05;colors[i+1]=0.08;colors[i+2]=0.12;
+  }
   connGeom.setAttribute('color',new THREE.BufferAttribute(colors,3));
-  const col = connGeom.getAttribute('color');
-  const lineMat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.6,blending:THREE.AdditiveBlending});
-  const lines=new THREE.LineSegments(connGeom,lineMat); 
+  col = connGeom.getAttribute('color');
+  // Ultra-thin lines with low opacity
+  const lineMat=new THREE.LineBasicMaterial({
+    vertexColors:true,
+    transparent:true,
+    opacity:0.2,  // Much more transparent
+    linewidth:0.5,  // Thinner lines
+    blending:THREE.AdditiveBlending
+  });
+  lines=new THREE.LineSegments(connGeom,lineMat); 
   scene.add(lines);
-  for(let s=0;s<connIdx.length;s++){const [src]=connIdx[s];(outgoing[src]||(outgoing[src]=[])).push(s)}
+  
+  for(let s=0;s<connIdx.length;s++){
+    const [src]=connIdx[s];
+    (outgoing[src]||(outgoing[src]=[])).push(s);
+  }
+
+  console.log(`Created ${connIdx.length} connections`);
 
   // Controls with right-click drag
   let isDragging=false, dragLastX=0, dragLastY=0;
@@ -330,13 +412,175 @@
   let showWeights = false;
   let currentLesson = 1;
 
-  // Lesson content mapping
-  const lessonFiles = {
-    1: 'lessons/lesson1_basic_spikes.md',
-    2: 'lessons/lesson2_synapses.md', 
-    3: 'lessons/lesson3_plasticity.md',
-    4: 'lessons/lesson4_patterns.md'
+  // FIXED: Embedded lesson content
+  const lessonContent = {
+    1: {
+      title: "Basic Spike Dynamics",
+      content: `
+        <h1>Lesson 1: Basic Spike Dynamics</h1>
+        <h2>Learning Objectives</h2>
+        <p>Understand how individual neurons integrate input current and generate action potentials (spikes) when reaching threshold voltage.</p>
+        
+        <h2>Theory</h2>
+        <p><strong>Leaky Integrate-and-Fire Model:</strong></p>
+        <p>Each neuron follows the equation: <code>dv/dt = (-v + I_input)/tau</code></p>
+        <ul>
+          <li><strong>v</strong>: membrane voltage</li>
+          <li><strong>I_input</strong>: input current</li>
+          <li><strong>tau</strong>: time constant (8ms)</li>
+          <li><strong>Threshold</strong>: v = 1.0</li>
+          <li><strong>Reset</strong>: v = 0 after spike</li>
+        </ul>
+
+        <h2>Interactive Experiments</h2>
+        <h3>Experiment 1.1: Single Neuron Response</h3>
+        <ol>
+          <li><strong>Click on any blue neuron</strong> to select it</li>
+          <li><strong>Observe the voltage trace</strong> in the right panel</li>
+          <li><strong>Adjust Input Current</strong> using the slider (try 0.1 to 1.0)</li>
+          <li><strong>Watch how voltage accumulates</strong> toward threshold</li>
+        </ol>
+
+        <h3>Key Observations</h3>
+        <ul>
+          <li><strong>Low current (< 0.5)</strong>: Voltage rises slowly, may not reach threshold</li>
+          <li><strong>Medium current (0.5-1.0)</strong>: Regular spiking with predictable intervals</li>
+          <li><strong>High current (> 1.0)</strong>: Rapid firing, short intervals between spikes</li>
+        </ul>
+
+        <h2>Questions to Explore</h2>
+        <ol>
+          <li>What is the minimum current needed for spiking?</li>
+          <li>How does firing rate change with input current?</li>
+          <li>What happens to voltage between spikes?</li>
+        </ol>
+      `
+    },
+    2: {
+      title: "Synaptic Transmission",
+      content: `
+        <h1>Lesson 2: Synaptic Transmission</h1>
+        <h2>Learning Objectives</h2>
+        <p>Explore how neurons communicate through synaptic connections and how network interactions emerge.</p>
+        
+        <h2>Theory</h2>
+        <p><strong>Synaptic Communication:</strong></p>
+        <ul>
+          <li>When a neuron spikes, it sends current to connected neurons</li>
+          <li>Synaptic weight determines the strength of this influence</li>
+          <li>Multiple inputs can sum to push neurons over threshold</li>
+        </ul>
+
+        <h2>Interactive Experiments</h2>
+        <h3>Experiment 2.1: Network Propagation</h3>
+        <ol>
+          <li><strong>Set Input Current to 0.5</strong></li>
+          <li><strong>Increase Synaptic Weight</strong> from 0.1 to 0.3</li>
+          <li><strong>Click "Show Weights"</strong> to visualize connections</li>
+          <li><strong>Watch</strong> how spikes spread through the network</li>
+        </ol>
+
+        <h3>Key Concepts</h3>
+        <ul>
+          <li><strong>Weak synapses</strong>: Isolated activity</li>
+          <li><strong>Strong synapses</strong>: Cascading waves</li>
+          <li><strong>Network amplification</strong>: Single inputs trigger multiple spikes</li>
+        </ul>
+      `
+    },
+    3: {
+      title: "Network Plasticity", 
+      content: `
+        <h1>Lesson 3: Network Plasticity</h1>
+        <h2>Learning Objectives</h2>
+        <p>Understand how neural networks adapt and self-organize through activity-dependent changes.</p>
+        
+        <h2>Theory</h2>
+        <p><strong>Critical Dynamics:</strong></p>
+        <ul>
+          <li><strong>Subcritical</strong>: Activity dies out quickly</li>
+          <li><strong>Critical</strong>: Sustained, balanced activity</li>
+          <li><strong>Supercritical</strong>: Explosive synchronization</li>
+        </ul>
+
+        <h2>Interactive Experiments</h2>
+        <h3>Experiment 3.1: Phase Transitions</h3>
+        <ol>
+          <li><strong>Start with Connection Probability = 0.02</strong></li>
+          <li><strong>Gradually increase to 0.15</strong></li>
+          <li><strong>Observe</strong> the sudden change in network behavior</li>
+          <li><strong>Find the critical point</strong> where dynamics shift</li>
+        </ol>
+
+        <h3>Real-World Applications</h3>
+        <ul>
+          <li><strong>Brain development</strong>: Networks self-organize during growth</li>
+          <li><strong>Learning</strong>: Synaptic changes encode memories</li>
+          <li><strong>Recovery</strong>: Networks reorganize after injury</li>
+        </ul>
+      `
+    },
+    4: {
+      title: "Pattern Recognition",
+      content: `
+        <h1>Lesson 4: Pattern Recognition</h1>
+        <h2>Learning Objectives</h2>
+        <p>Explore how spiking networks can detect, learn, and recall temporal patterns.</p>
+        
+        <h2>Theory</h2>
+        <p><strong>Neural Memory:</strong></p>
+        <ul>
+          <li><strong>Encoding</strong>: Patterns strengthen specific connections</li>
+          <li><strong>Storage</strong>: Connection patterns persist over time</li>
+          <li><strong>Recall</strong>: Partial inputs trigger full patterns</li>
+        </ul>
+
+        <h2>Interactive Experiments</h2>
+        <h3>Experiment 4.1: Teaching Patterns</h3>
+        <ol>
+          <li><strong>Click "Inject Pattern"</strong> multiple times</li>
+          <li><strong>Watch</strong> neurons [0, 5, 10, 15, 20] become active together</li>
+          <li><strong>Observe</strong> how repeated patterns strengthen connections</li>
+        </ol>
+
+        <h3>Experiment 4.2: Memory Recall</h3>
+        <ol>
+          <li><strong>After teaching, click "Test Memory"</strong></li>
+          <li><strong>Only neurons [0, 5] are stimulated</strong></li>
+          <li><strong>Watch</strong> if the network completes the full pattern</li>
+        </ol>
+
+        <h3>Applications</h3>
+        <ul>
+          <li><strong>Biological memory</strong>: How brains store experiences</li>
+          <li><strong>Artificial intelligence</strong>: Pattern recognition systems</li>
+          <li><strong>Neuromorphic computing</strong>: Brain-inspired processors</li>
+        </ul>
+      `
+    }
   };
+
+  // FIXED: Add missing openLessonModal function
+  function openLessonModal() {
+    const modal = document.getElementById('lessonModal');
+    const content = document.getElementById('lessonFullContent');
+    
+    if (!modal || !content) return;
+    
+    modal.style.display = 'block';
+    
+    const lesson = lessonContent[currentLesson];
+    if (lesson) {
+      content.innerHTML = lesson.content;
+    } else {
+      content.innerHTML = `
+        <div style="text-align:center;padding:40px;color:#ef4444;">
+          <h3>Lesson ${currentLesson} Content</h3>
+          <p>Lesson content not available.</p>
+        </div>
+      `;
+    }
+  }
 
   // Educational controls setup
   function setupEducationalControls() {
@@ -574,88 +818,230 @@
     }
   }
 
-  async function openLessonModal() {
-    const modal = document.getElementById('lessonModal');
-    const content = document.getElementById('lessonFullContent');
+  const drawTrace=()=>{
+    const c=document.getElementById('trace').getContext('2d'); 
+    c.fillStyle='#0f172a'; 
+    c.fillRect(0,0,260,150); 
     
-    if (!modal || !content) return;
+    if(selected===null) {
+      const voltageValue = document.getElementById('voltageValue');
+      if (voltageValue) voltageValue.textContent = '--';
+      return;
+    }
     
-    // Show modal with loading
-    modal.style.display = 'block';
-    content.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;">Loading lesson content...</div>';
+    // Update voltage display
+    const currentVoltage = neurons[selected].userData.volt || 0;
+    const voltageValue = document.getElementById('voltageValue');
+    if (voltageValue) {
+      voltageValue.textContent = currentVoltage.toFixed(3);
+    }
     
-    try {
-      const response = await fetch(lessonFiles[currentLesson]);
-      if (response.ok) {
-        const markdown = await response.text();
-        // Simple markdown to HTML conversion
-        content.innerHTML = convertMarkdownToHTML(markdown);
-      } else {
-        content.innerHTML = `
-          <div style="text-align:center;padding:40px;color:#ef4444;">
-            <h3>Lesson ${currentLesson} Content</h3>
-            <p>Full lesson content file not found. Please check that the lesson files are in the correct location.</p>
-            <p style="font-size:12px;color:#94a3b8;">Expected: ${lessonFiles[currentLesson]}</p>
-          </div>
-        `;
-      }
-    } catch (error) {
-      content.innerHTML = `
-        <div style="text-align:center;padding:40px;color:#ef4444;">
-          <h3>Error Loading Lesson</h3>
-          <p>Could not load lesson content. Error: ${error.message}</p>
-        </div>
-      `;
+    // Draw threshold line
+    c.strokeStyle='#60a5fa'; 
+    c.lineWidth=1;
+    c.setLineDash([5, 5]);
+    const thresholdY = 148 - 1.0 * 130;
+    c.beginPath();
+    c.moveTo(2, thresholdY);
+    c.lineTo(258, thresholdY);
+    c.stroke();
+    c.setLineDash([]);
+    
+    // Draw voltage trace
+    if(traceBuf.length >= 2) {
+      c.strokeStyle='#f223e0'; 
+      c.lineWidth=2;
+      c.beginPath(); 
+      const L=traceBuf.length; 
+      for(let i=0;i<L;i++){
+        const x=i/(L-1)*256+2;
+        const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65;
+        i?c.lineTo(x,y):c.moveTo(x,y);
+      } 
+      c.stroke();
+    }
+    
+    // Add voltage scale labels
+    c.fillStyle='#94a3b8';
+    c.font='10px Inter';
+    c.fillText('2.0V', 5, 15);
+    c.fillText('1.0V', 5, 83);
+    c.fillText('0.0V', 5, 145);
+  };
+
+  // WebSocket message handler
+  function handleMessage(e) {
+    const d=JSON.parse(e.data);
+    if(d.volt){ 
+      for(const k in d.volt){ 
+        const i=+k; 
+        if(neurons[i]){ 
+          const v=d.volt[k]; 
+          neurons[i].userData.volt=v; 
+          if(selected===i){ 
+            traceBuf.push(v); 
+            if(traceBuf.length>200) traceBuf.shift();
+          } 
+        } 
+      } 
+    }
+    if(d.spikes){ 
+      d.spikes.forEach(s=>{
+        const i=s.i; 
+        if(!neurons[i]) return; 
+        const n=neurons[i]; 
+        n.userData.pulse=1.2; 
+        
+        (outgoing[i]||[]).forEach(seg=>{
+          const a=seg*2*3, b=(seg*2+1)*3; 
+          col.array[a]=col.array[b]=0.9; 
+          col.array[a+1]=col.array[b+1]=0.95; 
+          col.array[a+2]=col.array[b+2]=1.0;
+        }); 
+        col.needsUpdate=true;
+      }); 
     }
   }
 
-  function convertMarkdownToHTML(markdown) {
-    // Simple markdown conversion - you could use a proper library for more features
-    return markdown
-      .replace(/^# (.+)/gm, '<h1 style="color:#f1f5f9;border-bottom:2px solid #f223e0;padding-bottom:8px;">$1</h1>')
-      .replace(/^## (.+)/gm, '<h2 style="color:#60a5fa;margin-top:24px;">$1</h2>')
-      .replace(/^### (.+)/gm, '<h3 style="color:#cbd5e1;margin-top:20px;">$1</h3>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#f223e0;">$1</strong>')
-      .replace(/`(.+?)`/g, '<code style="background:#1e293b;padding:2px 6px;border-radius:4px;color:#60a5fa;">$1</code>')
-      .replace(/^> (.+)/gm, '<blockquote style="color:#94a3b8;border-left:3px solid #3b82f6;padding-left:12px;margin:8px 0;">$1</blockquote>')
-      .replace(/\n/g, '<br>');
-  }
-
-  // Animation loop
+  // Enhanced firing effects with premium violet colors
   function animate(){
     requestAnimationFrame(animate);
     
     for(let i=0;i<NUM;i++){
       const n=neurons[i], g=glows[i], u=n.userData;
       if(u.pulse>0){
-        u.pulse*=0.85;
+        u.pulse*=0.88; // Slightly slower decay for more elegant effect
         const p=u.pulse/1.2;
-        n.material.emissive.setRGB(p*0.8,p*0.4,0);
-        g.material.opacity=p*0.8;
-        g.scale.setScalar(8+p*4);
+        // Premium violet firing with subtle color variations
+        n.material.emissive.setRGB(p*0.95, p*0.15, p*0.95);
+        g.material.opacity=p*0.9;
+        g.scale.setScalar(6+p*3); // More refined scaling
+        // Premium violet glow when firing
+        g.material.color.setRGB(0.95 + p*0.05, 0.15 + p*0.85, 0.95 + p*0.05);
+      } else {
+        // Reset to premium blue when not firing
+        g.material.color.setRGB(0.23, 0.51, 0.98);
       }
       
+      // Enhanced voltage-based color with more refinement
       const v=Math.max(0,Math.min(1,u.volt||0));
-      const hue=0.6-v*0.2;
-      n.material.color.setHSL(hue,0.8,0.3+v*0.4);
+      const hue=0.62-v*0.15; // More subtle hue shift
+      const saturation = 0.85 + v*0.1; // Slight saturation increase
+      const lightness = 0.35 + v*0.4; // Enhanced brightness range
+      n.material.color.setHSL(hue, saturation, lightness);
+      
+      // Add subtle metallic reflection based on voltage
+      n.material.metalness = 0.9 + v*0.1;
+      n.material.roughness = 0.1 - v*0.05;
     }
     
-    const colors=connGeom.getAttribute('color');
-    for(let i=0;i<colors.array.length;i+=3){
-      colors.array[i]=Math.max(0.12,colors.array[i]*0.98);
-      colors.array[i+1]=Math.max(0.22,colors.array[i+1]*0.98);
-      colors.array[i+2]=Math.max(0.35,colors.array[i+2]*0.98);
+    // Premium connection lighting effects
+    if (connGeom && col) {
+      const colors=connGeom.getAttribute('color');
+      for(let i=0;i<colors.array.length;i+=3){
+        // Very subtle connection fade for premium look
+        colors.array[i]=Math.max(0.02, colors.array[i]*0.995);
+        colors.array[i+1]=Math.max(0.04, colors.array[i+1]*0.995);
+        colors.array[i+2]=Math.max(0.08, colors.array[i+2]*0.995);
+      }
+      colors.needsUpdate=true;
     }
-    colors.needsUpdate=true;
     
     drawTrace();
     renderer.render(scene,camera);
   }
 
+  // UI Controls - FIXED pause and speed functionality
+  const btn=document.getElementById('play'), rng=document.getElementById('speed');
+  
+  // FIXED: Proper pause/play toggle
+  btn.onclick=()=>{
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    
+    // Toggle the button state first
+    const isCurrentlyPaused = btn.classList.contains('on');
+    
+    if (isCurrentlyPaused) {
+      // Currently showing "Pause" (running), so pause it
+      btn.classList.remove('on');
+      btn.textContent = 'Play';
+      ws.send(JSON.stringify({cmd:'pause'}));
+      console.log('Pausing simulation');
+    } else {
+      // Currently showing "Play" (paused), so resume it
+      btn.classList.add('on');
+      btn.textContent = 'Pause';
+      ws.send(JSON.stringify({cmd:'play'}));
+      console.log('Resuming simulation');
+    }
+  };
+  
+  // FIXED: Speed control that actually affects simulation speed
+  rng.oninput=()=>{
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const speed = parseInt(rng.value, 10);
+    // Invert the scale: higher slider value = faster simulation = lower dt_ms
+    const dt_ms = Math.max(5, 200 - speed); // 10-150 becomes 195-50ms
+    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
+    console.log(`Speed set to ${speed} (${dt_ms}ms timestep)`);
+  };
+
   // Initialize everything
+  console.log('Initializing educational controls...');
   setupEducationalControls();
   updateLessonContent();
+  updateLessonControls();
+  updateNavigationButtons();
+  
+  console.log('Connecting to WebSocket...');
   connectWS();
+  
+  console.log('Starting animation loop...');
+  animate();
+
+  // Handle window resize
+  addEventListener('resize',()=>{
+    camera.aspect=innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+
+})();
+</script>
+</body>
+</html>
+      ws.send(JSON.stringify({cmd:'pause'}));
+      console.log('Pausing simulation');
+    } else {
+      // Currently showing "Play" (paused), so resume it
+      btn.classList.add('on');
+      btn.textContent = 'Pause';
+      ws.send(JSON.stringify({cmd:'play'}));
+      console.log('Resuming simulation');
+    }
+  };
+  
+  // FIXED: Speed control that actually affects simulation speed
+  rng.oninput=()=>{
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const speed = parseInt(rng.value, 10);
+    // Invert the scale: higher slider value = faster simulation = lower dt_ms
+    const dt_ms = Math.max(5, 200 - speed); // 10-150 becomes 195-50ms
+    ws.send(JSON.stringify({cmd:'speed', dt_ms: dt_ms}));
+    console.log(`Speed set to ${speed} (${dt_ms}ms timestep)`);
+  };
+
+  // Initialize everything
+  console.log('Initializing educational controls...');
+  setupEducationalControls();
+  updateLessonContent();
+  updateLessonControls();
+  updateNavigationButtons();
+  
+  console.log('Connecting to WebSocket...');
+  connectWS();
+  
+  console.log('Starting animation loop...');
   animate();
 
   // Handle window resize
