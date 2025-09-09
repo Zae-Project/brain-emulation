@@ -57,6 +57,11 @@ class SNNVisualizer {
     this.createNetwork();
     this.bindUI();
     this.initLessons();
+
+    // Debug: Log network creation
+    console.log(`Network initialized with ${this.neurons.length} neurons`);
+
+    // Start animation immediately
     this.animate();
   }
 
@@ -378,6 +383,136 @@ class SNNVisualizer {
       scale: Math.max(0.1, scale / 300),
       depth: z2,
     };
+  }
+
+  // Test function to force render visible neurons
+  testRender() {
+    // Clear canvas
+    this.ctx.fillStyle = "#0a0c12";
+    this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
+
+    // Draw test circle to verify canvas works
+    this.ctx.fillStyle = "#ff0000";
+    this.ctx.beginPath();
+    this.ctx.arc(100, 100, 30, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Check if neurons exist
+    if (!this.neurons || this.neurons.length === 0) {
+      this.ctx.fillStyle = "#ffffff";
+      this.ctx.font = "24px Arial";
+      this.ctx.fillText("No neurons created!", 200, 200);
+      return;
+    }
+
+    // Draw neurons at fixed positions to test visibility
+    this.neurons.forEach((neuron, i) => {
+      const x = 200 + (i % 10) * 60;
+      const y = 200 + Math.floor(i / 10) * 60;
+      const radius = 20;
+
+      // Draw neuron
+      const color = neuron.colors.primary;
+      this.ctx.fillStyle = `rgb(${Math.floor(color.r * 255)}, ${Math.floor(
+        color.g * 255
+      )}, ${Math.floor(color.b * 255)})`;
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      // Draw neuron ID
+      this.ctx.fillStyle = "#ffffff";
+      this.ctx.font = "12px Arial";
+      this.ctx.fillText(i.toString(), x - 5, y + 3);
+    });
+
+    // Draw debug info
+    this.ctx.fillStyle = "#ffffff";
+    this.ctx.font = "16px Arial";
+    this.ctx.fillText(`Neurons: ${this.neurons.length}`, 20, 50);
+    this.ctx.fillText(`Connections: ${this.connections.length}`, 20, 70);
+  }
+
+  // Simple working 3D projection
+  simpleProject3D(pos) {
+    const cam = this.camera;
+
+    // Simple distance-based projection
+    const dx = pos.x - cam.position.x;
+    const dy = pos.y - cam.position.y;
+    const dz = pos.z - cam.position.z;
+
+    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    const scale = 500 / Math.max(distance, 50);
+
+    const screenX = this.dom.canvas.width / 2 + dx * scale;
+    const screenY = this.dom.canvas.height / 2 - dy * scale;
+
+    return {
+      x: screenX,
+      y: screenY,
+      scale: Math.max(0.1, scale / 5),
+      depth: distance,
+    };
+  }
+
+  // Working render function
+  workingRender() {
+    // Clear canvas
+    this.ctx.fillStyle = "#0a0c12";
+    this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
+
+    if (!this.neurons || this.neurons.length === 0) {
+      this.ctx.fillStyle = "#ff0000";
+      this.ctx.font = "20px Arial";
+      this.ctx.fillText("Network not created!", 100, 100);
+      return;
+    }
+
+    // Render neurons with simple projection
+    this.neurons.forEach((neuron, i) => {
+      const projected = this.simpleProject3D(neuron.position);
+
+      if (
+        projected.x < -100 ||
+        projected.x > this.dom.canvas.width + 100 ||
+        projected.y < -100 ||
+        projected.y > this.dom.canvas.height + 100
+      ) {
+        return;
+      }
+
+      const radius = Math.max(5, 15 * projected.scale);
+      const intensity = neuron.pulse / this.config.pulseIntensity;
+
+      // Draw neuron
+      const color =
+        intensity > 0.1 ? neuron.colors.glow : neuron.colors.primary;
+      const brightness = intensity > 0.1 ? 1.0 : 0.8;
+      this.ctx.fillStyle = `rgb(${Math.floor(
+        color.r * 255 * brightness
+      )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
+        color.b * 255 * brightness
+      )})`;
+
+      this.ctx.beginPath();
+      this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      // Add rim
+      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
+    });
+
+    // Debug info
+    this.ctx.fillStyle = "#ffffff";
+    this.ctx.font = "12px Arial";
+    this.ctx.fillText(
+      `Neurons: ${this.neurons.length}, Running: ${this.state.isRunning}`,
+      10,
+      30
+    );
   }
 
   createNetwork() {
@@ -1049,4 +1184,150 @@ document.addEventListener("DOMContentLoaded", () => {
       errEl.style.display = "block";
     }
   }
+});
+
+// Emergency fix for neural network visibility
+window.addEventListener("load", () => {
+  console.log("Emergency neural network fix loading...");
+
+  // Wait a moment for the main app to initialize
+  setTimeout(() => {
+    const canvas = document.getElementById("three-canvas");
+    if (!canvas) {
+      console.error("Canvas not found!");
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+
+    // Create a simple working neural network visualization
+    const emergencyNeurons = [];
+    const emergencyConnections = [];
+
+    // Create neurons
+    for (let i = 0; i < 30; i++) {
+      emergencyNeurons.push({
+        id: i,
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        z: Math.random() * 200 - 100,
+        radius: 8 + Math.random() * 12,
+        color:
+          i < 8
+            ? "#60a5fa"
+            : i < 16
+            ? "#f59e0b"
+            : i < 24
+            ? "#34d399"
+            : "#ef4444",
+        pulse: 0,
+        voltage: 0,
+      });
+    }
+
+    // Create connections
+    for (let i = 0; i < emergencyNeurons.length; i++) {
+      for (let j = i + 1; j < emergencyNeurons.length; j++) {
+        if (Math.random() < 0.1) {
+          emergencyConnections.push({
+            from: emergencyNeurons[i],
+            to: emergencyNeurons[j],
+          });
+        }
+      }
+    }
+
+    let animationRunning = true;
+
+    function emergencyRender() {
+      if (!animationRunning) return;
+
+      // Clear canvas
+      ctx.fillStyle = "#0a0c12";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw connections
+      ctx.strokeStyle = "rgba(100, 116, 139, 0.3)";
+      ctx.lineWidth = 1;
+      emergencyConnections.forEach((conn) => {
+        ctx.beginPath();
+        ctx.moveTo(conn.from.x, conn.from.y);
+        ctx.lineTo(conn.to.x, conn.to.y);
+        ctx.stroke();
+      });
+
+      // Draw neurons
+      emergencyNeurons.forEach((neuron) => {
+        // Random firing
+        if (Math.random() < 0.002) {
+          neuron.pulse = 1;
+        }
+
+        // Pulse decay
+        if (neuron.pulse > 0) {
+          neuron.pulse *= 0.95;
+        }
+
+        // Draw glow if firing
+        if (neuron.pulse > 0.1) {
+          const glowRadius = neuron.radius * (1 + neuron.pulse);
+          const gradient = ctx.createRadialGradient(
+            neuron.x,
+            neuron.y,
+            0,
+            neuron.x,
+            neuron.y,
+            glowRadius
+          );
+          gradient.addColorStop(0, neuron.color + "80");
+          gradient.addColorStop(1, neuron.color + "00");
+
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(neuron.x, neuron.y, glowRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Draw neuron body
+        const brightness = neuron.pulse > 0.1 ? 1 : 0.8;
+        ctx.fillStyle =
+          neuron.color +
+          Math.floor(brightness * 255)
+            .toString(16)
+            .padStart(2, "0");
+        ctx.beginPath();
+        ctx.arc(neuron.x, neuron.y, neuron.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw rim
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // Draw status
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "14px Arial";
+      ctx.fillText("Emergency Neural Network Active", 20, 30);
+      ctx.fillText(
+        `Neurons: ${emergencyNeurons.length} | Connections: ${emergencyConnections.length}`,
+        20,
+        50
+      );
+
+      requestAnimationFrame(emergencyRender);
+    }
+
+    console.log("Emergency neural network starting...");
+    emergencyRender();
+
+    // Stop emergency render if main app starts working
+    setTimeout(() => {
+      const mainApp = window.snnVisualizer;
+      if (mainApp && mainApp.neurons && mainApp.neurons.length > 0) {
+        console.log("Main app detected, stopping emergency render");
+        animationRunning = false;
+      }
+    }, 3000);
+  }, 1000);
 });
