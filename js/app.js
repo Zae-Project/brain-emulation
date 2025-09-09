@@ -24,20 +24,24 @@ class SNNVisualizer {
 
     this.CLUSTER_COLORS = [
       {
-        primary: { r: 0.22, g: 0.31, b: 0.52 }, // Neural blue accent
-        glow: { r: 0.32, g: 0.41, b: 0.62 },
+        primary: { r: 0.22, g: 0.31, b: 0.52 }, // Neural blue
+        glow: { r: 0.4, g: 0.5, b: 0.7 },
+        name: "Neural",
       },
       {
-        primary: { r: 0.53, g: 0.47, b: 0.56 }, // Pulse purple accent
-        glow: { r: 0.63, g: 0.57, b: 0.66 },
+        primary: { r: 0.53, g: 0.47, b: 0.56 }, // Pulse purple
+        glow: { r: 0.7, g: 0.6, b: 0.75 },
+        name: "Pulse",
       },
       {
-        primary: { r: 0.54, g: 0.35, b: 0.45 }, // Highlight accent
-        glow: { r: 0.64, g: 0.45, b: 0.55 },
+        primary: { r: 0.54, g: 0.35, b: 0.45 }, // Highlight rose
+        glow: { r: 0.75, g: 0.5, b: 0.65 },
+        name: "Highlight",
       },
       {
-        primary: { r: 0.29, g: 0.21, b: 0.32 }, // Deep purple accent
-        glow: { r: 0.39, g: 0.31, b: 0.42 },
+        primary: { r: 0.29, g: 0.21, b: 0.32 }, // Deep purple
+        glow: { r: 0.5, g: 0.4, b: 0.55 },
+        name: "Deep",
       },
     ];
 
@@ -633,8 +637,8 @@ class SNNVisualizer {
 
     this.clearTrace();
 
-    // Draw voltage trace with neural accent
-    this.traceCtx.strokeStyle = "#374E84"; // Neural blue accent
+    // Draw voltage trace with clean white
+    this.traceCtx.strokeStyle = "#ffffff";
     this.traceCtx.lineWidth = 2;
     this.traceCtx.beginPath();
 
@@ -651,8 +655,8 @@ class SNNVisualizer {
 
     this.traceCtx.stroke();
 
-    // Draw threshold line with pulse accent
-    this.traceCtx.strokeStyle = "#88778E"; // Pulse purple accent
+    // Draw threshold line with muted grey
+    this.traceCtx.strokeStyle = "#808080";
     this.traceCtx.lineWidth = 1;
     this.traceCtx.setLineDash([5, 5]);
     this.traceCtx.beginPath();
@@ -664,13 +668,13 @@ class SNNVisualizer {
 
   clearTrace() {
     if (!this.traceCtx) return;
-    this.traceCtx.fillStyle = "#060709"; // Sophisticated dark background
+    this.traceCtx.fillStyle = "#000000";
     this.traceCtx.fillRect(0, 0, 260, 150);
   }
 
   render() {
-    // Clear canvas with sophisticated dark background
-    this.ctx.fillStyle = "#060709";
+    // Clear canvas with pure black background
+    this.ctx.fillStyle = "#000000";
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
     // Render connections with extremely thin lines
@@ -831,87 +835,74 @@ class SNNVisualizer {
     );
   }
 
-  renderWeightPanel(neuron, projected) {
-    // Calculate panel position to avoid overlap
-    const panelWidth = 90;
-    const panelHeight = Math.min(neuron.connections.length * 14 + 25, 120);
-    let panelX = projected.x + 25;
-    let panelY = projected.y - panelHeight / 2;
-
-    // Adjust position to keep panel on screen
-    if (panelX + panelWidth > this.dom.canvas.width) {
-      panelX = projected.x - panelWidth - 25;
-    }
-    if (panelY < 0) panelY = 10;
-    if (panelY + panelHeight > this.dom.canvas.height) {
-      panelY = this.dom.canvas.height - panelHeight - 10;
-    }
-
-    // Draw panel background with slight transparency
-    this.ctx.fillStyle = "rgba(18, 21, 28, 0.95)";
-    this.ctx.strokeStyle = "#1e293b";
-    this.ctx.lineWidth = 1;
-    this.ctx.roundRect(panelX, panelY, panelWidth, panelHeight, 8);
-    this.ctx.fill();
-    this.ctx.stroke();
-
-    // Draw connection line from neuron to panel
-    this.ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-    this.ctx.lineWidth = 1;
-    this.ctx.setLineDash([3, 3]);
-    this.ctx.beginPath();
-    this.ctx.moveTo(projected.x, projected.y);
-    this.ctx.lineTo(panelX, panelY + panelHeight / 2);
-    this.ctx.stroke();
-    this.ctx.setLineDash([]);
-
-    // Draw weight information
-    this.ctx.font = "11px Inter, sans-serif";
-    this.ctx.textAlign = "left";
-
-    // Panel title
-    this.ctx.fillStyle = "#60a5fa";
-    this.ctx.fillText(`Neuron ${neuron.id}`, panelX + 6, panelY + 15);
-
-    // Current voltage
-    this.ctx.fillStyle = "#f223e0";
-    this.ctx.font = "10px Inter, sans-serif";
-    this.ctx.fillText(
-      `V: ${neuron.voltage.toFixed(2)}`,
-      panelX + 6,
-      panelY + 28
-    );
-
-    // Connection weights
-    this.ctx.fillStyle = "#94a3b8";
-    this.ctx.font = "9px Inter, sans-serif";
-    const connectionsToShow = neuron.connections.slice(0, 7);
-    connectionsToShow.forEach((conn, i) => {
-      const targetId = conn.to.id;
-      const weight = conn.weight.toFixed(2);
-      const y = panelY + 42 + i * 12;
-
-      // Color code by connection strength
-      const intensity = conn.weight;
-      if (intensity > 0.3) {
-        this.ctx.fillStyle = "#34d399"; // Strong - green
-      } else if (intensity > 0.2) {
-        this.ctx.fillStyle = "#fbbf24"; // Medium - yellow
-      } else {
-        this.ctx.fillStyle = "#94a3b8"; // Weak - grey
-      }
-
-      this.ctx.fillText(`→N${targetId}: ${weight}`, panelX + 6, y);
-    });
-
-    // Show "..." if more connections exist
-    if (neuron.connections.length > 7) {
-      this.ctx.fillStyle = "#6b7280";
-      this.ctx.fillText(
-        `+${neuron.connections.length - 7} more...`,
-        panelX + 6,
-        panelY + panelHeight - 8
+  renderEnhancedNeuron(neuron, projected, radius, intensity) {
+    // Draw enhanced glow effect when firing
+    if (intensity > 0.1) {
+      const glowRadius = radius * (2.0 + intensity * 2.5);
+      const gradient = this.ctx.createRadialGradient(
+        projected.x,
+        projected.y,
+        0,
+        projected.x,
+        projected.y,
+        glowRadius
       );
+
+      const glowColor = neuron.colors.glow;
+      gradient.addColorStop(
+        0,
+        `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
+          glowColor.g * 255
+        )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.9})`
+      );
+      gradient.addColorStop(
+        0.4,
+        `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
+          glowColor.g * 255
+        )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.5})`
+      );
+      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+      this.ctx.fillStyle = gradient;
+      this.ctx.beginPath();
+      this.ctx.arc(projected.x, projected.y, glowRadius, 0, Math.PI * 2);
+      this.ctx.fill();
+    }
+
+    // Draw neuron body with sophisticated cluster colors
+    const color = intensity > 0.3 ? neuron.colors.glow : neuron.colors.primary;
+    const depthFade = Math.min(1, 300 / Math.max(20, projected.depth));
+    const brightness = (intensity > 0.3 ? 1.0 : 0.6) * depthFade;
+
+    this.ctx.fillStyle = `rgb(${Math.floor(
+      color.r * 255 * brightness
+    )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
+      color.b * 255 * brightness
+    )})`;
+
+    this.ctx.beginPath();
+    this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Highlight selected neuron
+    if (neuron === this.state.selectedNeuron) {
+      this.ctx.strokeStyle = "#374E84";
+      this.ctx.lineWidth = 2;
+      this.ctx.stroke();
+    }
+
+    // Draw neuron number with smart contrast
+    if (radius > 6) {
+      const textColor = intensity > 0.3 ? "#060709" : "#F2F2F3";
+      this.ctx.fillStyle = textColor;
+      this.ctx.font = `${Math.max(
+        8,
+        Math.min(14, radius * 0.7)
+      )}px Inter, sans-serif`;
+      this.ctx.fontWeight = "500";
+      this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "middle";
+      this.ctx.fillText(neuron.id.toString(), projected.x, projected.y);
     }
   }
 

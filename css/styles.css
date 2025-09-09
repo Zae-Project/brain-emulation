@@ -1,21 +1,20 @@
 :root {
-  /* Sophisticated Neural Network Color Palette */
-  --bg: #060709; /* Primary dark background - 88.75% */
-  --surface-1: #222d4d; /* Deep blue surface - 3.52% */
-  --surface-2: #374563; /* Medium blue surface - 0.60% */
-  --surface-3: #545564; /* Neutral surface - 3.41% */
-  --border: #696e8b; /* Subtle border - 1.17% */
+  /* Sophisticated Minimalist Dark Palette */
+  --bg: #000000; /* Pure black background */
+  --surface-1: #0a0a0a; /* Subtle dark surface */
+  --surface-2: #151515; /* Slightly lighter surface */
+  --surface-3: #1a1a1a; /* Card backgrounds */
+  --border: #2a2a2a; /* Minimal borders */
 
-  --text: #f2f2f3; /* Primary text - 0.45% */
-  --text-2: #b5b7c3; /* Secondary text - 0.08% */
-  --text-muted: #9697a6; /* Muted text - 1.35% */
-  --text-accent: #7a8398; /* Accent text - 0.18% */
+  --text: #ffffff; /* Pure white text */
+  --text-2: #cccccc; /* Secondary text */
+  --text-muted: #808080; /* Muted text */
+  --text-accent: #b0b0b0; /* Accent text */
 
-  --accent-neural: #374e84; /* Neural blue accent - 0.02% */
-  --accent-pulse: #88778e; /* Pulse purple accent - 0.09% */
-  --accent-deep: #4b3652; /* Deep purple accent - 0.29% */
-  --accent-danger: #4b1d31; /* Danger red accent - 0.07% */
-  --accent-highlight: #895974; /* Highlight accent - 0.02% */
+  --accent-primary: #ffffff; /* Pure white accents */
+  --accent-subtle: #404040; /* Subtle accents */
+  --accent-glow: #606060; /* Glow effects */
+  --accent-danger: #ff4444; /* Minimal red for errors */
 
   /* Typography */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -27,10 +26,10 @@
   /* Legacy mappings for compatibility */
   --panel: var(--surface-1);
   --edge: var(--border);
-  --edgeHot: var(--accent-neural);
-  --node: var(--accent-neural);
-  --hot: var(--accent-highlight);
-  --pulse: var(--accent-pulse);
+  --edgeHot: var(--accent-primary);
+  --node: var(--accent-primary);
+  --hot: var(--accent-glow);
+  --pulse: var(--accent-primary);
   --muted: var(--text-muted);
 }
 
@@ -62,12 +61,12 @@ canvas {
   inset: 0;
   background: radial-gradient(
       1400px 900px at 30% 0%,
-      rgba(19, 133, 75, 0.03),
+      rgba(255, 255, 255, 0.005),
       transparent 70%
     ),
     radial-gradient(
       1000px 600px at 80% 100%,
-      rgba(88, 104, 201, 0.02),
+      rgba(255, 255, 255, 0.003),
       transparent 60%
     );
 }
@@ -109,14 +108,14 @@ canvas {
 }
 
 .btn.on {
-  background: var(--accent-neural);
-  color: var(--text);
-  border-color: var(--accent-neural);
-  box-shadow: 0 0 20px rgba(55, 78, 132, 0.4);
+  background: var(--accent-primary);
+  color: var(--bg);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .range {
-  accent-color: var(--accent-neural);
+  accent-color: var(--accent-primary);
 }
 
 #panel {
@@ -192,7 +191,7 @@ canvas {
 
 .control-group input[type="range"] {
   width: 100%;
-  accent-color: var(--accent-neural);
+  accent-color: var(--accent-primary);
   background: var(--surface-2);
 }
 
@@ -212,9 +211,9 @@ canvas {
 }
 
 .toggle.active {
-  background: var(--accent-neural);
-  color: var(--text);
-  border-color: var(--accent-neural);
+  background: var(--accent-primary);
+  color: var(--bg);
+  border-color: var(--accent-primary);
 }
 
 #info {
@@ -237,7 +236,7 @@ canvas {
   background: var(--surface-2);
   padding: 16px;
   margin: 12px 0;
-  border-left: 2px solid var(--accent-neural);
+  border-left: 2px solid var(--accent-primary);
   border-top: 1px solid var(--border);
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -288,19 +287,19 @@ canvas {
 }
 
 .lesson-modal-content h1 {
-  color: var(--accent-neural);
+  color: var(--accent-primary);
   margin-top: 0;
   font-size: 28px;
   text-transform: uppercase;
 }
 
 .lesson-modal-content h2 {
-  color: var(--accent-pulse);
+  color: var(--text);
   font-size: 20px;
 }
 
 .lesson-modal-content h3 {
-  color: var(--accent-highlight);
+  color: var(--text-2);
   font-size: 16px;
 }
 
@@ -324,7 +323,7 @@ canvas {
 .lesson-modal-content code {
   background: var(--bg);
   padding: 3px 8px;
-  color: var(--accent-highlight);
+  color: var(--text-accent);
   font-family: var(--font-mono);
   font-size: 12px;
   border: 1px solid var(--border);
@@ -413,7 +412,7 @@ canvas {
 
 #navControls h5 {
   margin: 0 0 12px 0;
-  color: var(--accent-pulse);
+  color: var(--text);
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -427,7 +426,7 @@ canvas {
 }
 
 .nav-tip strong {
-  color: var(--accent-highlight);
+  color: var(--text-accent);
   font-family: var(--font-mono);
   font-size: 10px;
 }
