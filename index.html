@@ -50,14 +50,71 @@
   <canvas id="trace" width="260" height="150"></canvas>
 </div>
 
+<!-- Re-added lesson panel (restore missing settings UI) -->
+<div id="lessonPanel" style="position:fixed;left:20px;top:80px;display:flex;gap:12px;align-items:center;background:rgba(18,21,28,0.85);padding:10px 16px;border-radius:12px;border:1px solid #1e293b;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 8px 25px rgba(0,0,0,0.4)">
+  <label for="lessonSelect" style="color:#94a3b8;font-weight:500;">Lesson:</label>
+  <select id="lessonSelect">
+    <option value="1">Lesson 1: Basic Spike Dynamics</option>
+    <option value="2">Lesson 2: Synaptic Transmission</option>
+    <option value="3">Lesson 3: Network Plasticity</option>
+    <option value="4">Lesson 4: Pattern Recognition</option>
+  </select>
+  <div style="display:flex;gap:8px;">
+    <button id="prevLesson" class="btn" style="padding:6px 10px;font-size:12px;">← Prev</button>
+    <button id="nextLesson" class="btn" style="padding:6px 10px;font-size:12px;">Next →</button>
+    <button id="viewLesson" class="btn" style="padding:6px 10px;font-size:12px;background:#f223e0;color:#fff;">📖 View Full</button>
+  </div>
+</div>
+
 <div id="controls">
   <h4 style="margin:0 0 12px;color:#f1f5f9">Learning Controls</h4>
+  <div class="control-group">
+    <label>Lesson Mode:</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <div class="toggle active" id="lesson1">Basic Spikes</div>
+      <div class="toggle" id="lesson2">Synapses</div>
+      <div class="toggle" id="lesson3">Plasticity</div>
+      <div class="toggle" id="lesson4">Patterns</div>
+    </div>
+  </div>
+
   <div class="control-group">
     <label for="inputCurrent">Input Current: <span id="inputValue">0.5</span></label>
     <input type="range" id="inputCurrent" min="0" max="2" step="0.1" value="0.5"/>
   </div>
+
+  <div class="control-group">
+    <label for="synapseWeight">Synaptic Weight: <span id="weightValue">0.2</span></label>
+    <input type="range" id="synapseWeight" min="0" max="1" step="0.05" value="0.2"/>
+  </div>
+
+  <div class="control-group">
+    <label for="networkSize">Network Size: <span id="sizeValue">50</span></label>
+    <input type="range" id="networkSize" min="10" max="100" step="5" value="50"/>
+  </div>
+
+  <div class="control-group">
+    <label for="connectionProb">Connection Probability: <span id="probValue">0.045</span></label>
+    <input type="range" id="connectionProb" min="0" max="0.2" step="0.005" value="0.045"/>
+  </div>
+
   <button id="resetNetwork" class="btn">Reset Network</button>
   <button id="showWeights" class="btn">Show Weights</button>
+
+  <div class="control-group" id="patternControls" style="display:none;">
+    <button id="injectPattern" class="btn" style="width:100%;margin-bottom:8px;">Inject Pattern</button>
+    <button id="testMemory" class="btn" style="width:100%;">Test Memory</button>
+  </div>
+</div>
+
+<!-- Re-add lesson modal (restores ability to view full lesson) -->
+<div id="lessonModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:1000;overflow-y:auto;">
+  <div style="max-width:800px;margin:40px auto;background:#12151c;border:1px solid #334155;border-radius:16px;padding:24px;position:relative;">
+    <button id="closeModal" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;">×</button>
+    <div id="lessonFullContent" style="color:#cbd5e1;line-height:1.6;">
+      <!-- Full lesson content injected here -->
+    </div>
+  </div>
 </div>
 
 <div id="info">
@@ -129,6 +186,16 @@
   const keyLight = new THREE.PointLight(0x4080ff, 2.0, 200);
   keyLight.position.set(80, 80, 80);
   scene.add(keyLight);
+
+  // Recreate accent lights (restores original color accents)
+  const accentLights = [];
+  CLUSTER_COLORS.forEach((cluster, i) => {
+    const angle = (i / CLUSTER_COLORS.length) * Math.PI * 2;
+    const light = new THREE.PointLight(cluster.primary.getHex(), 0.85, 200);
+    light.position.set(Math.cos(angle) * 90, Math.sin(angle) * 90, Math.sin(angle * 2) * 40);
+    scene.add(light);
+    accentLights.push(light);
+  });
 
   // Global variables
   const neurons = [], glows = [], connectionLabels = [];
@@ -545,7 +612,121 @@
     renderer.setSize(innerWidth, innerHeight);
   });
 
+  // Add/update function to display connection weights and sprites when server sends connections
+  function updateConnectionVisualization(conns) {
+    // remove old labels
+    connectionLabels.forEach(label => {
+      if (label.parent) scene.remove(label);
+    });
+    connectionLabels.length = 0;
+
+    if (!conns || conns.length === 0) {
+      // restore subtle base connection color if needed
+      if (connGeom && col) {
+        const colors = connGeom.getAttribute('color');
+        for (let i = 0; i < colors.array.length; i += 3) {
+          colors.array[i] = 0.05;
+          colors.array[i+1] = 0.08;
+          colors.array[i+2] = 0.12;
+        }
+        colors.needsUpdate = true;
+      }
+      return;
+    }
+
+    // Build a new line color array based on supplied connections (if connGeom length matches)
+    if (connGeom) {
+      // attempt to color matching lines brighter, otherwise create sprites for weights only
+      conns.forEach((c, idx) => {
+        // create a small canvas sprite showing weight
+        const from = c.from, to = c.to;
+        if (from >= 0 && to >= 0 && from < neurons.length && to < neurons.length) {
+          const fromPos = neurons[from].position;
+          const toPos = neurons[to].position;
+          const mid = new THREE.Vector3().addVectors(fromPos, toPos).multiplyScalar(0.5);
+
+          const canvas = document.createElement('canvas');
+          canvas.width = 64; canvas.height = 28;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = c.type === 'inhibitory' ? '#ef4444' : '#60a5fa';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+          ctx.font = '12px Inter';
+          ctx.fillStyle = '#0b1220';
+          ctx.textAlign = 'center';
+          ctx.fillText((c.weight||0).toFixed(3), canvas.width/2, 18);
+
+          const tex = new THREE.CanvasTexture(canvas);
+          const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent:true, opacity:0.9 });
+          const sprite = new THREE.Sprite(spriteMat);
+          sprite.position.copy(mid);
+          sprite.scale.set(3.0, 1.2, 1.0);
+          scene.add(sprite);
+          connectionLabels.push(sprite);
+        }
+      });
+    }
+  }
+
+  // Minimal lesson content and modal helpers (restore original lesson behavior)
+  const lessonContent = {
+    1: { title: "Basic Spike Dynamics", content: `<h1>Lesson 1: Basic Spike Dynamics</h1><p>Each neuron integrates input until threshold.</p>` },
+    2: { title: "Synaptic Transmission", content: `<h1>Lesson 2: Synaptic Transmission</h1><p>Explore synapses and weights.</p>` },
+    3: { title: "Network Plasticity", content: `<h1>Lesson 3: Network Plasticity</h1><p>Learn about adaptation and STDP.</p>` },
+    4: { title: "Pattern Recognition", content: `<h1>Lesson 4: Pattern Recognition</h1><p>Inject and test patterns.</p>` }
+  };
+  let currentLesson = 1;
+
+  function openLessonModal() {
+    const modal = document.getElementById('lessonModal');
+    const content = document.getElementById('lessonFullContent');
+    if (!modal || !content) return;
+    modal.style.display = 'block';
+    const lesson = lessonContent[currentLesson];
+    content.innerHTML = lesson ? lesson.content : `<p>Lesson ${currentLesson} not available.</p>`;
+  }
+
+  function updateLessonContent() {
+    const box = document.getElementById('lessonContent');
+    if (!box) return;
+    const lesson = lessonContent[currentLesson];
+    box.innerHTML = `<div class="lesson"><strong>Lesson ${currentLesson}: ${lesson ? lesson.title : 'N/A'}</strong><br>${lesson ? lesson.content : ''}</div>`;
+  }
+
+  function updateLessonControls() {
+    // toggle pattern controls only for lesson 4
+    const pc = document.getElementById('patternControls');
+    if (pc) pc.style.display = currentLesson === 4 ? 'block' : 'none';
+  }
+
+  function updateNavigationButtons() {
+    const sel = document.getElementById('lessonSelect');
+    if (sel) sel.value = currentLesson;
+  }
+
+  // Hook modal close/view buttons (in case earlier handlers were removed)
+  const viewBtn = document.getElementById('viewLesson');
+  if (viewBtn) viewBtn.addEventListener('click', openLessonModal);
+  const closeModal = document.getElementById('closeModal');
+  const modal = document.getElementById('lessonModal');
+  if (closeModal) closeModal.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
+  if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+  // Restore legacy toggles behavior
+  document.querySelectorAll('.toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLesson = parseInt(btn.id.replace('lesson','')) || 1;
+      updateLessonContent();
+      updateLessonControls();
+      updateNavigationButtons();
+    });
+  });
+
+  // ensure functions and animate call remain as before
+  // ...existing code...
+
 })();
 </script>
-</body>
-</html>
+
+<!-- ...existing code... -->
