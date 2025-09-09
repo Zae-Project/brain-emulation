@@ -1,5 +1,5 @@
 // SNN Visualizer - Complete Professional Implementation
-// Neural network visualization with proper Three.js rendering
+// Neural network visualization with proper connection display and weight panels
 
 class SNNVisualizer {
   constructor() {
@@ -98,6 +98,28 @@ class SNNVisualizer {
 
     this.ctx = this.dom.canvas.getContext("2d");
     this.resizeCanvas();
+
+    // Add roundRect support for older browsers
+    if (!this.ctx.roundRect) {
+      this.ctx.roundRect = function (x, y, width, height, radius) {
+        this.beginPath();
+        this.moveTo(x + radius, y);
+        this.lineTo(x + width - radius, y);
+        this.quadraticCurveTo(x + width, y, x + width, y + radius);
+        this.lineTo(x + width, y + height - radius);
+        this.quadraticCurveTo(
+          x + width,
+          y + height,
+          x + width - radius,
+          y + height
+        );
+        this.lineTo(x + radius, y + height);
+        this.quadraticCurveTo(x, y + height, x, y + height - radius);
+        this.lineTo(x, y + radius);
+        this.quadraticCurveTo(x, y, x + radius, y);
+        this.closePath();
+      };
+    }
 
     // Set up camera
     this.camera = {
@@ -304,6 +326,15 @@ class SNNVisualizer {
           };
           this.connections.push(connection);
           this.neurons[i].connections.push(connection);
+
+          // Also create reverse connection for bidirectional
+          const reverseConnection = {
+            from: this.neurons[j],
+            to: this.neurons[i],
+            weight: 0.1 + Math.random() * 0.4,
+          };
+          this.connections.push(reverseConnection);
+          this.neurons[j].connections.push(reverseConnection);
         }
       }
     }
@@ -415,34 +446,56 @@ class SNNVisualizer {
     this.ctx.fillStyle = "#0a0c12";
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
-    // Render connections if enabled
-    if (this.state.showWeights) {
-      this.ctx.globalAlpha = 0.3;
-      this.connections.forEach((conn) => {
-        const startProj = this.project3D(conn.from.position);
-        const endProj = this.project3D(conn.to.position);
+    // ALWAYS render connections in grey (default state)
+    this.ctx.globalAlpha = 0.4;
+    this.connections.forEach((conn) => {
+      const startProj = this.project3D(conn.from.position);
+      const endProj = this.project3D(conn.to.position);
 
-        const intensity = conn.weight;
-        this.ctx.strokeStyle = `rgba(96, 165, 250, ${intensity})`;
-        this.ctx.lineWidth = intensity * 2;
+      // Check if connection is active (neurons firing together)
+      const timeSinceFromFire = Date.now() - (conn.from.lastFire || 0);
+      const timeSinceToFire = Date.now() - (conn.to.lastFire || 0);
+      const isActive =
+        timeSinceFromFire < 300 &&
+        timeSinceToFire < 300 &&
+        (conn.from.pulse > 0.1 || conn.to.pulse > 0.1);
 
-        this.ctx.beginPath();
-        this.ctx.moveTo(startProj.x, startProj.y);
-        this.ctx.lineTo(endProj.x, endProj.y);
-        this.ctx.stroke();
-      });
-      this.ctx.globalAlpha = 1;
-    }
+      if (isActive) {
+        // Active connection - show in cluster color with intensity
+        const activeColor =
+          conn.from.pulse > conn.to.pulse
+            ? conn.from.colors.glow
+            : conn.to.colors.glow;
+        const intensity =
+          Math.max(conn.from.pulse, conn.to.pulse) / this.config.pulseIntensity;
+        this.ctx.strokeStyle = `rgba(${Math.floor(
+          activeColor.r * 255
+        )}, ${Math.floor(activeColor.g * 255)}, ${Math.floor(
+          activeColor.b * 255
+        )}, ${0.8 * intensity})`;
+        this.ctx.lineWidth = 2 + conn.weight * 3;
+      } else {
+        // Inactive connection - always visible in grey
+        this.ctx.strokeStyle = `rgba(100, 116, 139, 0.25)`;
+        this.ctx.lineWidth = 1;
+      }
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(startProj.x, startProj.y);
+      this.ctx.lineTo(endProj.x, endProj.y);
+      this.ctx.stroke();
+    });
+    this.ctx.globalAlpha = 1;
 
     // Render neurons
     this.neurons.forEach((neuron) => {
       const projected = this.project3D(neuron.position);
 
       if (
-        projected.x < -50 ||
-        projected.x > this.dom.canvas.width + 50 ||
-        projected.y < -50 ||
-        projected.y > this.dom.canvas.height + 50
+        projected.x < -100 ||
+        projected.x > this.dom.canvas.width + 100 ||
+        projected.y < -100 ||
+        projected.y > this.dom.canvas.height + 100
       ) {
         return;
       }
@@ -450,9 +503,9 @@ class SNNVisualizer {
       const radius = this.config.neuronSize * projected.scale * 8;
       const intensity = neuron.pulse / this.config.pulseIntensity;
 
-      // Draw glow effect
-      if (intensity > 0) {
-        const glowRadius = radius * (2 + intensity * 2);
+      // Draw glow effect when firing
+      if (intensity > 0.1) {
+        const glowRadius = radius * (2 + intensity * 3);
         const gradient = this.ctx.createRadialGradient(
           projected.x,
           projected.y,
@@ -467,7 +520,13 @@ class SNNVisualizer {
           0,
           `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
             glowColor.g * 255
-          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.8})`
+          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.9})`
+        );
+        gradient.addColorStop(
+          0.7,
+          `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
+            glowColor.g * 255
+          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.3})`
         );
         gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
@@ -478,10 +537,14 @@ class SNNVisualizer {
       }
 
       // Draw neuron body
-      const color = intensity > 0 ? neuron.colors.glow : neuron.colors.primary;
-      this.ctx.fillStyle = `rgb(${Math.floor(color.r * 255)}, ${Math.floor(
-        color.g * 255
-      )}, ${Math.floor(color.b * 255)})`;
+      const color =
+        intensity > 0.1 ? neuron.colors.glow : neuron.colors.primary;
+      const brightness = intensity > 0.1 ? 1 : 0.7;
+      this.ctx.fillStyle = `rgb(${Math.floor(
+        color.r * 255 * brightness
+      )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
+        color.b * 255 * brightness
+      )})`;
 
       this.ctx.beginPath();
       this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
@@ -495,14 +558,103 @@ class SNNVisualizer {
       }
 
       // Add rim lighting
-      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
       this.ctx.lineWidth = 1;
       this.ctx.stroke();
+
+      // Show weight information panels if enabled
+      if (this.state.showWeights && neuron.connections.length > 0) {
+        this.renderWeightPanel(neuron, projected);
+      }
     });
   }
 
+  renderWeightPanel(neuron, projected) {
+    // Calculate panel position to avoid overlap
+    const panelWidth = 90;
+    const panelHeight = Math.min(neuron.connections.length * 14 + 25, 120);
+    let panelX = projected.x + 25;
+    let panelY = projected.y - panelHeight / 2;
+
+    // Adjust position to keep panel on screen
+    if (panelX + panelWidth > this.dom.canvas.width) {
+      panelX = projected.x - panelWidth - 25;
+    }
+    if (panelY < 0) panelY = 10;
+    if (panelY + panelHeight > this.dom.canvas.height) {
+      panelY = this.dom.canvas.height - panelHeight - 10;
+    }
+
+    // Draw panel background with slight transparency
+    this.ctx.fillStyle = "rgba(18, 21, 28, 0.95)";
+    this.ctx.strokeStyle = "#1e293b";
+    this.ctx.lineWidth = 1;
+    this.ctx.roundRect(panelX, panelY, panelWidth, panelHeight, 8);
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    // Draw connection line from neuron to panel
+    this.ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    this.ctx.lineWidth = 1;
+    this.ctx.setLineDash([3, 3]);
+    this.ctx.beginPath();
+    this.ctx.moveTo(projected.x, projected.y);
+    this.ctx.lineTo(panelX, panelY + panelHeight / 2);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]);
+
+    // Draw weight information
+    this.ctx.font = "11px Inter, sans-serif";
+    this.ctx.textAlign = "left";
+
+    // Panel title
+    this.ctx.fillStyle = "#60a5fa";
+    this.ctx.fillText(`Neuron ${neuron.id}`, panelX + 6, panelY + 15);
+
+    // Current voltage
+    this.ctx.fillStyle = "#f223e0";
+    this.ctx.font = "10px Inter, sans-serif";
+    this.ctx.fillText(
+      `V: ${neuron.voltage.toFixed(2)}`,
+      panelX + 6,
+      panelY + 28
+    );
+
+    // Connection weights
+    this.ctx.fillStyle = "#94a3b8";
+    this.ctx.font = "9px Inter, sans-serif";
+    const connectionsToShow = neuron.connections.slice(0, 7);
+    connectionsToShow.forEach((conn, i) => {
+      const targetId = conn.to.id;
+      const weight = conn.weight.toFixed(2);
+      const y = panelY + 42 + i * 12;
+
+      // Color code by connection strength
+      const intensity = conn.weight;
+      if (intensity > 0.3) {
+        this.ctx.fillStyle = "#34d399"; // Strong - green
+      } else if (intensity > 0.2) {
+        this.ctx.fillStyle = "#fbbf24"; // Medium - yellow
+      } else {
+        this.ctx.fillStyle = "#94a3b8"; // Weak - grey
+      }
+
+      this.ctx.fillText(`→N${targetId}: ${weight}`, panelX + 6, y);
+    });
+
+    // Show "..." if more connections exist
+    if (neuron.connections.length > 7) {
+      this.ctx.fillStyle = "#6b7280";
+      this.ctx.fillText(
+        `+${neuron.connections.length - 7} more...`,
+        panelX + 6,
+        panelY + panelHeight - 8
+      );
+    }
+  }
+
   bindUI() {
-    // All the UI binding code would go here
+    // All the UI binding code
     if (this.dom.playBtn) {
       this.dom.playBtn.addEventListener("click", () => {
         this.state.isRunning = !this.state.isRunning;
@@ -588,7 +740,6 @@ class SNNVisualizer {
   }
 
   initLessons() {
-    // Lesson functionality will be implemented here
     if (this.dom.lessonSelect) {
       this.dom.lessonSelect.addEventListener("change", (e) => {
         this.updateLesson(parseInt(e.target.value));
@@ -628,7 +779,7 @@ class SNNVisualizer {
         <div class="lesson">
           <strong>${lesson.title}</strong><br />
           ${lesson.content}
-          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="alert('Full lesson content coming soon!')">View Full Lesson</button>
+          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="alert('Full lesson content: This would open a detailed explanation of ${lesson.title} with interactive examples.')">View Full Lesson</button>
         </div>
       `;
     }
@@ -650,13 +801,7 @@ class SNNVisualizer {
 // Initialize the application when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   if (typeof THREE === "undefined") {
-    const errEl = document.getElementById("err");
-    if (errEl) {
-      errEl.textContent =
-        "THREE.js library failed to load. Please check your setup.";
-      errEl.style.display = "block";
-    }
-    return;
+    console.warn("THREE.js not found, using fallback");
   }
 
   try {
