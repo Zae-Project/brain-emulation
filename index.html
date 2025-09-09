@@ -743,19 +743,39 @@
   };
   let currentLesson = 1;
 
+  // Updated: open full lesson from external file (fallback to inline snippet)
   function openLessonModal() {
     const modal = document.getElementById('lessonModal');
     const content = document.getElementById('lessonFullContent');
     if (!modal || !content) return;
     modal.style.display = 'block';
-    const lesson = lessonContent[currentLesson];
-    content.innerHTML = lesson ? lesson.content : `<p style="color:#e6e9ef">Lesson ${currentLesson} not available.</p>`;
+
+    // prefer external lesson files placed at /lessons/lesson1.html ... lesson4.html
+    const lessonFile = `lessons/lesson${currentLesson}.html`;
+
+    // try to fetch the full lesson content; on failure, use the inline summary
+    fetch(lessonFile, {cache: "no-store"})
+      .then(response => {
+        if (!response.ok) throw new Error('lesson file not found');
+        return response.text();
+      })
+      .then(html => {
+        // If the external file is an entire HTML page, try to extract the main content region.
+        // Insert raw HTML into modal (trusted local files). If you prefer sanitization, add it here.
+        content.innerHTML = html;
+      })
+      .catch(() => {
+        // fallback to pre-defined inline lesson snippet
+        const lesson = lessonContent[currentLesson];
+        content.innerHTML = lesson ? lesson.content : `<p style="color:#e6e9ef">Lesson ${currentLesson} not available.</p>`;
+      });
   }
 
   function updateLessonContent() {
     const box = document.getElementById('lessonContent');
     if (!box) return;
     const lesson = lessonContent[currentLesson];
+    // keep the short preview in the right-hand panel
     box.innerHTML = `<div class="lesson"><strong>Lesson ${currentLesson}: ${lesson ? lesson.title : 'N/A'}</strong><br>${lesson ? lesson.content : ''}</div>`;
   }
 
@@ -812,29 +832,9 @@
 
 })(); // end IIFE - ensure no stray JS follows
 </script>
-  }
 
-  function updateLessonControls() {
-    // toggle pattern controls only for lesson 4
-    const pc = document.getElementById('patternControls');
-    if (pc) pc.style.display = currentLesson === 4 ? 'block' : 'none';
-  }
-
-  function updateNavigationButtons() {
-    const sel = document.getElementById('lessonSelect');
-    if (sel) sel.value = currentLesson;
-  }
-
-  // Hook modal close/view buttons (in case earlier handlers were removed)
-  const viewBtn = document.getElementById('viewLesson');
-  if (viewBtn) viewBtn.addEventListener('click', openLessonModal);
-  const closeModal = document.getElementById('closeModal');
-  const modal = document.getElementById('lessonModal');
-  if (closeModal) closeModal.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
-  if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-
-  // Restore legacy toggles behavior
-  document.querySelectorAll('.toggle').forEach(btn => {
+</body>
+</html>
     btn.addEventListener('click', () => {
       document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
