@@ -9,6 +9,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js"></script>
     <style>
       :root {
         --bg: #0a0c12;
@@ -202,7 +203,7 @@
         position: fixed;
         inset: 0;
         z-index: 0; /* Place canvas behind all UI */
-        background: #c00; /* Red background for debug */
+        pointer-events: none; /* Restore pointer events */
       }
 
       /* Original styles for panels */
@@ -421,7 +422,6 @@
     </style>
   </head>
   <body>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js"></script>
     <canvas
       id="three-canvas"
       style="
@@ -430,7 +430,7 @@
         width: 100vw;
         height: 100vh;
         z-index: 0;
-        background: #c00;
+        pointer-events: none;
       "
     ></canvas>
     <div id="overlay"></div>
@@ -709,439 +709,464 @@
     <div id="err"></div>
 
     <script>
-      // WebSocket connection
-      let ws;
-      function connectWS() {
-        try {
-          ws = new WebSocket("ws://localhost:8766");
-          ws.onopen = () => {
-            console.log("Connected to SNN server");
-            const errEl = document.getElementById("err");
-            if (errEl) errEl.style.display = "none";
-          };
-          ws.onerror = () => {
+      document.addEventListener("DOMContentLoaded", () => {
+        // WebSocket connection
+        let ws;
+        function connectWS() {
+          try {
+            ws = new WebSocket("ws://localhost:8766");
+            ws.onopen = () => {
+              console.log("Connected to SNN server");
+              const errEl = document.getElementById("err");
+              if (errEl) errEl.style.display = "none";
+            };
+            ws.onerror = () => {
+              const errEl = document.getElementById("err");
+              if (errEl) {
+                errEl.textContent =
+                  "Connection failed. Make sure server.py is running.";
+                errEl.style.display = "block";
+              }
+            };
+            ws.onclose = () => setTimeout(connectWS, 2000);
+            ws.onmessage = handleMessage;
+          } catch (error) {
             const errEl = document.getElementById("err");
             if (errEl) {
-              errEl.textContent =
-                "Connection failed. Make sure server.py is running.";
+              errEl.textContent = "Failed to connect to server";
               errEl.style.display = "block";
             }
-          };
-          ws.onclose = () => setTimeout(connectWS, 2000);
-          ws.onmessage = handleMessage;
-        } catch (error) {
-          const errEl = document.getElementById("err");
-          if (errEl) {
-            errEl.textContent = "Failed to connect to server";
-            errEl.style.display = "block";
           }
         }
-      }
 
-      // Constants
-      const NUM = 50;
+        // Constants
+        const NUM = 50;
 
-      // Initialize the neural network when page loads
-      function initNeuralNetwork() {
-        console.log("Initializing Neural Network...");
+        // Initialize the neural network when page loads
+        function initNeuralNetwork() {
+          console.log("Initializing Neural Network...");
 
-        console.log("Three.js loaded! Creating 3D neural network...");
+          console.log("Three.js loaded! Creating 3D neural network...");
 
-        // Initialize CLUSTER_COLORS after Three.js is loaded
-        const CLUSTER_COLORS = [
-          {
-            primary: new THREE.Color(0.0, 0.8, 1.0),
-            glow: new THREE.Color(0.3, 0.9, 1.0),
-          },
-          {
-            primary: new THREE.Color(1.0, 0.2, 0.8),
-            glow: new THREE.Color(1.0, 0.5, 0.9),
-          },
-          {
-            primary: new THREE.Color(0.9, 1.0, 0.0),
-            glow: new THREE.Color(1.0, 1.0, 0.4),
-          },
-          {
-            primary: new THREE.Color(1.0, 0.5, 0.0),
-            glow: new THREE.Color(1.0, 0.7, 0.3),
-          },
-          {
-            primary: new THREE.Color(1.0, 0.0, 0.4),
-            glow: new THREE.Color(1.0, 0.3, 0.6),
-          },
-        ];
+          // Initialize CLUSTER_COLORS after Three.js is loaded
+          const CLUSTER_COLORS = [
+            {
+              primary: new THREE.Color(0.0, 0.8, 1.0),
+              glow: new THREE.Color(0.3, 0.9, 1.0),
+            },
+            {
+              primary: new THREE.Color(1.0, 0.2, 0.8),
+              glow: new THREE.Color(1.0, 0.5, 0.9),
+            },
+            {
+              primary: new THREE.Color(0.9, 1.0, 0.0),
+              glow: new THREE.Color(1.0, 1.0, 0.4),
+            },
+            {
+              primary: new THREE.Color(1.0, 0.5, 0.0),
+              glow: new THREE.Color(1.0, 0.7, 0.3),
+            },
+            {
+              primary: new THREE.Color(1.0, 0.0, 0.4),
+              glow: new THREE.Color(1.0, 0.3, 0.6),
+            },
+          ];
 
-        // Three.js setup
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0c12); // Dark blue background
+          // Three.js setup
+          const scene = new THREE.Scene();
+          scene.background = new THREE.Color(0x0a0c12); // Dark blue background
 
-        const camera = new THREE.PerspectiveCamera(
-          75,
-          window.innerWidth / window.innerHeight,
-          0.1,
-          1000
-        );
-        camera.position.set(0, 0, 80);
-        camera.lookAt(0, 0, 0);
+          const camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+          );
+          camera.position.set(0, 0, 80);
+          camera.lookAt(0, 0, 0);
 
-        // Use the existing canvas instead of creating a new one
-        const canvas = document.getElementById("three-canvas");
-        let renderer;
-        if (!canvas._renderer) {
-          renderer = new THREE.WebGLRenderer({
-            canvas: canvas,
-            antialias: true,
-            powerPreference: "high-performance",
+          // Use the existing canvas instead of creating a new one
+          const canvas = document.getElementById("three-canvas");
+          let renderer;
+          if (!canvas._renderer) {
+            renderer = new THREE.WebGLRenderer({
+              canvas: canvas,
+              antialias: true,
+              powerPreference: "high-performance",
+            });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            canvas._renderer = renderer;
+          } else {
+            renderer = canvas._renderer;
+          }
+
+          // Ensure the canvas resizes with the window
+          window.addEventListener("resize", () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
           });
-          renderer.setClearColor(0xc00, 1); // Red background for debug
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-          renderer.setSize(window.innerWidth, window.innerHeight);
-          renderer.shadowMap.enabled = true;
-          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-          canvas._renderer = renderer;
-        } else {
-          renderer = canvas._renderer;
-        }
-        // Assign ID for CSS styling and place in body
-        renderer.domElement.id = "three-canvas";
-        document.body.appendChild(renderer.domElement);
 
-        // Ensure the canvas resizes with the window
-        window.addEventListener("resize", () => {
-          camera.aspect = window.innerWidth / window.innerHeight;
-          camera.updateProjectionMatrix();
-          renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+          // Enhanced lighting for better visibility
+          scene.add(new THREE.AmbientLight(0x404040, 0.6)); // Brighter ambient
 
-        // Enhanced lighting for better visibility
-        scene.add(new THREE.AmbientLight(0x404040, 0.6)); // Brighter ambient
+          const keyLight = new THREE.PointLight(0x4080ff, 1.5, 200);
+          keyLight.position.set(50, 50, 50);
+          keyLight.castShadow = true;
+          scene.add(keyLight);
 
-        const keyLight = new THREE.PointLight(0x4080ff, 1.5, 200);
-        keyLight.position.set(50, 50, 50);
-        keyLight.castShadow = true;
-        scene.add(keyLight);
+          const fillLight = new THREE.PointLight(0xff6060, 1.0, 150);
+          fillLight.position.set(-30, -30, 40);
+          scene.add(fillLight);
 
-        const fillLight = new THREE.PointLight(0xff6060, 1.0, 150);
-        fillLight.position.set(-30, -30, 40);
-        scene.add(fillLight);
+          const backLight = new THREE.PointLight(0x60ff60, 0.8, 100);
+          backLight.position.set(0, 0, -50);
+          scene.add(backLight);
 
-        const backLight = new THREE.PointLight(0x60ff60, 0.8, 100);
-        backLight.position.set(0, 0, -50);
-        scene.add(backLight);
+          // Global variables
+          const neurons = [],
+            glows = [],
+            connectionLabels = [];
+          let connections = [];
+          let connGeom, col, lines;
+          let selected = null,
+            traceBuf = [];
+          let showWeights = false;
 
-        // Add a large white test cube at the origin and rotate it
-        const testGeometry = new THREE.BoxGeometry(10, 10, 10);
-        const testMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const testCube = new THREE.Mesh(testGeometry, testMaterial);
-        testCube.position.set(0, 0, 0);
-        scene.add(testCube);
-        console.log("Test cube added at origin");
+          // Camera controls
+          let cameraTarget = new THREE.Vector3(0, 0, 0);
+          let cameraDistance = 80;
+          let cameraTheta = 0;
+          let cameraPhi = Math.PI / 2;
+          let isDragging = false;
+          let isPanning = false;
+          let lastMouseX = 0;
+          let lastMouseY = 0;
+          let selectedNeuron = null;
+          let neuronActivityHistory = new Map();
+          let isRunning = true; // controls whether neurons update (Play/Pause)
 
-        // Global variables
-        const neurons = [],
-          glows = [],
-          connectionLabels = [];
-        let connections = [];
-        let connGeom, col, lines;
-        let selected = null,
-          traceBuf = [];
-        let showWeights = false;
+          // Lesson content
+          const lessonContent = {
+            1: {
+              title: "Basic Spike Dynamics",
+              content:
+                "Each neuron integrates input until threshold (v=1). When threshold is reached, it emits a spike and resets.",
+            },
+            2: {
+              title: "Synaptic Transmission",
+              content:
+                "Synapses transmit spikes between neurons. Excitatory synapses increase voltage; inhibitory decrease it.",
+            },
+            3: {
+              title: "Network Plasticity",
+              content:
+                "Plasticity mechanisms change synaptic strengths over time through Hebbian learning.",
+            },
+            4: {
+              title: "Pattern Recognition",
+              content:
+                "Networks can store and recall patterns through strengthened connection pathways.",
+            },
+          };
+          let currentLesson = 1;
 
-        // Camera controls
-        let cameraTarget = new THREE.Vector3(0, 0, 0);
-        let cameraDistance = 80;
-        let cameraTheta = 0;
-        let cameraPhi = Math.PI / 2;
-        let isDragging = false;
-        let isPanning = false;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
-        let selectedNeuron = null;
-        let neuronActivityHistory = new Map();
-        let isRunning = true; // controls whether neurons update (Play/Pause)
+          // Create the neural network
+          function createNetworkTopology() {
+            // Clear existing
+            neurons.forEach((n) => scene.remove(n));
+            glows.forEach((g) => scene.remove(g));
+            neurons.length = 0;
+            glows.length = 0;
 
-        // Lesson content
-        const lessonContent = {
-          1: {
-            title: "Basic Spike Dynamics",
-            content:
-              "Each neuron integrates input until threshold (v=1). When threshold is reached, it emits a spike and resets.",
-          },
-          2: {
-            title: "Synaptic Transmission",
-            content:
-              "Synapses transmit spikes between neurons. Excitatory synapses increase voltage; inhibitory decrease it.",
-          },
-          3: {
-            title: "Network Plasticity",
-            content:
-              "Plasticity mechanisms change synaptic strengths over time through Hebbian learning.",
-          },
-          4: {
-            title: "Pattern Recognition",
-            content:
-              "Networks can store and recall patterns through strengthened connection pathways.",
-          },
-        };
-        let currentLesson = 1;
+            const radius = 25; // Smaller radius for better visibility
+            // Use the network size slider value so UI can control topology
+            const networkSizeSetting =
+              parseInt(document.getElementById("networkSize")?.value) || 50;
+            const N_EXC = Math.max(1, Math.round(networkSizeSetting * 0.8));
+            const N_INH = Math.max(0, networkSizeSetting - N_EXC);
 
-        // Create the neural network
-        function createNetworkTopology() {
-          // Clear existing
-          neurons.forEach((n) => scene.remove(n));
-          glows.forEach((g) => scene.remove(g));
-          neurons.length = 0;
-          glows.length = 0;
+            // Create excitatory neurons in visible clusters
+            for (let i = 0; i < N_EXC; i++) {
+              const clusterId = Math.floor(i / (N_EXC / 4));
+              const clusterColor = CLUSTER_COLORS[clusterId];
 
-          const radius = 25; // Smaller radius for better visibility
-          // Use the network size slider value so UI can control topology
-          const networkSizeSetting =
-            parseInt(document.getElementById("networkSize")?.value) || 50;
-          const N_EXC = Math.max(1, Math.round(networkSizeSetting * 0.8));
-          const N_INH = Math.max(0, networkSizeSetting - N_EXC);
+              // More spread out positioning for better visibility
+              const angleY = (i / 10) * Math.PI * 2;
+              const angleX = (Math.floor(i / 10) / 4) * Math.PI;
+              const clusterRadius = radius + (Math.random() - 0.5) * 10;
 
-          // Create excitatory neurons in visible clusters
-          for (let i = 0; i < N_EXC; i++) {
-            const clusterId = Math.floor(i / (N_EXC / 4));
-            const clusterColor = CLUSTER_COLORS[clusterId];
+              const position = new THREE.Vector3(
+                Math.sin(angleX) * Math.cos(angleY) * clusterRadius,
+                Math.cos(angleX) * clusterRadius * 0.8,
+                Math.sin(angleX) * Math.sin(angleY) * clusterRadius
+              );
 
-            // More spread out positioning for better visibility
-            const angleY = (i / 10) * Math.PI * 2;
-            const angleX = (Math.floor(i / 10) / 4) * Math.PI;
-            const clusterRadius = radius + (Math.random() - 0.5) * 10;
+              // Larger, more visible neurons
+              const geometry = new THREE.SphereGeometry(3.0, 32, 32);
+              const material = new THREE.MeshLambertMaterial({
+                color: clusterColor.primary,
+                emissive: clusterColor.primary.clone().multiplyScalar(0.5),
+                transparent: true,
+                opacity: 0.9,
+              });
 
-            const position = new THREE.Vector3(
-              Math.sin(angleX) * Math.cos(angleY) * clusterRadius,
-              Math.cos(angleX) * clusterRadius * 0.8,
-              Math.sin(angleX) * Math.sin(angleY) * clusterRadius
-            );
+              const neuron = new THREE.Mesh(geometry, material);
+              neuron.position.copy(position);
+              neuron.userData = {
+                id: i,
+                cluster: clusterId,
+                pulse: 0,
+                volt: Math.random() * 0.5, // Random initial voltage
+                type: "excitatory",
+                originalColor: clusterColor.primary.clone(),
+                glowColor: clusterColor.glow.clone(),
+              };
+              scene.add(neuron);
+              neurons.push(neuron);
 
-            // Larger, more visible neurons
-            const geometry = new THREE.SphereGeometry(3.0, 32, 32);
-            const material = new THREE.MeshLambertMaterial({
-              color: clusterColor.primary,
-              emissive: clusterColor.primary.clone().multiplyScalar(0.5),
-              transparent: true,
-              opacity: 0.9,
-            });
+              // Brighter glow effect
+              const glowGeometry = new THREE.SphereGeometry(4.0, 16, 16);
+              const glowMaterial = new THREE.MeshBasicMaterial({
+                color: clusterColor.glow,
+                transparent: true,
+                opacity: 0.2,
+                blending: THREE.AdditiveBlending,
+              });
+              const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+              glow.position.copy(position);
+              scene.add(glow);
+              glows.push(glow);
+            }
 
-            const neuron = new THREE.Mesh(geometry, material);
-            neuron.position.copy(position);
-            neuron.userData = {
-              id: i,
-              cluster: clusterId,
-              pulse: 0,
-              volt: Math.random() * 0.5, // Random initial voltage
-              type: "excitatory",
-              originalColor: clusterColor.primary.clone(),
-              glowColor: clusterColor.glow.clone(),
-            };
-            scene.add(neuron);
-            neurons.push(neuron);
+            // Create inhibitory neurons (red/pink)
+            for (let i = 0; i < N_INH; i++) {
+              const angle = (i / N_INH) * Math.PI * 2;
+              const height = (Math.random() - 0.5) * 30;
+              const r = radius * 1.4;
 
-            // Brighter glow effect
-            const glowGeometry = new THREE.SphereGeometry(4.0, 16, 16);
-            const glowMaterial = new THREE.MeshBasicMaterial({
-              color: clusterColor.glow,
-              transparent: true,
-              opacity: 0.2,
-              blending: THREE.AdditiveBlending,
-            });
-            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-            glow.position.copy(position);
-            scene.add(glow);
-            glows.push(glow);
+              const position = new THREE.Vector3(
+                Math.cos(angle) * r,
+                height,
+                Math.sin(angle) * r
+              );
+
+              const geometry = new THREE.SphereGeometry(1.8, 24, 24);
+              const material = new THREE.MeshStandardMaterial({
+                color: CLUSTER_COLORS[4].primary,
+                emissive: CLUSTER_COLORS[4].primary.clone().multiplyScalar(0.3),
+                roughness: 0.4,
+                metalness: 0.6,
+                transparent: true,
+                opacity: 0.9,
+              });
+
+              const neuron = new THREE.Mesh(geometry, material);
+              neuron.position.copy(position);
+              neuron.userData = {
+                id: i + N_EXC,
+                cluster: 4,
+                pulse: 0,
+                volt: Math.random() * 0.3,
+                type: "inhibitory",
+                originalColor: CLUSTER_COLORS[4].primary.clone(),
+                glowColor: CLUSTER_COLORS[4].glow.clone(),
+              };
+              scene.add(neuron);
+              neurons.push(neuron);
+
+              const glowGeometry = new THREE.SphereGeometry(3.5, 16, 16);
+              const glowMaterial = new THREE.MeshBasicMaterial({
+                color: CLUSTER_COLORS[4].glow,
+                transparent: true,
+                opacity: 0.2,
+                blending: THREE.AdditiveBlending,
+              });
+              const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+              glow.position.copy(position);
+              scene.add(glow);
+              glows.push(glow);
+            }
+
+            createConnectionNetwork();
+            console.log(`Created network: ${neurons.length} neurons`);
           }
 
-          // Create inhibitory neurons (red/pink)
-          for (let i = 0; i < N_INH; i++) {
-            const angle = (i / N_INH) * Math.PI * 2;
-            const height = (Math.random() - 0.5) * 30;
-            const r = radius * 1.4;
+          function createConnectionNetwork() {
+            const positions = [];
+            const colors = [];
+            const connectionData = [];
 
-            const position = new THREE.Vector3(
-              Math.cos(angle) * r,
-              height,
-              Math.sin(angle) * r
-            );
+            for (let i = 0; i < neurons.length; i++) {
+              for (let j = 0; j < neurons.length; j++) {
+                if (i !== j) {
+                  const prob =
+                    neurons[i].userData.cluster === neurons[j].userData.cluster
+                      ? 0.6
+                      : 0.3;
 
-            const geometry = new THREE.SphereGeometry(1.8, 24, 24);
-            const material = new THREE.MeshStandardMaterial({
-              color: CLUSTER_COLORS[4].primary,
-              emissive: CLUSTER_COLORS[4].primary.clone().multiplyScalar(0.3),
-              roughness: 0.4,
-              metalness: 0.6,
-              transparent: true,
-              opacity: 0.9,
-            });
+                  if (Math.random() < prob) {
+                    const fromPos = neurons[i].position;
+                    const toPos = neurons[j].position;
 
-            const neuron = new THREE.Mesh(geometry, material);
-            neuron.position.copy(position);
-            neuron.userData = {
-              id: i + N_EXC,
-              cluster: 4,
-              pulse: 0,
-              volt: Math.random() * 0.3,
-              type: "inhibitory",
-              originalColor: CLUSTER_COLORS[4].primary.clone(),
-              glowColor: CLUSTER_COLORS[4].glow.clone(),
-            };
-            scene.add(neuron);
-            neurons.push(neuron);
+                    positions.push(fromPos.x, fromPos.y, fromPos.z);
+                    positions.push(toPos.x, toPos.y, toPos.z);
 
-            const glowGeometry = new THREE.SphereGeometry(3.5, 16, 16);
-            const glowMaterial = new THREE.MeshBasicMaterial({
-              color: CLUSTER_COLORS[4].glow,
-              transparent: true,
-              opacity: 0.2,
-              blending: THREE.AdditiveBlending,
-            });
-            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-            glow.position.copy(position);
-            scene.add(glow);
-            glows.push(glow);
-          }
+                    const fromCluster = neurons[i].userData.cluster;
+                    const color = CLUSTER_COLORS[fromCluster].primary
+                      .clone()
+                      .multiplyScalar(0.4);
 
-          createConnectionNetwork();
-          console.log(`Created network: ${neurons.length} neurons`);
-        }
+                    colors.push(color.r, color.g, color.b);
+                    colors.push(color.r, color.g, color.b);
 
-        function createConnectionNetwork() {
-          const positions = [];
-          const colors = [];
-          const connectionData = [];
-
-          for (let i = 0; i < neurons.length; i++) {
-            for (let j = 0; j < neurons.length; j++) {
-              if (i !== j) {
-                const prob =
-                  neurons[i].userData.cluster === neurons[j].userData.cluster
-                    ? 0.6
-                    : 0.3;
-
-                if (Math.random() < prob) {
-                  const fromPos = neurons[i].position;
-                  const toPos = neurons[j].position;
-
-                  positions.push(fromPos.x, fromPos.y, fromPos.z);
-                  positions.push(toPos.x, toPos.y, toPos.z);
-
-                  const fromCluster = neurons[i].userData.cluster;
-                  const color = CLUSTER_COLORS[fromCluster].primary
-                    .clone()
-                    .multiplyScalar(0.4);
-
-                  colors.push(color.r, color.g, color.b);
-                  colors.push(color.r, color.g, color.b);
-
-                  connectionData.push({ from: i, to: j, cluster: fromCluster });
+                    connectionData.push({
+                      from: i,
+                      to: j,
+                      cluster: fromCluster,
+                    });
+                  }
                 }
               }
             }
+
+            connGeom = new THREE.BufferGeometry();
+            connGeom.setAttribute(
+              "position",
+              new THREE.Float32BufferAttribute(positions, 3)
+            );
+            connGeom.setAttribute(
+              "color",
+              new THREE.Float32BufferAttribute(colors, 3)
+            );
+            col = connGeom.getAttribute("color");
+
+            const lineMat = new THREE.LineBasicMaterial({
+              vertexColors: true,
+              transparent: true,
+              opacity: 0.5,
+              blending: THREE.AdditiveBlending,
+            });
+
+            lines = new THREE.LineSegments(connGeom, lineMat);
+            scene.add(lines);
+
+            connections = connectionData;
+            console.log(`Created ${connections.length} connections`);
           }
 
-          connGeom = new THREE.BufferGeometry();
-          connGeom.setAttribute(
-            "position",
-            new THREE.Float32BufferAttribute(positions, 3)
-          );
-          connGeom.setAttribute(
-            "color",
-            new THREE.Float32BufferAttribute(colors, 3)
-          );
-          col = connGeom.getAttribute("color");
+          // Animation loop
+          function animate() {
+            requestAnimationFrame(animate);
 
-          const lineMat = new THREE.LineBasicMaterial({
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.5,
-            blending: THREE.AdditiveBlending,
-          });
+            // Keep the camera positioned according to spherical coordinates
+            camera.position.x =
+              cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+            camera.position.y = cameraDistance * Math.cos(cameraPhi);
+            camera.position.z =
+              cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+            camera.lookAt(cameraTarget);
 
-          lines = new THREE.LineSegments(connGeom, lineMat);
-          scene.add(lines);
+            // Update neurons only while running
+            if (isRunning) {
+              for (let i = 0; i < neurons.length; i++) {
+                const n = neurons[i],
+                  g = glows[i],
+                  u = n.userData;
 
-          connections = connectionData;
-          console.log(`Created ${connections.length} connections`);
-        }
+                // Simulate random activity
+                if (Math.random() < 0.01) {
+                  u.pulse = 1.2;
+                }
 
-        // Animation loop
-        function animate() {
-          requestAnimationFrame(animate);
-          testCube.rotation.x += 0.01;
-          testCube.rotation.y += 0.01;
+                if (u.pulse > 0) {
+                  u.pulse *= 0.85;
+                  const intensity = u.pulse / 1.2;
 
-          // Keep the camera positioned according to spherical coordinates
-          camera.position.x =
-            cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
-          camera.position.y = cameraDistance * Math.cos(cameraPhi);
-          camera.position.z =
-            cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
-          camera.lookAt(cameraTarget);
+                  const glowColor = u.glowColor
+                    .clone()
+                    .multiplyScalar(intensity * 2);
+                  // Some materials may not have emissive; check and set if available
+                  if (n.material.emissive) n.material.emissive.copy(glowColor);
 
-          // Update neurons only while running
-          if (isRunning) {
-            for (let i = 0; i < neurons.length; i++) {
-              const n = neurons[i],
-                g = glows[i],
-                u = n.userData;
-
-              // Simulate random activity
-              if (Math.random() < 0.01) {
-                u.pulse = 1.2;
-              }
-
-              if (u.pulse > 0) {
-                u.pulse *= 0.85;
-                const intensity = u.pulse / 1.2;
-
-                const glowColor = u.glowColor
-                  .clone()
-                  .multiplyScalar(intensity * 2);
-                // Some materials may not have emissive; check and set if available
-                if (n.material.emissive) n.material.emissive.copy(glowColor);
-
-                n.scale.setScalar(1.0 + intensity * 0.4);
-                if (g && g.material) g.material.opacity = 0.2 + intensity * 0.6;
-                if (g) g.scale.setScalar(1.0 + intensity * 3.0);
-              } else {
-                if (n.material.emissive)
-                  n.material.emissive.copy(
-                    u.originalColor.clone().multiplyScalar(0.4)
-                  );
-                n.scale.setScalar(1.0);
-                if (g && g.material) g.material.opacity = 0.15;
-                if (g) g.scale.setScalar(1.0);
+                  n.scale.setScalar(1.0 + intensity * 0.4);
+                  if (g && g.material)
+                    g.material.opacity = 0.2 + intensity * 0.6;
+                  if (g) g.scale.setScalar(1.0 + intensity * 3.0);
+                } else {
+                  if (n.material.emissive)
+                    n.material.emissive.copy(
+                      u.originalColor.clone().multiplyScalar(0.4)
+                    );
+                  n.scale.setScalar(1.0);
+                  if (g && g.material) g.material.opacity = 0.15;
+                  if (g) g.scale.setScalar(1.0);
+                }
               }
             }
+
+            renderer.render(scene, camera);
           }
 
-          renderer.render(scene, camera);
-          console.log("Rendering frame");
-        }
+          // Message handling (stub)
+          function handleMessage(e) {
+            // WebSocket message handling would go here
+          }
 
-        // Message handling (stub)
-        function handleMessage(e) {
-          // WebSocket message handling would go here
-        }
+          // Initialize everything
+          createNetworkTopology();
 
-        // Initialize everything
-        createNetworkTopology();
+          // Add mouse controls
+          let mouseX = 0,
+            mouseY = 0;
+          let isMouseDown = false;
 
-        // Add mouse controls
-        let mouseX = 0,
-          mouseY = 0;
-        let isMouseDown = false;
+          function onMouseMove(event) {
+            if (isMouseDown) {
+              const deltaX = event.clientX - mouseX;
+              const deltaY = event.clientY - mouseY;
 
-        function onMouseMove(event) {
-          if (isMouseDown) {
-            const deltaX = event.clientX - mouseX;
-            const deltaY = event.clientY - mouseY;
+              // Rotate camera around scene
+              cameraTheta += deltaX * 0.01;
+              cameraPhi += deltaY * 0.01;
+              cameraPhi = Math.max(0.1, Math.min(Math.PI - 0.1, cameraPhi));
 
-            // Rotate camera around scene
-            cameraTheta += deltaX * 0.01;
-            cameraPhi += deltaY * 0.01;
-            cameraPhi = Math.max(0.1, Math.min(Math.PI - 0.1, cameraPhi));
+              camera.position.x =
+                cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+              camera.position.y = cameraDistance * Math.cos(cameraPhi);
+              camera.position.z =
+                cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+              camera.lookAt(cameraTarget);
+            }
+
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+          }
+
+          function onMouseDown(event) {
+            // Only start dragging if the click is not on a UI element
+            if (
+              event.target.closest(
+                "#hud, #panel, #controls, #info, #lessonPanel, #navControls, #neuronInfo, #lessonModal"
+              )
+            ) {
+              return;
+            }
+            isMouseDown = true;
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+          }
+
+          function onMouseUp(event) {
+            isMouseDown = false;
+          }
+
+          function onMouseWheel(event) {
+            cameraDistance += event.deltaY * 0.1;
+            cameraDistance = Math.max(10, Math.min(200, cameraDistance));
 
             camera.position.x =
               cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
@@ -1151,155 +1176,122 @@
             camera.lookAt(cameraTarget);
           }
 
-          mouseX = event.clientX;
-          mouseY = event.clientY;
-        }
+          // Add event listeners (attached to window so UI remains interactive)
+          window.addEventListener("mousemove", onMouseMove);
+          window.addEventListener("mousedown", onMouseDown);
+          window.addEventListener("mouseup", onMouseUp);
+          window.addEventListener("wheel", onMouseWheel);
 
-        function onMouseDown(event) {
-          // Only start dragging if the click is not on a UI element
-          if (
-            event.target.closest(
-              "#hud, #panel, #controls, #info, #lessonPanel, #navControls, #neuronInfo, #lessonModal"
-            )
-          ) {
-            return;
+          // UI controls - with robust null checks
+          const playBtn = document.getElementById("play");
+          const resetBtn = document.getElementById("resetNetwork");
+          const showWeightsBtn = document.getElementById("showWeights");
+          const networkSizeSlider = document.getElementById("networkSize");
+          const inputSlider = document.getElementById("inputCurrent");
+          const weightSlider = document.getElementById("synapseWeight");
+          const lessonSelect = document.getElementById("lessonSelect");
+          const prevLesson = document.getElementById("prevLesson");
+          const nextLesson = document.getElementById("nextLesson");
+          const viewLesson = document.getElementById("viewLesson");
+          const lessonModal = document.getElementById("lessonModal");
+          const closeModal = document.getElementById("closeModal");
+
+          if (playBtn) {
+            playBtn.addEventListener("click", () => {
+              isRunning = !isRunning;
+              playBtn.classList.toggle("on", isRunning);
+              playBtn.textContent = isRunning ? "Pause" : "Play";
+            });
           }
-          isMouseDown = true;
-          mouseX = event.clientX;
-          mouseY = event.clientY;
+
+          if (resetBtn) {
+            resetBtn.addEventListener("click", () => {
+              createNetworkTopology();
+            });
+          }
+
+          if (showWeightsBtn) {
+            showWeightsBtn.addEventListener("click", () => {
+              showWeights = !showWeights;
+              if (lines && lines.material) {
+                lines.material.visible = showWeights;
+              }
+              showWeightsBtn.classList.toggle("on", showWeights);
+            });
+          }
+
+          if (networkSizeSlider) {
+            networkSizeSlider.addEventListener("input", (e) => {
+              const sizeValueEl = document.getElementById("sizeValue");
+              if (sizeValueEl) sizeValueEl.textContent = e.target.value;
+            });
+            networkSizeSlider.addEventListener("change", () => {
+              createNetworkTopology();
+            });
+          }
+
+          if (inputSlider) {
+            inputSlider.addEventListener("input", (e) => {
+              const inputValueEl = document.getElementById("inputValue");
+              if (inputValueEl) inputValueEl.textContent = e.target.value;
+            });
+          }
+
+          if (weightSlider) {
+            weightSlider.addEventListener("input", (e) => {
+              const weightValueEl = document.getElementById("weightValue");
+              if (weightValueEl) weightValueEl.textContent = e.target.value;
+            });
+          }
+
+          if (prevLesson && lessonSelect) {
+            prevLesson.addEventListener("click", () => {
+              lessonSelect.selectedIndex = Math.max(
+                0,
+                lessonSelect.selectedIndex - 1
+              );
+            });
+          }
+
+          if (nextLesson && lessonSelect) {
+            nextLesson.addEventListener("click", () => {
+              lessonSelect.selectedIndex = Math.min(
+                lessonSelect.options.length - 1,
+                lessonSelect.selectedIndex + 1
+              );
+            });
+          }
+
+          if (viewLesson && lessonModal && lessonSelect) {
+            viewLesson.addEventListener("click", () => {
+              const lessonFrame = document.getElementById("lessonFrame");
+              lessonModal.style.display = "block";
+              if (lessonFrame) {
+                lessonFrame.srcdoc =
+                  "<h2>" +
+                  lessonSelect.options[lessonSelect.selectedIndex].text +
+                  "</h2>";
+              }
+            });
+          }
+
+          if (closeModal && lessonModal) {
+            closeModal.addEventListener("click", () => {
+              const lessonFrame = document.getElementById("lessonFrame");
+              lessonModal.style.display = "none";
+              if (lessonFrame) lessonFrame.src = "";
+            });
+          }
+
+          connectWS();
+          animate();
+
+          console.log("Neural network initialized successfully!");
         }
 
-        function onMouseUp(event) {
-          isMouseDown = false;
-        }
-
-        function onMouseWheel(event) {
-          cameraDistance += event.deltaY * 0.1;
-          cameraDistance = Math.max(10, Math.min(200, cameraDistance));
-
-          camera.position.x =
-            cameraDistance * Math.sin(cameraPhi) * Math.cos(cameraTheta);
-          camera.position.y = cameraDistance * Math.cos(cameraPhi);
-          camera.position.z =
-            cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
-          camera.lookAt(cameraTarget);
-        }
-
-        // Add event listeners (attached to window so UI remains interactive)
-        window.addEventListener("mousemove", onMouseMove);
-        window.addEventListener("mousedown", onMouseDown);
-        window.addEventListener("mouseup", onMouseUp);
-        window.addEventListener("wheel", onMouseWheel);
-
-        // UI controls - with robust null checks
-        const playBtn = document.getElementById("play");
-        const resetBtn = document.getElementById("resetNetwork");
-        const showWeightsBtn = document.getElementById("showWeights");
-        const networkSizeSlider = document.getElementById("networkSize");
-        const inputSlider = document.getElementById("inputCurrent");
-        const weightSlider = document.getElementById("synapseWeight");
-        const lessonSelect = document.getElementById("lessonSelect");
-        const prevLesson = document.getElementById("prevLesson");
-        const nextLesson = document.getElementById("nextLesson");
-        const viewLesson = document.getElementById("viewLesson");
-        const lessonModal = document.getElementById("lessonModal");
-        const closeModal = document.getElementById("closeModal");
-
-        if (playBtn) {
-          playBtn.addEventListener("click", () => {
-            isRunning = !isRunning;
-            playBtn.classList.toggle("on", isRunning);
-            playBtn.textContent = isRunning ? "Pause" : "Play";
-          });
-        }
-
-        if (resetBtn) {
-          resetBtn.addEventListener("click", () => {
-            createNetworkTopology();
-          });
-        }
-
-        if (showWeightsBtn) {
-          showWeightsBtn.addEventListener("click", () => {
-            showWeights = !showWeights;
-            if (lines && lines.material) {
-              lines.material.visible = showWeights;
-            }
-            showWeightsBtn.classList.toggle("on", showWeights);
-          });
-        }
-
-        if (networkSizeSlider) {
-          networkSizeSlider.addEventListener("input", (e) => {
-            const sizeValueEl = document.getElementById("sizeValue");
-            if (sizeValueEl) sizeValueEl.textContent = e.target.value;
-          });
-          networkSizeSlider.addEventListener("change", () => {
-            createNetworkTopology();
-          });
-        }
-
-        if (inputSlider) {
-          inputSlider.addEventListener("input", (e) => {
-            const inputValueEl = document.getElementById("inputValue");
-            if (inputValueEl) inputValueEl.textContent = e.target.value;
-          });
-        }
-
-        if (weightSlider) {
-          weightSlider.addEventListener("input", (e) => {
-            const weightValueEl = document.getElementById("weightValue");
-            if (weightValueEl) weightValueEl.textContent = e.target.value;
-          });
-        }
-
-        if (prevLesson && lessonSelect) {
-          prevLesson.addEventListener("click", () => {
-            lessonSelect.selectedIndex = Math.max(
-              0,
-              lessonSelect.selectedIndex - 1
-            );
-          });
-        }
-
-        if (nextLesson && lessonSelect) {
-          nextLesson.addEventListener("click", () => {
-            lessonSelect.selectedIndex = Math.min(
-              lessonSelect.options.length - 1,
-              lessonSelect.selectedIndex + 1
-            );
-          });
-        }
-
-        if (viewLesson && lessonModal && lessonSelect) {
-          viewLesson.addEventListener("click", () => {
-            const lessonFrame = document.getElementById("lessonFrame");
-            lessonModal.style.display = "block";
-            if (lessonFrame) {
-              lessonFrame.srcdoc =
-                "<h2>" +
-                lessonSelect.options[lessonSelect.selectedIndex].text +
-                "</h2>";
-            }
-          });
-        }
-
-        if (closeModal && lessonModal) {
-          closeModal.addEventListener("click", () => {
-            const lessonFrame = document.getElementById("lessonFrame");
-            lessonModal.style.display = "none";
-            if (lessonFrame) lessonFrame.src = "";
-          });
-        }
-
-        connectWS();
-        animate();
-
-        console.log("Neural network initialized successfully!");
-      }
-
-      // Start when page loads
-      document.addEventListener("DOMContentLoaded", initNeuralNetwork);
+        // Start when page loads
+        initNeuralNetwork();
+      });
     </script>
   </body>
 </html>
