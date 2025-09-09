@@ -94,7 +94,12 @@
     }
 
     /* small adjustments for sprites (canvas textures) - ensure sharp rendering */
-    .sprite-label { image-rendering: -moz-crisp-edges; image-rendering: pixelated; }
+    .sprite-label { 
+      image-rendering: -webkit-optimize-contrast; /* Fallback for Edge 79+ */
+      image-rendering: -moz-crisp-edges; 
+      image-rendering: crisp-edges; 
+      image-rendering: pixelated; 
+    }
 
     /* Ensure the lesson select and other inputs are clearly visible */
     select, input, button {
