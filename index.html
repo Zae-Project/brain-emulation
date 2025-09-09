@@ -15,10 +15,10 @@
       radial-gradient(1400px 900px at 30% 0%, #1e293b22, transparent 70%),
       radial-gradient(1000px 600px at 80% 100%, #1e1b4b22, transparent 60%);}    
     #hud{position:fixed;left:20px;top:20px;display:flex;gap:14px;align-items:center;background:rgba(18,21,28,0.85);padding:12px 16px;border-radius:16px;border:1px solid #1e293b;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 8px 25px rgba(0,0,0,0.4)}
-    .btn{border:1px solid rgba(255,255,255,0.06);border-radius:12px;background:linear-gradient(135deg,#0b1220,#081018);color:#e6f7ff;cursor:pointer;padding:10px 14px;transition:all 0.18s ease;box-shadow:0 2px 6px rgba(0,0,0,0.6)}
-    .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.6)}
-    .btn.on{background:linear-gradient(135deg,#00f0ff,#9a00ff);color:#fff;border-color:rgba(160,255,255,0.55);box-shadow:0 0 12px rgba(0,240,255,0.12),0 0 28px rgba(154,0,255,0.06) inset}
-    .range{accent-color:#3b82f6}
+    .btn{border:1px solid rgba(255,255,255,0.06);border-radius:12px;background:rgba(12,8,18,0.9);color:#f3f2ff;cursor:pointer;padding:10px 14px;transition:all 0.12s ease;box-shadow:0 2px 8px rgba(0,0,0,0.6)}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.6)}
+    .btn.on{background:#ff00d6;color:#06010a;border-color:rgba(255,0,214,0.35);box-shadow:0 0 18px rgba(255,0,214,0.12)}
+    .range{accent-color:#ff00d6}
     #panel{position:fixed;right:20px;top:20px;width:300px;background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,0.5)}
     #panel h4{margin:0 0 8px;font-weight:600;color:#f1f5f9;font-size:15px}
     #trace{width:100%;height:150px;background:#0f172a;border-radius:12px;border:1px solid #1e293b}
@@ -34,82 +34,49 @@
 
     /* Panel borders and consistent dark panels */
     #hud, #panel, #controls, #info, #lessonPanel, #lessonModal > div {
-      background: linear-gradient(180deg, rgba(18,21,28,0.96), rgba(16,18,22,0.96));
-      border: 1px solid rgba(180,180,190,0.08); /* very thin grey border */
+      background: #0b0c0f;
+      border: 1px solid rgba(200,200,200,0.06); /* very thin grey border */
     }
 
     /* Neon buttons and active state */
     .btn {
       border: 1px solid rgba(255,255,255,0.06);
-      background: linear-gradient(135deg,#0b1220,#081018);
-      color: #e6f7ff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-      transition: all 0.18s ease;
+      background: rgba(12,8,18,0.9); /* dark base */
+      color: #f3f2ff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+      transition: all 0.12s ease;
     }
     .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
     }
     .btn.on {
-      background: linear-gradient(135deg,#00f0ff,#9a00ff);
-      color: #fff;
-      border-color: rgba(160,255,255,0.55);
-      box-shadow: 0 0 12px rgba(0,240,255,0.12), 0 0 28px rgba(154,0,255,0.06) inset;
+      background: #ff00d6; /* neon magenta */
+      color: #06010a;
+      border-color: rgba(255,0,214,0.35);
+      box-shadow: 0 0 18px rgba(255,0,214,0.12);
     }
 
-    /* Neon range thumb/track where supported + fallback accent color */
+    /* Range neon accent (magenta) */
     .range { 
-      accent-color: #00f0ff; 
+      accent-color: #ff00d6; 
     }
     input[type="range"]::-webkit-slider-thumb{
-      background: linear-gradient(180deg,#00f0ff,#9a00ff);
-      box-shadow: 0 0 8px rgba(0,240,255,0.25);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: #ff00d6;
+      box-shadow: 0 0 8px rgba(255,0,214,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
     }
     input[type="range"]::-moz-range-thumb{
-      background: linear-gradient(180deg,#00f0ff,#9a00ff);
-      box-shadow: 0 0 8px rgba(0,240,255,0.25);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: #ff00d6;
+      box-shadow: 0 0 8px rgba(255,0,214,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
-    /* Lesson modal/title: force transparent backgrounds and dark text to avoid white boxes */
-    #lessonFullContent, #lessonFullContent h1, #lessonFullContent p, #lessonFullContent h2, #lessonFullContent h3 {
-      background: transparent !important;
-      color: var(--text) !important;
-      margin: 0 0 8px 0;
-      line-height: 1.5;
-    }
-    /* small card used inside right-hand info sections */
-    .lesson {
-      background: linear-gradient(180deg,#0b1116,#0f172a);
-      border: 1px solid rgba(150,150,160,0.06); /* very thin grey border */
-      color: var(--text);
-    }
+    /* Lesson full content: make text clear and ensure background transparent/dark */
+    #lessonFullContent { color: #e6e9ef; background: transparent; }
 
-    /* Make the info panels visually boxed with thin border */
-    #panel, #controls, #info {
-      border-radius: 12px;
-      border: 1px solid rgba(160,160,170,0.06);
-      background: linear-gradient(180deg, rgba(7,9,12,0.85), rgba(14,16,20,0.92));
-    }
-
-    /* small adjustments for sprites (canvas textures) - ensure sharp rendering */
-    .sprite-label {
-      /* Ensure Chromium-based Edge (79+) uses optimized contrast for sharp sprites */
-      image-rendering: -webkit-optimize-contrast;
-      /* Ensure Edge 79+ picks up optimized contrast before falling back to crisp-edges */
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: pixelated;
-    }
-
-    /* Ensure the lesson select and other inputs are clearly visible */
-    select, input, button {
-      color: #e6f7ff;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.04);
-    }
+    /* Sprite label (weight panels) default class kept for crispness */
+    .sprite-label { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
   </style>
 </head>
 <body>
@@ -715,46 +682,43 @@
 
     // Build sprites for supplied connections
     if (connGeom) {
-      conns.forEach((c, idx) => {
+      conns.forEach((c) => {
         const from = c.from, to = c.to;
         if (from >= 0 && to >= 0 && from < neurons.length && to < neurons.length) {
           const fromPos = neurons[from].position;
           const toPos = neurons[to].position;
           const mid = new THREE.Vector3().addVectors(fromPos, toPos).multiplyScalar(0.5);
 
-          // Create a canvas sprite with white background + thin grey border
           const canvas = document.createElement('canvas');
-          canvas.width = 128; canvas.height = 40;
+          canvas.width = 160; canvas.height = 44;
           const ctx = canvas.getContext('2d');
 
-          // background white panel
-          const r = 6; // rounded rect radius
-          ctx.fillStyle = "#ffffff";
-          roundRect(ctx, 2, 2, canvas.width-4, canvas.height-4, r, true, false);
-
-          // thin grey border
-          ctx.strokeStyle = "#cfcfcf";
+          // dark panel background (semi-opaque) with thin grey border
+          const pad = 4, w = canvas.width - pad*2, h = canvas.height - pad*2, r = 8;
+          ctx.fillStyle = '#0b0c0f'; // dark
+          roundRect(ctx, pad, pad, w, h, r, true, false);
+          ctx.strokeStyle = 'rgba(200,200,200,0.25)';
           ctx.lineWidth = 1;
-          roundRect(ctx, 2, 2, canvas.width-4, canvas.height-4, r, false, true);
+          roundRect(ctx, pad, pad, w, h, r, false, true);
 
-          // small neon bar indicating type/strength
-          const barColor = (c.type === 'inhibitory') ? '#ff416c' : '#00f0ff';
+          // neon small bar (magenta) to left
+          const barColor = (c.type === 'inhibitory') ? '#ff416c' : '#ff00d6';
           ctx.fillStyle = barColor;
-          ctx.fillRect(8, 8, Math.max(18, Math.min(96, (c.weight || 0) * 96)), 10);
+          const barW = Math.max(16, Math.min(96, (c.weight || 0) * 96));
+          ctx.fillRect(pad+8, pad+8, barW, 12);
 
-          // weight text (dark on white)
-          ctx.fillStyle = "#081018";
+          // weight text: light on dark
+          ctx.fillStyle = '#eef2ff';
           ctx.font = 'bold 12px Inter, system-ui, Helvetica, Arial';
           ctx.textAlign = 'right';
-          ctx.fillText((c.weight || 0).toFixed(3), canvas.width - 12, 26);
+          ctx.fillText((c.weight || 0).toFixed(3), canvas.width - pad - 8, pad + 28);
 
-          // Convert to texture and sprite
           const tex = new THREE.CanvasTexture(canvas);
           tex.minFilter = THREE.LinearFilter;
           const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true });
           const sprite = new THREE.Sprite(spriteMat);
           sprite.position.copy(mid);
-          sprite.scale.set(6.0, 1.8, 1.0);
+          sprite.scale.set(6.2, 1.7, 1.0);
           scene.add(sprite);
           connectionLabels.push(sprite);
         }
@@ -762,35 +726,71 @@
     }
   }
 
-  // helper: rounded rectangle for canvas
-  function roundRect(ctx, x, y, w, h, r, fill, stroke) {
-    if (typeof r === 'undefined') r = 5;
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y,   x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x,   y + h, r);
-    ctx.arcTo(x,   y + h, x,   y,   r);
-    ctx.arcTo(x,   y,   x + w, y,   r);
-    ctx.closePath();
-    if (fill) ctx.fill();
-    if (stroke) ctx.stroke();
+  // Hook missing controls: synapseWeight, connectionProb, networkSize, inject/test pattern
+  const synapseSlider = document.getElementById('synapseWeight');
+  if (synapseSlider) {
+    synapseSlider.addEventListener('input', () => {
+      const v = parseFloat(synapseSlider.value);
+      const label = document.getElementById('weightValue');
+      if (label) label.textContent = v.toFixed(2);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ cmd: 'setWeight', value: v }));
+      }
+    });
   }
 
-  // Minimal lesson content and modal helpers (restore original lesson behavior)
-  const lessonContent = {
-    1: { title: "Basic Spike Dynamics", content: `<h1>Lesson 1: Basic Spike Dynamics</h1><p>Each neuron integrates input until threshold.</p>` },
-    2: { title: "Synaptic Transmission", content: `<h1>Lesson 2: Synaptic Transmission</h1><p>Explore synapses and weights.</p>` },
-    3: { title: "Network Plasticity", content: `<h1>Lesson 3: Network Plasticity</h1><p>Learn about adaptation and STDP.</p>` },
-    4: { title: "Pattern Recognition", content: `<h1>Lesson 4: Pattern Recognition</h1><p>Inject and test patterns.</p>` }
-  };
-  let currentLesson = 1;
+  const probSlider = document.getElementById('connectionProb');
+  if (probSlider) {
+    probSlider.addEventListener('input', () => {
+      const v = parseFloat(probSlider.value);
+      const label = document.getElementById('probValue');
+      if (label) label.textContent = v.toFixed(3);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ cmd: 'setConnectionProb', value: v }));
+      }
+    });
+  }
 
-  function openLessonModal() {
-    const modal = document.getElementById('lessonModal');
-    const content = document.getElementById('lessonFullContent');
-    if (!modal || !content) return;
-    modal.style.display = 'block';
-    const lesson = lessonContent[currentLesson];
+  const sizeSlider = document.getElementById('networkSize');
+  if (sizeSlider) {
+    sizeSlider.addEventListener('input', () => {
+      const v = parseInt(sizeSlider.value, 10);
+      const label = document.getElementById('sizeValue');
+      if (label) label.textContent = v;
+      // send command to server to rebuild network with new size
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ cmd: 'setNetworkSize', value: v }));
+        // also request reset to apply immediately
+        ws.send(JSON.stringify({ cmd: 'reset' }));
+      }
+    });
+  }
+
+  const injectBtn = document.getElementById('injectPattern');
+  if (injectBtn) injectBtn.addEventListener('click', () => { if (ws && ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify({cmd:'injectPattern'})); });
+
+  const testBtn = document.getElementById('testMemory');
+  if (testBtn) testBtn.addEventListener('click', () => { if (ws && ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify({cmd:'testMemory'})); });
+
+  // lesson navigation handlers
+  const lessonSel = document.getElementById('lessonSelect');
+  if (lessonSel) {
+    lessonSel.addEventListener('change', (e) => {
+      currentLesson = parseInt(e.target.value, 10) || 1;
+      updateLessonContent(); updateLessonControls();
+    });
+  }
+  const prevBtn = document.getElementById('prevLesson');
+  if (prevBtn) prevBtn.addEventListener('click', () => { currentLesson = Math.max(1, currentLesson-1); updateLessonContent(); updateLessonControls(); updateNavigationButtons(); });
+  const nextBtn = document.getElementById('nextLesson');
+  if (nextBtn) nextBtn.addEventListener('click', () => { currentLesson = Math.min(4, currentLesson+1); updateLessonContent(); updateLessonControls(); updateNavigationButtons(); });
+
+  // ensure trace and other calls remain unchanged
+  // ...existing code...
+})();
+</script>
+
+<!-- ...existing code... -->
     content.innerHTML = lesson ? lesson.content : `<p>Lesson ${currentLesson} not available.</p>`;
   }
 
