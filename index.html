@@ -174,276 +174,441 @@
     }
   }
 
-  const DPR=Math.min(window.devicePixelRatio||1,2);
-  const NUM=50, R=45, Y_OFFSET = -25;
-  const N_EXC = 40, N_INH = 10;  // 80% excitatory, 20% inhibitory
+  const NUM=50, N_EXC = 40, N_INH = 10;
   
-  // Initialize Three.js scene ONCE
-  console.log('Initializing Three.js scene...');
-  const scene=new THREE.Scene(); 
-  scene.background=new THREE.Color(0x080a10);
-  const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.1,2000); 
-  camera.position.set(0,-15,110);
-  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); 
-  renderer.setPixelRatio(DPR); 
-  renderer.setSize(innerWidth,innerHeight); 
-  document.body.appendChild(renderer.domElement);
+  // STUNNING CLUSTER COLORS - inspired by premium neural network visualizations
+  const CLUSTER_COLORS = [
+    { primary: new THREE.Color(0.2, 0.8, 1.0), glow: new THREE.Color(0.4, 0.9, 1.0), name: "Sensory" },     // Cyan
+    { primary: new THREE.Color(1.0, 0.4, 0.8), glow: new THREE.Color(1.0, 0.6, 0.9), name: "Motor" },       // Magenta
+    { primary: new THREE.Color(0.8, 1.0, 0.2), glow: new THREE.Color(0.9, 1.0, 0.4), name: "Memory" },      // Lime
+    { primary: new THREE.Color(1.0, 0.8, 0.2), glow: new THREE.Color(1.0, 0.9, 0.4), name: "Control" },     // Orange
+    { primary: new THREE.Color(1.0, 0.2, 0.2), glow: new THREE.Color(1.0, 0.4, 0.4), name: "Inhibitory" }   // Red
+  ];
 
-  // Enhanced lighting for premium look
-  scene.add(new THREE.AmbientLight(0x1e293b, 0.4));
-  const key=new THREE.PointLight(0x60a5fa, 1.2); 
-  key.position.set(80, 100, 120); 
-  key.castShadow = true;
-  key.shadow.mapSize.width = 2048;
-  key.shadow.mapSize.height = 2048;
-  scene.add(key);
+  // Initialize Three.js with PREMIUM QUALITY
+  console.log('Initializing PREMIUM Three.js scene...');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);  // Pure black background
+  scene.fog = new THREE.Fog(0x000000, 100, 300);  // Atmospheric depth
   
-  const fill=new THREE.PointLight(0x3b82f6, 0.6); 
-  fill.position.set(-80, -50, -30); 
-  scene.add(fill);
+  const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 2000);
+  camera.position.set(0, 0, 120);
   
-  const accent=new THREE.PointLight(0xf223e0, 0.3); 
-  accent.position.set(0, 50, 50); 
-  scene.add(accent);
-
-  // Enable shadows for premium look
+  const renderer = new THREE.WebGLRenderer({antialias: true, alpha: false, powerPreference: "high-performance"});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  document.body.appendChild(renderer.domElement);
 
-  // Create glow texture
-  const glowTex=(()=>{
-    const s=128,c=document.createElement('canvas');
-    c.width=c.height=s;
-    const g=c.getContext('2d');
-    const grd=g.createRadialGradient(s/2,s/2,1,s/2,s/2,s/2);
-    grd.addColorStop(0,'rgba(96,165,250,0.9)');
-    grd.addColorStop(0.4,'rgba(59,130,246,0.6)');
-    grd.addColorStop(1,'rgba(0,0,0,0)');
-    g.fillStyle=grd;
-    g.fillRect(0,0,s,s);
-    const t=new THREE.CanvasTexture(c);
-    t.magFilter=THREE.LinearFilter;
-    return t;
-  })();
+  // CINEMATIC LIGHTING SETUP
+  scene.add(new THREE.AmbientLight(0x0a0a0a, 0.3));  // Very dim ambient
 
-  // FIXED: Declare all arrays ONCE at the top
-  const neurons=[], glows=[], connIdx=[], outgoing=[];
-  let connGeom, col, lines;
+  // Main key light
+  const keyLight = new THREE.PointLight(0x4080ff, 2.0, 200);
+  keyLight.position.set(80, 80, 80);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.width = 2048;
+  keyLight.shadow.mapSize.height = 2048;
+  scene.add(keyLight);
 
-  // Create REALISTIC neural network topology
-  console.log('Creating realistic neural network...');
-  
-  // Different geometries for different neuron types
-  const excGeo = new THREE.SphereGeometry(1.4, 32, 32);
-  const inhGeo = new THREE.SphereGeometry(1.0, 24, 24);  // Smaller inhibitory neurons
-  
-  // Materials for different neuron types
-  const excMat = () => new THREE.MeshStandardMaterial({
-    color: 0x1e40af,  // Blue for excitatory
-    emissive: 0x0f172a,
-    roughness: 0.1,
-    metalness: 0.9
+  // Accent lights for different clusters
+  const accentLights = [];
+  CLUSTER_COLORS.forEach((cluster, i) => {
+    const angle = (i / CLUSTER_COLORS.length) * Math.PI * 2;
+    const light = new THREE.PointLight(cluster.primary.getHex(), 0.8, 150);
+    light.position.set(
+      Math.cos(angle) * 100,
+      Math.sin(angle) * 100,
+      Math.sin(angle * 2) * 50
+    );
+    scene.add(light);
+    accentLights.push(light);
   });
-  
-  const inhMat = () => new THREE.MeshStandardMaterial({
-    color: 0xef4444,  // Red for inhibitory
-    emissive: 0x2d1b1b,
-    roughness: 0.2,
-    metalness: 0.8
-  });
-  
-  // REALISTIC SPATIAL ARRANGEMENT
-  function createRealisticTopology() {
-    // Create excitatory neurons in clustered groups
-    for(let i = 0; i < N_EXC; i++){
-      // Create 4 clusters of excitatory neurons
-      const cluster = Math.floor(i / (N_EXC / 4));
-      const clusterAngle = (cluster / 4) * Math.PI * 2;
-      const withinCluster = i % (N_EXC / 4);
-      
-      // Position within cluster
-      const localAngle = (withinCluster / (N_EXC / 4)) * Math.PI * 0.5;
-      const localRadius = R * 0.7;
-      
-      const x = Math.cos(clusterAngle) * R + Math.cos(localAngle) * localRadius * 0.3;
-      const y = Math.sin(clusterAngle) * R + Math.sin(localAngle) * localRadius * 0.3 + Y_OFFSET;
-      const z = (i - N_EXC/2) * 0.15 + (Math.random() - 0.5) * 2;  // Add some depth variation
-      
-      const m = new THREE.Mesh(excGeo, excMat());
-      m.position.set(x, y, z);
-      m.userData = {i, pulse: 0, volt: 0, type: 'excitatory'};
-      m.castShadow = true;
-      m.receiveShadow = true;
-      scene.add(m);
-      neurons.push(m);
-      
-      // Blue glow for excitatory
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: glowTex,
-        color: 0x3b82f6,
+
+  // PARTICLE SYSTEM for connection flows
+  class ConnectionFlow {
+    constructor() {
+      this.particles = [];
+      this.geometry = new THREE.BufferGeometry();
+      this.material = new THREE.PointsMaterial({
+        size: 2,
         transparent: true,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      }));
-      s.position.copy(m.position);
-      s.scale.set(5, 5, 1);
-      scene.add(s);
-      glows.push(s);
+        opacity: 0.8,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending
+      });
+      this.points = new THREE.Points(this.geometry, this.material);
+      scene.add(this.points);
+    }
+
+    addFlow(fromPos, toPos, color, speed = 0.02) {
+      for (let i = 0; i < 5; i++) {
+        this.particles.push({
+          start: fromPos.clone(),
+          end: toPos.clone(),
+          current: fromPos.clone(),
+          color: color,
+          progress: i * 0.2,
+          speed: speed + Math.random() * 0.01,
+          life: 1.0
+        });
+      }
+    }
+
+    update() {
+      const positions = [];
+      const colors = [];
+
+      this.particles = this.particles.filter(particle => {
+        particle.progress += particle.speed;
+        particle.life -= 0.01;
+
+        if (particle.progress >= 1.0 || particle.life <= 0) return false;
+
+        // Smooth interpolation along connection
+        particle.current.lerpVectors(particle.start, particle.end, 
+          THREE.MathUtils.smoothstep(particle.progress, 0, 1));
+
+        positions.push(particle.current.x, particle.current.y, particle.current.z);
+        colors.push(particle.color.r, particle.color.g, particle.color.b);
+
+        return true;
+      });
+
+      this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      this.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    }
+  }
+
+  const connectionFlow = new ConnectionFlow();
+
+  // PREMIUM NEURAL NETWORK TOPOLOGY
+  const neurons = [], glows = [], connectionLabels = [];
+  let connections = [];
+
+  function createStunningNetworkTopology() {
+    // Clear existing
+    neurons.forEach(n => scene.remove(n));
+    glows.forEach(g => scene.remove(g));
+    neurons.length = 0;
+    glows.length = 0;
+
+    // Create 4 distinct clusters in 3D space
+    const clusterCenters = [
+      new THREE.Vector3(-40, 30, 20),   // Sensory cluster
+      new THREE.Vector3(40, 30, -20),   // Motor cluster  
+      new THREE.Vector3(-40, -30, -20), // Memory cluster
+      new THREE.Vector3(40, -30, 20),   // Control cluster
+    ];
+
+    // Create excitatory neurons in clusters
+    for (let i = 0; i < N_EXC; i++) {
+      const clusterId = Math.floor(i / (N_EXC / 4));
+      const clusterCenter = clusterCenters[clusterId];
+      const clusterColor = CLUSTER_COLORS[clusterId];
+      
+      // Position within cluster with some randomness
+      const angle = (i % (N_EXC / 4)) / (N_EXC / 4) * Math.PI * 2;
+      const radius = 8 + Math.random() * 6;
+      const height = (Math.random() - 0.5) * 8;
+      
+      const position = new THREE.Vector3(
+        clusterCenter.x + Math.cos(angle) * radius + (Math.random() - 0.5) * 4,
+        clusterCenter.y + Math.sin(angle) * radius + (Math.random() - 0.5) * 4,
+        clusterCenter.z + height
+      );
+
+      // High-quality neuron geometry
+      const geometry = new THREE.SphereGeometry(1.8, 32, 32);
+      const material = new THREE.MeshPhysicalMaterial({
+        color: clusterColor.primary,
+        emissive: new THREE.Color(0x000000),
+        roughness: 0.1,
+        metalness: 0.9,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1,
+        transparent: true,
+        opacity: 0.9
+      });
+
+      const neuron = new THREE.Mesh(geometry, material);
+      neuron.position.copy(position);
+      neuron.userData = {
+        id: i,
+        cluster: clusterId,
+        pulse: 0,
+        volt: 0,
+        type: 'excitatory',
+        originalColor: clusterColor.primary.clone(),
+        glowColor: clusterColor.glow.clone()
+      };
+      neuron.castShadow = true;
+      neuron.receiveShadow = true;
+      scene.add(neuron);
+      neurons.push(neuron);
+
+      // Stunning glow effect
+      const glowGeometry = new THREE.SphereGeometry(3.5, 16, 16);
+      const glowMaterial = new THREE.MeshBasicMaterial({
+        color: clusterColor.glow,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending
+      });
+      const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+      glow.position.copy(position);
+      scene.add(glow);
+      glows.push(glow);
+    }
+
+    // Create inhibitory neurons (distributed around the network)
+    for (let i = 0; i < N_INH; i++) {
+      const angle = (i / N_INH) * Math.PI * 2;
+      const radius = 60;
+      const height = (Math.random() - 0.5) * 20;
+      
+      const position = new THREE.Vector3(
+        Math.cos(angle) * radius,
+        Math.sin(angle) * radius,
+        height
+      );
+
+      const geometry = new THREE.OctahedronGeometry(1.5, 2);  // Different shape for inhibitory
+      const material = new THREE.MeshPhysicalMaterial({
+        color: CLUSTER_COLORS[4].primary,
+        emissive: new THREE.Color(0x000000),
+        roughness: 0.2,
+        metalness: 0.8,
+        transparent: true,
+        opacity: 0.9
+      });
+
+      const neuron = new THREE.Mesh(geometry, material);
+      neuron.position.copy(position);
+      neuron.userData = {
+        id: i + N_EXC,
+        cluster: 4,
+        pulse: 0,
+        volt: 0,
+        type: 'inhibitory',
+        originalColor: CLUSTER_COLORS[4].primary.clone(),
+        glowColor: CLUSTER_COLORS[4].glow.clone()
+      };
+      neuron.castShadow = true;
+      neuron.receiveShadow = true;
+      scene.add(neuron);
+      neurons.push(neuron);
+
+      // Red glow for inhibitory
+      const glowGeometry = new THREE.SphereGeometry(3.0, 16, 16);
+      const glowMaterial = new THREE.MeshBasicMaterial({
+        color: CLUSTER_COLORS[4].glow,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending
+      });
+      const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+      glow.position.copy(position);
+      scene.add(glow);
+      glows.push(glow);
+    }
+
+    console.log(`Created stunning network: ${N_EXC} excitatory + ${N_INH} inhibitory neurons`);
+  }
+
+  createStunningNetworkTopology();
+
+  // DYNAMIC CONNECTION VISUALIZATION
+  function updateConnectionVisualization(connectionsData) {
+    // Clear existing connection labels
+    connectionLabels.forEach(label => {
+      if (label.parent) label.parent.remove(label);
+    });
+    connectionLabels.length = 0;
+
+    if (!showWeights || !connectionsData || connectionsData.length === 0) return;
+
+    connections = connectionsData;
+
+    // Create beautiful connection lines
+    const connectionGeometry = new THREE.BufferGeometry();
+    const positions = [];
+    const colors = [];
+    
+    connections.forEach(conn => {
+      if (conn.from < neurons.length && conn.to < neurons.length) {
+        const fromPos = neurons[conn.from].position;
+        const toPos = neurons[conn.to].position;
+        
+        positions.push(fromPos.x, fromPos.y, fromPos.z);
+        positions.push(toPos.x, toPos.y, toPos.z);
+        
+        // Color based on connection type and strength
+        const color = conn.type === 'excitatory' ? 
+          new THREE.Color(0.2, 0.8, 1.0) : 
+          new THREE.Color(1.0, 0.2, 0.2);
+        
+        const intensity = Math.min(conn.weight * 3, 1.0);
+        color.multiplyScalar(intensity);
+        
+        colors.push(color.r, color.g, color.b);
+        colors.push(color.r, color.g, color.b);
+      }
+    });
+    
+    connectionGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    connectionGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    // Remove old lines
+    scene.children = scene.children.filter(child => !(child instanceof THREE.LineSegments));
+    
+    // Add new connection lines
+    const connectionMaterial = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending
+    });
+    
+    const connectionLines = new THREE.LineSegments(connectionGeometry, connectionMaterial);
+    scene.add(connectionLines);
+
+    console.log(`Visualized ${connections.length} stunning connections`);
+  }
+
+  // EPIC ANIMATION LOOP
+  function animate() {
+    requestAnimationFrame(animate);
+    
+    // Update neurons with STUNNING effects
+    neurons.forEach((neuron, i) => {
+      const userData = neuron.userData;
+      const glow = glows[i];
+      
+      if (userData.pulse > 0) {
+        userData.pulse *= 0.85;  // Smooth decay
+        const intensity = userData.pulse / 1.2;
+        
+        // EPIC firing effect
+        neuron.material.emissive.copy(userData.glowColor).multiplyScalar(intensity * 0.8);
+        neuron.scale.setScalar(1.0 + intensity * 0.3);
+        
+        // Stunning glow expansion
+        glow.material.opacity = intensity * 0.7;
+        glow.scale.setScalar(1.0 + intensity * 2.0);
+        
+        // Add particle flow to connected neurons
+        if (intensity > 0.5) {
+          connections.forEach(conn => {
+            if (conn.from === userData.id && Math.random() < 0.3) {
+              const targetNeuron = neurons[conn.to];
+              if (targetNeuron) {
+                connectionFlow.addFlow(
+                  neuron.position,
+                  targetNeuron.position,
+                  userData.glowColor,
+                  0.025
+                );
+              }
+            }
+          });
+        }
+      } else {
+        // Reset to base state
+        neuron.material.emissive.setRGB(0, 0, 0);
+        neuron.scale.setScalar(1.0);
+        glow.material.opacity = 0.0;
+        glow.scale.setScalar(1.0);
+      }
+      
+      // Voltage-based subtle color shift
+      const voltage = Math.max(0, Math.min(1, userData.volt || 0));
+      const baseColor = userData.originalColor.clone();
+      baseColor.lerp(userData.glowColor, voltage * 0.3);
+      neuron.material.color.copy(baseColor);
+      
+      // Subtle breathing effect based on voltage
+      neuron.material.opacity = 0.85 + voltage * 0.15;
+    });
+    
+    // Update flowing particles
+    connectionFlow.update();
+    
+    // Dynamic camera movement
+    const time = Date.now() * 0.0005;
+    camera.position.x = Math.cos(time * 0.3) * 5;
+    camera.position.y = Math.sin(time * 0.2) * 3;
+    camera.lookAt(0, 0, 0);
+    
+    // Dynamic accent lighting
+    accentLights.forEach((light, i) => {
+      const angle = time + i * Math.PI * 2 / accentLights.length;
+      light.intensity = 0.5 + Math.sin(angle) * 0.3;
+    });
+    
+    drawTrace();
+    renderer.render(scene, camera);
+  }
+
+  // WebSocket message handler
+  function handleMessage(e) {
+    const d = JSON.parse(e.data);
+    
+    if (d.volt) {
+      for (const k in d.volt) {
+        const i = +k;
+        if (neurons[i]) {
+          const v = d.volt[k];
+          neurons[i].userData.volt = v;
+          if (selected === i) {
+            traceBuf.push(v);
+            if (traceBuf.length > 200) traceBuf.shift();
+          }
+        }
+      }
     }
     
-    // Create inhibitory neurons distributed between clusters
-    for(let i = 0; i < N_INH; i++){
-      const angle = (i / N_INH) * Math.PI * 2;
-      const radius = R * 1.2;  // Outside the excitatory clusters
-      
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius + Y_OFFSET;
-      const z = (i - N_INH/2) * 0.3;
-      
-      const m = new THREE.Mesh(inhGeo, inhMat());
-      m.position.set(x, y, z);
-      m.userData = {i: i + N_EXC, pulse: 0, volt: 0, type: 'inhibitory'};
-      m.castShadow = true;
-      m.receiveShadow = true;
-      scene.add(m);
-      neurons.push(m);
-      
-      // Red glow for inhibitory
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: glowTex,
-        color: 0xef4444,
-        transparent: true,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      }));
-      s.position.copy(m.position);
-      s.scale.set(4, 4, 1);
-      scene.add(s);
-      glows.push(s);
+    if (d.spikes) {
+      d.spikes.forEach(spike => {
+        const i = spike.i;
+        if (neurons[i]) {
+          const neuron = neurons[i];
+          neuron.userData.pulse = 1.2;
+          
+          // EPIC cluster synchronization effect
+          const cluster = neuron.userData.cluster;
+          
+          // If multiple neurons in same cluster fire together, create cluster burst
+          const clusterSpikes = d.spikes.filter(s => 
+            neurons[s.i] && neurons[s.i].userData.cluster === cluster
+          );
+          
+          if (clusterSpikes.length > 1) {
+            // CLUSTER BURST EFFECT!
+            neurons.forEach(n => {
+              if (n.userData.cluster === cluster) {
+                n.userData.pulse = Math.max(n.userData.pulse, 1.5);
+              }
+            });
+            
+            // Intensify cluster accent light
+            if (accentLights[cluster]) {
+              accentLights[cluster].intensity = 2.0;
+            }
+          }
+        }
+      });
+    }
+    
+    if (d.cmd === "showConnections" && d.connections) {
+      console.log(`Received ${d.connections.length} premium connections`);
+      updateConnectionVisualization(d.connections);
     }
   }
-  
-  createRealisticTopology();
-  console.log(`Created ${N_EXC} excitatory + ${N_INH} inhibitory neurons`);
 
-  // Create connections will be handled when server sends connection data
-  connGeom = new THREE.BufferGeometry();
-  const lineMat = new THREE.LineBasicMaterial({
-    vertexColors: true,
-    transparent: true,
-    opacity: 0.3,
-    blending: THREE.AdditiveBlending
-  });
-  lines = new THREE.LineSegments(connGeom, lineMat);
-  scene.add(lines);
-  
-  for(let s=0;s<connIdx.length;s++){
-    const [src]=connIdx[s];
-    (outgoing[src]||(outgoing[src]=[])).push(s);
-  }
-
-  console.log(`Created ${connIdx.length} connections`);
-
-  // Controls with right-click drag
-  let isDragging=false, dragLastX=0, dragLastY=0;
-  let networkOffsetX=0, networkOffsetY=0;
-  let isDown=false,lastX=0,lastY=0,theta=1.0,phi=0.3,dist=110;
-  
-  function updateCam(){
-    const x=dist*Math.sin(theta)*Math.cos(phi);
-    const y=dist*Math.sin(theta)*Math.sin(phi) + Y_OFFSET;
-    const z=dist*Math.cos(theta);
-    camera.position.set(x,y,z);
-    camera.lookAt(networkOffsetX, networkOffsetY + Y_OFFSET, 0);
-  }
-  updateCam();
-  
-  document.addEventListener('mousedown',e=>{
-    if(e.button === 2) { // RIGHT CLICK
-      isDragging=true;
-      dragLastX=e.clientX;
-      dragLastY=e.clientY;
-      e.preventDefault();
-    } else if(e.button === 0) { // LEFT CLICK
-      isDown=true;
-      lastX=e.clientX;
-      lastY=e.clientY;
-    }
-  });
-  
-  document.addEventListener('mouseup',e=>{
-    if(e.button === 2) isDragging=false;
-    if(e.button === 0) isDown=false;
-  });
-  
-  document.addEventListener('mousemove',e=>{
-    if(isDragging) { // RIGHT DRAG - MOVE NETWORK
-      const dx=(e.clientX-dragLastX)*0.2;
-      const dy=-(e.clientY-dragLastY)*0.2;
-      
-      networkOffsetX += dx;
-      networkOffsetY += dy;
-      
-      for(let i=0;i<neurons.length;i++){
-        const angle = i/NUM*Math.PI*2;
-        const baseX = Math.cos(angle)*R + networkOffsetX;
-        const baseY = Math.sin(angle)*R + Y_OFFSET + networkOffsetY;
-        const baseZ = (i-NUM/2)*0.25;
-        
-        neurons[i].position.set(baseX, baseY, baseZ);
-        glows[i].position.set(baseX, baseY, baseZ);
-      }
-      
-      const positions=connGeom.getAttribute('position');
-      for(let s=0;s<connIdx.length;s++){
-        const [i,j]=connIdx[s];
-        const a=neurons[i].position,b=neurons[j].position;
-        const idx=s*6;
-        positions.array[idx]=a.x;
-        positions.array[idx+1]=a.y;
-        positions.array[idx+2]=a.z;
-        positions.array[idx+3]=b.x;
-        positions.array[idx+4]=b.y;
-        positions.array[idx+5]=b.z;
-      }
-      positions.needsUpdate=true;
-      
-      dragLastX=e.clientX;
-      dragLastY=e.clientY;
-      updateCam();
-    } else if(isDown) { // LEFT DRAG - ROTATE CAMERA
-      const dx=(e.clientX-lastX)/300, dy=(e.clientY-lastY)/300; 
-      phi+=dx; 
-      theta=Math.max(0.3,Math.min(Math.PI-0.3,theta+dy)); 
-      lastX=e.clientX; lastY=e.clientY; 
-      updateCam();
-    }
-  });
-  
-  document.addEventListener('contextmenu',e=>e.preventDefault());
-  
-  addEventListener('wheel',e=>{
-    dist=Math.max(60,Math.min(200,dist+e.deltaY*0.03)); 
-    updateCam()
-  },{passive:true});
-
-  // Neuron selection
-  let selected=null, traceBuf=[]; const hdr=document.getElementById('sel');
-  const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
-  addEventListener('click',e=>{
-    if(e.button === 0 && !isDragging) {
-      mouse.x=(e.clientX/innerWidth)*2-1; 
-      mouse.y=-(e.clientY/innerHeight)*2+1; 
-      ray.setFromCamera(mouse,camera); 
-      const hit=ray.intersectObjects(neurons)[0]; 
-      if(hit){
-        selected=hit.object.userData.i; 
-        traceBuf=[]; 
-        hdr.textContent='Neuron #'+selected
-      }
-    }
-  });
-  
   // Educational variables
   let showWeights = false;
   let currentLesson = 1;
@@ -617,6 +782,840 @@
         </div>
       `;
     }
+  }
+
+  // Educational controls setup
+  function setupEducationalControls() {
+    // Lesson dropdown functionality
+    const lessonSelect = document.getElementById('lessonSelect');
+    const prevBtn = document.getElementById('prevLesson');
+    const nextBtn = document.getElementById('nextLesson');
+    const viewBtn = document.getElementById('viewLesson');
+    
+    if (lessonSelect) {
+      lessonSelect.addEventListener('change', (e) => {
+        currentLesson = parseInt(e.target.value);
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    }
+    
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (currentLesson > 1) {
+          currentLesson--;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+    
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (currentLesson < 4) {
+          currentLesson++;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        openLessonModal();
+      });
+    }
+
+    // Modal controls
+    const closeModal = document.getElementById('closeModal');
+    const modal = document.getElementById('lessonModal');
+    
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    // Legacy lesson toggle buttons (keep for backwards compatibility)
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLesson = parseInt(btn.id.replace('lesson', ''));
+        lessonSelect.value = currentLesson;
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    });
+
+    // Input controls
+    const inputCurrent = document.getElementById('inputCurrent');
+    const inputValue = document.getElementById('inputValue');
+    if (inputCurrent && inputValue) {
+      inputCurrent.addEventListener('input', () => {
+        inputValue.textContent = inputCurrent.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
+        }
+      });
+    }
+
+    const synapseWeight = document.getElementById('synapseWeight');
+    const weightValue = document.getElementById('weightValue');
+    if (synapseWeight && weightValue) {
+      synapseWeight.addEventListener('input', () => {
+        weightValue.textContent = synapseWeight.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
+        }
+      });
+    }
+
+    const connectionProb = document.getElementById('connectionProb');
+    const probValue = document.getElementById('probValue');
+    if (connectionProb && probValue) {
+      connectionProb.addEventListener('input', () => {
+        probValue.textContent = connectionProb.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
+        }
+      });
+    }
+
+    // Buttons
+    const resetBtn = document.getElementById('resetNetwork');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'reset'}));
+        }
+      });
+    }
+
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
+        
+        // If hiding weights, clear labels immediately
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels = [];
+          
+          // Reset connection line colors to subtle
+          if (connGeom && col) {
+            const colors = connGeom.getAttribute('color');
+            for(let i = 0; i < colors.array.length; i += 3) {
+              colors.array[i] = 0.05;
+              colors.array[i+1] = 0.08;
+              colors.array[i+2] = 0.12;
+            }
+            colors.needsUpdate = true;
+          }
+        }
+        
+        console.log(`Weights visibility: ${showWeights}`);
+      });
+    }
+
+    // Pattern controls for lesson 4
+    const injectBtn = document.getElementById('injectPattern');
+    const testBtn = document.getElementById('testMemory');
+    
+    if (injectBtn) {
+      injectBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'injectPattern'}));
+        }
+      });
+    }
+
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'testMemory'}));
+        }
+      });
+    }
+  }
+
+  function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevLesson');
+    const nextBtn = document.getElementById('nextLesson');
+    
+    if (prevBtn) {
+      prevBtn.disabled = currentLesson === 1;
+      prevBtn.style.opacity = currentLesson === 1 ? '0.5' : '1';
+    }
+    
+    if (nextBtn) {
+      nextBtn.disabled = currentLesson === 4;
+      nextBtn.style.opacity = currentLesson === 4 ? '0.5' : '1';
+    }
+  }
+
+  function updateLessonControls() {
+    // Show/hide controls based on current lesson
+    const patternControls = document.getElementById('patternControls');
+    const allControls = ['inputCurrent', 'synapseWeight', 'connectionProb', 'showWeights', 'resetNetwork'];
+    
+    // Show relevant controls for each lesson
+    const lessonControlsMap = {
+      1: ['inputCurrent', 'resetNetwork'],
+      2: ['inputCurrent', 'synapseWeight', 'showWeights', 'resetNetwork'], 
+      3: ['inputCurrent', 'synapseWeight', 'connectionProb', 'resetNetwork'],
+      4: ['inputCurrent', 'synapseWeight', 'resetNetwork']
+    };
+
+    // Hide all controls first
+    allControls.forEach(id => {
+      const element = document.getElementById(id);
+      if (element && element.closest('.control-group')) {
+        element.closest('.control-group').style.display = 'none';
+      }
+    });
+
+    // Show relevant controls
+    lessonControlsMap[currentLesson].forEach(id => {
+      const element = document.getElementById(id);
+      if (element && element.closest('.control-group')) {
+        element.closest('.control-group').style.display = 'block';
+      }
+    });
+
+    // Show pattern controls only for lesson 4
+    if (patternControls) {
+      patternControls.style.display = currentLesson === 4 ? 'block' : 'none';
+    }
+
+    // Update toggle buttons
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    const activeToggle = document.getElementById(`lesson${currentLesson}`);
+    if (activeToggle) {
+      activeToggle.classList.add('active');
+    }
+  }
+
+  function updateLessonContent() {
+    const lessons = {
+      1: "Learn how individual neurons integrate input and generate spikes when reaching threshold. Click a neuron to see its voltage trace.",
+      2: "Explore how neurons communicate through synaptic connections and network interactions. Adjust weights to see propagation effects.",
+      3: "Understand how networks adapt and learn through activity-dependent changes. Experiment with connection density.",
+      4: "Discover how spiking networks can detect and learn temporal patterns. Use pattern injection and memory testing."
+    };
+    
+    const contentDiv = document.getElementById('lessonContent');
+    if (contentDiv && lessons[currentLesson]) {
+      contentDiv.innerHTML = `
+        <div class="lesson">
+          <strong>Lesson ${currentLesson}</strong><br>
+          ${lessons[currentLesson]}
+          <br><br>
+          <button onclick="document.getElementById('viewLesson').click()" style="background:#f223e0;border:none;color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">
+            📖 View Full Lesson
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  const drawTrace=()=>{
+    const c=document.getElementById('trace').getContext('2d'); 
+    c.fillStyle='#0f172a'; 
+    c.fillRect(0,0,260,150); 
+    
+    if(selected===null) {
+      const voltageValue = document.getElementById('voltageValue');
+      if (voltageValue) voltageValue.textContent = '--';
+      return;
+    }
+    
+    // Update voltage display
+    const currentVoltage = neurons[selected].userData.volt || 0;
+    const voltageValue = document.getElementById('voltageValue');
+    if (voltageValue) {
+      voltageValue.textContent = currentVoltage.toFixed(3);
+    }
+    
+    // Draw threshold line
+    c.strokeStyle='#60a5fa'; 
+    c.lineWidth=1;
+    c.setLineDash([5, 5]);
+    const thresholdY = 148 - 1.0 * 130;
+    c.beginPath();
+    c.moveTo(2, thresholdY);
+    c.lineTo(258, thresholdY);
+    c.stroke();
+    c.setLineDash([]);
+    
+    // Draw voltage trace
+    if(traceBuf.length >= 2) {
+      c.strokeStyle='#f223e0'; 
+      c.lineWidth=2;
+      c.beginPath(); 
+      const L=traceBuf.length; 
+      for(let i=0;i<L;i++){
+        const x=i/(L-1)*256+2;
+        const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65;
+        i?c.lineTo(x,y):c.moveTo(x,y);
+      } 
+      c.stroke();
+    }
+    
+    // Add voltage scale labels
+    c.fillStyle='#94a3b8';
+    c.font='10px Inter';
+    c.fillText('2.0V', 5, 15);
+    c.fillText('1.0V', 5, 83);
+    c.fillText('0.0V', 5, 145);
+  };
+
+  // WebSocket message handler
+  function handleMessage(e) {
+    const d=JSON.parse(e.data);
+    if(d.volt){ 
+      for(const k in d.volt){ 
+        const i=+k; 
+        if(neurons[i]){ 
+          const v=d.volt[k]; 
+          neurons[i].userData.volt=v; 
+          if(selected===i){ 
+            traceBuf.push(v); 
+            if(traceBuf.length>200) traceBuf.shift();
+          } 
+        } 
+      } 
+    }
+    if(d.spikes){ 
+      d.spikes.forEach(s=>{
+        const i=s.i; 
+        if(!neurons[i]) return; 
+        const n=neurons[i]; 
+        n.userData.pulse=1.2; 
+        
+        (outgoing[i]||[]).forEach(seg=>{
+          const a=seg*2*3, b=(seg*2+1)*3; 
+          col.array[a]=col.array[b]=0.9; 
+          col.array[a+1]=col.array[b+1]=0.95; 
+          col.array[a+2]=col.array[b+2]=1.0;
+        }); 
+        col.needsUpdate=true;
+      }); 
+    }
+    // FIXED: Handle connection visualization
+    if(d.cmd === "showConnections" && d.connections) {
+      console.log(`Received ${d.connections.length} connections`);
+      updateConnectionVisualization(d.connections);
+    }
+  }
+
+  // FIXED: Add connection visualization function
+  function updateConnectionVisualization(connections) {
+    // Clear existing visualization
+    connectionLabels.forEach(label => {
+      if (label.parent) label.parent.remove(label);
+    });
+    connectionLabels = [];
+
+    if (!showWeights || connections.length === 0) return;
+
+    // Create new connection geometry
+    const positions = [];
+    const colors = [];
+    
+    connections.forEach(conn => {
+      if (conn.from < neurons.length && conn.to < neurons.length) {
+        const fromPos = neurons[conn.from].position;
+        const toPos = neurons[conn.to].position;
+        
+        positions.push(fromPos.x, fromPos.y, fromPos.z);
+        positions.push(toPos.x, toPos.y, toPos.z);
+        
+        // Color based on connection type
+        if (conn.type === 'excitatory') {
+          colors.push(0.2, 0.6, 1.0, 0.2, 0.6, 1.0);  // Blue
+        } else {
+          colors.push(1.0, 0.3, 0.3, 1.0, 0.3, 0.3);  // Red for inhibitory
+        }
+        
+        // Add weight label at midpoint
+        const midPoint = new THREE.Vector3(
+          (fromPos.x + toPos.x) / 2,
+          (fromPos.y + toPos.y) / 2,
+          (fromPos.z + toPos.z) / 2
+        );
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 32;
+        
+        context.fillStyle = conn.type === 'excitatory' ? '#60a5fa' : '#ef4444';
+        context.font = '10px Inter';
+        context.textAlign = 'center';
+        context.fillText(conn.weight.toFixed(3), 32, 20);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+          map: texture, 
+          transparent: true,
+          opacity: 0.7
+        });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.copy(midPoint);
+        sprite.scale.set(3, 1.5, 1);
+        
+        scene.add(sprite);
+        connectionLabels.push(sprite);
+      }
+    });
+    
+    // Update geometry
+    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    console.log(`Visualized ${connections.length} realistic connections`);
+  }
+
+  // Educational controls setup
+  function setupEducationalControls() {
+    // Lesson dropdown functionality
+    const lessonSelect = document.getElementById('lessonSelect');
+    const prevBtn = document.getElementById('prevLesson');
+    const nextBtn = document.getElementById('nextLesson');
+    const viewBtn = document.getElementById('viewLesson');
+    
+    if (lessonSelect) {
+      lessonSelect.addEventListener('change', (e) => {
+        currentLesson = parseInt(e.target.value);
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    }
+    
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (currentLesson > 1) {
+          currentLesson--;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+    
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (currentLesson < 4) {
+          currentLesson++;
+          lessonSelect.value = currentLesson;
+          updateLessonContent();
+          updateLessonControls();
+          updateNavigationButtons();
+        }
+      });
+    }
+
+    if (viewBtn) {
+      viewBtn.addEventListener('click', () => {
+        openLessonModal();
+      });
+    }
+
+    // Modal controls
+    const closeModal = document.getElementById('closeModal');
+    const modal = document.getElementById('lessonModal');
+    
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    // Legacy lesson toggle buttons (keep for backwards compatibility)
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLesson = parseInt(btn.id.replace('lesson', ''));
+        lessonSelect.value = currentLesson;
+        updateLessonContent();
+        updateLessonControls();
+        updateNavigationButtons();
+      });
+    });
+
+    // Input controls
+    const inputCurrent = document.getElementById('inputCurrent');
+    const inputValue = document.getElementById('inputValue');
+    if (inputCurrent && inputValue) {
+      inputCurrent.addEventListener('input', () => {
+        inputValue.textContent = inputCurrent.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setInput', value: parseFloat(inputCurrent.value)}));
+        }
+      });
+    }
+
+    const synapseWeight = document.getElementById('synapseWeight');
+    const weightValue = document.getElementById('weightValue');
+    if (synapseWeight && weightValue) {
+      synapseWeight.addEventListener('input', () => {
+        weightValue.textContent = synapseWeight.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setWeight', value: parseFloat(synapseWeight.value)}));
+        }
+      });
+    }
+
+    const connectionProb = document.getElementById('connectionProb');
+    const probValue = document.getElementById('probValue');
+    if (connectionProb && probValue) {
+      connectionProb.addEventListener('input', () => {
+        probValue.textContent = connectionProb.value;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'setConnectionProb', value: parseFloat(connectionProb.value)}));
+        }
+      });
+    }
+
+    // Buttons
+    const resetBtn = document.getElementById('resetNetwork');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'reset'}));
+        }
+      });
+    }
+
+    const showWeightsBtn = document.getElementById('showWeights');
+    if (showWeightsBtn) {
+      showWeightsBtn.addEventListener('click', () => {
+        showWeights = !showWeights;
+        showWeightsBtn.textContent = showWeights ? 'Hide Weights' : 'Show Weights';
+        showWeightsBtn.classList.toggle('on', showWeights);
+        
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'toggleWeights'}));
+        }
+        
+        // If hiding weights, clear labels immediately
+        if (!showWeights) {
+          connectionLabels.forEach(label => {
+            if (label.parent) label.parent.remove(label);
+          });
+          connectionLabels = [];
+          
+          // Reset connection line colors to subtle
+          if (connGeom && col) {
+            const colors = connGeom.getAttribute('color');
+            for(let i = 0; i < colors.array.length; i += 3) {
+              colors.array[i] = 0.05;
+              colors.array[i+1] = 0.08;
+              colors.array[i+2] = 0.12;
+            }
+            colors.needsUpdate = true;
+          }
+        }
+        
+        console.log(`Weights visibility: ${showWeights}`);
+      });
+    }
+
+    // Pattern controls for lesson 4
+    const injectBtn = document.getElementById('injectPattern');
+    const testBtn = document.getElementById('testMemory');
+    
+    if (injectBtn) {
+      injectBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'injectPattern'}));
+        }
+      });
+    }
+
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({cmd:'testMemory'}));
+        }
+      });
+    }
+  }
+
+  function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevLesson');
+    const nextBtn = document.getElementById('nextLesson');
+    
+    if (prevBtn) {
+      prevBtn.disabled = currentLesson === 1;
+      prevBtn.style.opacity = currentLesson === 1 ? '0.5' : '1';
+    }
+    
+    if (nextBtn) {
+      nextBtn.disabled = currentLesson === 4;
+      nextBtn.style.opacity = currentLesson === 4 ? '0.5' : '1';
+    }
+  }
+
+  function updateLessonControls() {
+    // Show/hide controls based on current lesson
+    const patternControls = document.getElementById('patternControls');
+    const allControls = ['inputCurrent', 'synapseWeight', 'connectionProb', 'showWeights', 'resetNetwork'];
+    
+    // Show relevant controls for each lesson
+    const lessonControlsMap = {
+      1: ['inputCurrent', 'resetNetwork'],
+      2: ['inputCurrent', 'synapseWeight', 'showWeights', 'resetNetwork'], 
+      3: ['inputCurrent', 'synapseWeight', 'connectionProb', 'resetNetwork'],
+      4: ['inputCurrent', 'synapseWeight', 'resetNetwork']
+    };
+
+    // Hide all controls first
+    allControls.forEach(id => {
+      const element = document.getElementById(id);
+      if (element && element.closest('.control-group')) {
+        element.closest('.control-group').style.display = 'none';
+      }
+    });
+
+    // Show relevant controls
+    lessonControlsMap[currentLesson].forEach(id => {
+      const element = document.getElementById(id);
+      if (element && element.closest('.control-group')) {
+        element.closest('.control-group').style.display = 'block';
+      }
+    });
+
+    // Show pattern controls only for lesson 4
+    if (patternControls) {
+      patternControls.style.display = currentLesson === 4 ? 'block' : 'none';
+    }
+
+    // Update toggle buttons
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    const activeToggle = document.getElementById(`lesson${currentLesson}`);
+    if (activeToggle) {
+      activeToggle.classList.add('active');
+    }
+  }
+
+  function updateLessonContent() {
+    const lessons = {
+      1: "Learn how individual neurons integrate input and generate spikes when reaching threshold. Click a neuron to see its voltage trace.",
+      2: "Explore how neurons communicate through synaptic connections and network interactions. Adjust weights to see propagation effects.",
+      3: "Understand how networks adapt and learn through activity-dependent changes. Experiment with connection density.",
+      4: "Discover how spiking networks can detect and learn temporal patterns. Use pattern injection and memory testing."
+    };
+    
+    const contentDiv = document.getElementById('lessonContent');
+    if (contentDiv && lessons[currentLesson]) {
+      contentDiv.innerHTML = `
+        <div class="lesson">
+          <strong>Lesson ${currentLesson}</strong><br>
+          ${lessons[currentLesson]}
+          <br><br>
+          <button onclick="document.getElementById('viewLesson').click()" style="background:#f223e0;border:none;color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">
+            📖 View Full Lesson
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  const drawTrace=()=>{
+    const c=document.getElementById('trace').getContext('2d'); 
+    c.fillStyle='#0f172a'; 
+    c.fillRect(0,0,260,150); 
+    
+    if(selected===null) {
+      const voltageValue = document.getElementById('voltageValue');
+      if (voltageValue) voltageValue.textContent = '--';
+      return;
+    }
+    
+    // Update voltage display
+    const currentVoltage = neurons[selected].userData.volt || 0;
+    const voltageValue = document.getElementById('voltageValue');
+    if (voltageValue) {
+      voltageValue.textContent = currentVoltage.toFixed(3);
+    }
+    
+    // Draw threshold line
+    c.strokeStyle='#60a5fa'; 
+    c.lineWidth=1;
+    c.setLineDash([5, 5]);
+    const thresholdY = 148 - 1.0 * 130;
+    c.beginPath();
+    c.moveTo(2, thresholdY);
+    c.lineTo(258, thresholdY);
+    c.stroke();
+    c.setLineDash([]);
+    
+    // Draw voltage trace
+    if(traceBuf.length >= 2) {
+      c.strokeStyle='#f223e0'; 
+      c.lineWidth=2;
+      c.beginPath(); 
+      const L=traceBuf.length; 
+      for(let i=0;i<L;i++){
+        const x=i/(L-1)*256+2;
+        const y=148-Math.max(0, Math.min(2, traceBuf[i]))*65;
+        i?c.lineTo(x,y):c.moveTo(x,y);
+      } 
+      c.stroke();
+    }
+    
+    // Add voltage scale labels
+    c.fillStyle='#94a3b8';
+    c.font='10px Inter';
+    c.fillText('2.0V', 5, 15);
+    c.fillText('1.0V', 5, 83);
+    c.fillText('0.0V', 5, 145);
+  };
+
+  // WebSocket message handler
+  function handleMessage(e) {
+    const d=JSON.parse(e.data);
+    if(d.volt){ 
+      for(const k in d.volt){ 
+        const i=+k; 
+        if(neurons[i]){ 
+          const v=d.volt[k]; 
+          neurons[i].userData.volt=v; 
+          if(selected===i){ 
+            traceBuf.push(v); 
+            if(traceBuf.length>200) traceBuf.shift();
+          } 
+        } 
+      } 
+    }
+    if(d.spikes){ 
+      d.spikes.forEach(s=>{
+        const i=s.i; 
+        if(!neurons[i]) return; 
+        const n=neurons[i]; 
+        n.userData.pulse=1.2; 
+        
+        (outgoing[i]||[]).forEach(seg=>{
+          const a=seg*2*3, b=(seg*2+1)*3; 
+          col.array[a]=col.array[b]=0.9; 
+          col.array[a+1]=col.array[b+1]=0.95; 
+          col.array[a+2]=col.array[b+2]=1.0;
+        }); 
+        col.needsUpdate=true;
+      }); 
+    }
+    // FIXED: Handle connection visualization
+    if(d.cmd === "showConnections" && d.connections) {
+      console.log(`Received ${d.connections.length} connections`);
+      updateConnectionVisualization(d.connections);
+    }
+  }
+
+  // FIXED: Add connection visualization function
+  function updateConnectionVisualization(connections) {
+    // Clear existing visualization
+    connectionLabels.forEach(label => {
+      if (label.parent) label.parent.remove(label);
+    });
+    connectionLabels = [];
+
+    if (!showWeights || connections.length === 0) return;
+
+    // Create new connection geometry
+    const positions = [];
+    const colors = [];
+    
+    connections.forEach(conn => {
+      if (conn.from < neurons.length && conn.to < neurons.length) {
+        const fromPos = neurons[conn.from].position;
+        const toPos = neurons[conn.to].position;
+        
+        positions.push(fromPos.x, fromPos.y, fromPos.z);
+        positions.push(toPos.x, toPos.y, toPos.z);
+        
+        // Color based on connection type
+        if (conn.type === 'excitatory') {
+          colors.push(0.2, 0.6, 1.0, 0.2, 0.6, 1.0);  // Blue
+        } else {
+          colors.push(1.0, 0.3, 0.3, 1.0, 0.3, 0.3);  // Red for inhibitory
+        }
+        
+        // Add weight label at midpoint
+        const midPoint = new THREE.Vector3(
+          (fromPos.x + toPos.x) / 2,
+          (fromPos.y + toPos.y) / 2,
+          (fromPos.z + toPos.z) / 2
+        );
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 64;
+        canvas.height = 32;
+        
+        context.fillStyle = conn.type === 'excitatory' ? '#60a5fa' : '#ef4444';
+        context.font = '10px Inter';
+        context.textAlign = 'center';
+        context.fillText(conn.weight.toFixed(3), 32, 20);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+          map: texture, 
+          transparent: true,
+          opacity: 0.7
+        });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.copy(midPoint);
+        sprite.scale.set(3, 1.5, 1);
+        
+        scene.add(sprite);
+        connectionLabels.push(sprite);
+      }
+    });
+    
+    // Update geometry
+    connGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    connGeom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    console.log(`Visualized ${connections.length} realistic connections`);
   }
 
   // Educational controls setup

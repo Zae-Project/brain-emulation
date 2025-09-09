@@ -121,30 +121,51 @@ async def handler(ws,path):
                     recreate_network()
                     print("Network reset with new parameters")
                 elif d.get("cmd") == "toggleWeights":
-                    # Send realistic connection data
+                    # FIXED: Send realistic connection data with clusters
                     connections = []
                     
-                    # Add E->E connections
+                    # Add E->E connections with cluster info
                     if hasattr(S_ee, 'i') and len(S_ee.i) > 0:
                         for idx in range(len(S_ee.i)):
+                            from_cluster = int(G_exc.cluster[S_ee.i[idx]])
+                            to_cluster = int(G_exc.cluster[S_ee.j[idx]])
                             connections.append({
                                 "from": int(S_ee.i[idx]), 
                                 "to": int(S_ee.j[idx]), 
                                 "weight": float(S_ee.w[idx]),
-                                "type": "excitatory"
+                                "type": "excitatory",
+                                "from_cluster": from_cluster,
+                                "to_cluster": to_cluster
                             })
                     
-                    # Add I->E connections (inhibitory)
+                    # Add I->E connections
                     if hasattr(S_ie, 'i') and len(S_ie.i) > 0:
                         for idx in range(len(S_ie.i)):
                             connections.append({
-                                "from": int(S_ie.i[idx]) + N_exc,  # Offset for inhibitory neurons
+                                "from": int(S_ie.i[idx]) + N_exc,
                                 "to": int(S_ie.j[idx]), 
                                 "weight": float(S_ie.w[idx]),
-                                "type": "inhibitory"
+                                "type": "inhibitory",
+                                "from_cluster": 4,  # Inhibitory cluster
+                                "to_cluster": int(G_exc.cluster[S_ie.j[idx]])
                             })
                     
-                    await ws.send(json.dumps({"cmd": "showConnections", "connections": connections}))
+                    # Send cluster information too
+                    cluster_info = {
+                        "clusters": [
+                            {"id": 0, "color": [0.2, 0.8, 1.0], "name": "Sensory"},
+                            {"id": 1, "color": [1.0, 0.4, 0.8], "name": "Motor"}, 
+                            {"id": 2, "color": [0.8, 1.0, 0.2], "name": "Memory"},
+                            {"id": 3, "color": [1.0, 0.8, 0.2], "name": "Control"},
+                            {"id": 4, "color": [1.0, 0.2, 0.2], "name": "Inhibitory"}
+                        ]
+                    }
+                    
+                    await ws.send(json.dumps({
+                        "cmd": "showConnections", 
+                        "connections": connections,
+                        "clusters": cluster_info
+                    }))
                 elif d.get("cmd") == "injectPattern":
                     # Inject a specific pattern for lesson 4
                     pattern_neurons = [0, 5, 10, 15, 20]  # Example pattern
@@ -189,6 +210,124 @@ async def main():
     
     async with websockets.serve(handler,"localhost",PORT):
         await asyncio.Future()
+
+def create_realistic_network():
+    """Create a biologically realistic SNN with proper topology"""
+    global G_exc, G_inh, S_ee, S_ei, S_ie, S_ii, P, sm, vm, net, N_exc, N_inh
+    
+    start_scope()
+    
+    # Realistic neuron populations: 80% excitatory, 20% inhibitory
+    N_exc = int(NUM * 0.8)  # 40 excitatory neurons
+    N_inh = int(NUM * 0.2)  # 10 inhibitory neurons
+    
+    tau = PARAMS["tau"] * ms
+    tau_ref = PARAMS["refractory_period"] * ms
+    
+    # Leaky integrate-and-fire with realistic parameters
+    eqs = """
+    dv/dt = (-v + I_input + I_noise + I_syn)/tau : 1
+    I_input : 1
+    I_noise : 1
+    I_syn : 1
+    cluster : 1  # Which cluster this neuron belongs to
+    """
+    
+    # Excitatory population with cluster assignments
+    G_exc = NeuronGroup(N_exc, eqs, 
+                       threshold='v > 1', 
+                       reset='v = 0', 
+                       refractory=tau_ref,
+                       method='euler')
+    
+    # Inhibitory population
+    G_inh = NeuronGroup(N_inh, eqs,
+                       threshold='v > 1',
+                       reset='v = 0', 
+                       refractory=tau_ref/2,
+                       method='euler')
+    
+    # Assign clusters (4 clusters for excitatory neurons)
+    for i in range(N_exc):
+        G_exc.cluster[i] = i // (N_exc // 4)  # 4 clusters
+    
+    for i in range(N_inh):
+        G_inh.cluster[i] = 4  # Inhibitory cluster
+    
+    # Initialize with realistic resting potentials
+    G_exc.v = 'rand() * 0.1'
+    G_inh.v = 'rand() * 0.1'
+    
+    # Realistic input currents - only some neurons receive external input
+    G_exc.I_input = 0
+    G_inh.I_input = 0
+    
+    # Background noise
+    G_exc.I_noise = f'{PARAMS["noise_level"]} * randn()'
+    G_inh.I_noise = f'{PARAMS["noise_level"]} * randn()'
+    
+    # STRUCTURED CONNECTIVITY with weights
+    S_ee = Synapses(G_exc, G_exc, 
+                   'w : 1', 
+                   on_pre='I_syn_post += w')
+    
+    S_ei = Synapses(G_exc, G_inh, 
+                   'w : 1', 
+                   on_pre='I_syn_post += w')
+    
+    S_ie = Synapses(G_inh, G_exc, 
+                   'w : 1', 
+                   on_pre='I_syn_post -= w')
+    
+    S_ii = Synapses(G_inh, G_inh, 
+                   'w : 1', 
+                   on_pre='I_syn_post -= w')
+    
+    # Create clustered connectivity
+    def connect_clustered(synapses, source_group, target_group, prob_local=0.4, prob_distant=0.08):
+        for i in range(len(source_group)):
+            for j in range(len(target_group)):
+                if i != j:  # No self-connections
+                    # Same cluster = higher probability
+                    if hasattr(source_group, 'cluster') and hasattr(target_group, 'cluster'):
+                        if source_group.cluster[i] == target_group.cluster[j]:
+                            if np.random.rand() < prob_local:
+                                synapses.connect(i=i, j=j)
+                        else:
+                            if np.random.rand() < prob_distant:
+                                synapses.connect(i=i, j=j)
+                    else:
+                        if np.random.rand() < prob_distant:
+                            synapses.connect(i=i, j=j)
+    
+    # Apply structured connectivity
+    connect_clustered(S_ee, G_exc, G_exc, prob_local=0.6, prob_distant=0.1)
+    connect_clustered(S_ei, G_exc, G_inh, prob_local=0.0, prob_distant=0.5)
+    connect_clustered(S_ie, G_inh, G_exc, prob_local=0.0, prob_distant=0.8)
+    connect_clustered(S_ii, G_inh, G_inh, prob_local=0.0, prob_distant=0.3)
+    
+    # Set synaptic weights
+    S_ee.w = PARAMS["synapse_weight"]
+    S_ei.w = PARAMS["synapse_weight"] * 1.5
+    S_ie.w = PARAMS["inhibition_strength"]
+    S_ii.w = PARAMS["inhibition_strength"] * 0.8
+    
+    # SPARSE EXTERNAL INPUT - stimulate one cluster at a time
+    cluster_to_stimulate = np.random.randint(0, 4)
+    for i in range(N_exc):
+        if G_exc.cluster[i] == cluster_to_stimulate:
+            G_exc.I_input[i] = PARAMS["input_current"] * 2
+    
+    # Poisson input
+    P = PoissonInput(G_exc, 'I_input', N_exc, 1*Hz, weight=0.01)
+    
+    # Monitors
+    sm = SpikeMonitor(G_exc + G_inh)
+    vm = StateMonitor(G_exc, 'v', record=True)
+    
+    net = Network(collect())
+    
+    return N_exc, N_inh
 
 if __name__=="__main__": 
     asyncio.run(main())
