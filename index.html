@@ -72,11 +72,15 @@
       border: 1px solid rgba(255,255,255,0.08);
     }
 
-    /* Lesson full content: make text clear and ensure background transparent/dark */
+    /* Lesson full content: make text clear and ensure background transparent/dark + neon title */
     #lessonFullContent { color: #e6e9ef; background: transparent; }
-
-    /* Sprite label (weight panels) default class kept for crispness */
-    .sprite-label { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
+    #lessonFullContent h1, #lessonFullContent h2, #lessonFullContent h3, #lessonFullContent strong {
+      background: transparent !important;
+      color: #ff9bf0 !important; /* neon magenta title color */
+      margin: 0 0 8px 0;
+    }
+    /* Small lesson card title emphasis */
+    .lesson strong { color: #ff9bf0; }
   </style>
 </head>
 <body>
@@ -717,6 +721,10 @@
           tex.minFilter = THREE.LinearFilter;
           const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true });
           const sprite = new THREE.Sprite(spriteMat);
+
+          // render on top so labels don't get occluded by neurons/lines
+          sprite.material.depthTest = false;
+          sprite.renderOrder = 999;
           sprite.position.copy(mid);
           sprite.scale.set(6.2, 1.7, 1.0);
           scene.add(sprite);
@@ -726,72 +734,22 @@
     }
   }
 
-  // Hook missing controls: synapseWeight, connectionProb, networkSize, inject/test pattern
-  const synapseSlider = document.getElementById('synapseWeight');
-  if (synapseSlider) {
-    synapseSlider.addEventListener('input', () => {
-      const v = parseFloat(synapseSlider.value);
-      const label = document.getElementById('weightValue');
-      if (label) label.textContent = v.toFixed(2);
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ cmd: 'setWeight', value: v }));
-      }
-    });
-  }
+  // Minimal lesson content and modal helpers (restore original lesson behavior)
+  const lessonContent = {
+    1: { title: "Basic Spike Dynamics", content: `<h1>Lesson 1: Basic Spike Dynamics</h1><p>Each neuron integrates input until threshold (v=1). When threshold is reached, it emits a spike and resets. Use the sliders to observe how input current and synaptic weight affect firing.</p>` },
+    2: { title: "Synaptic Transmission", content: `<h1>Lesson 2: Synaptic Transmission</h1><p>Synapses transmit spikes between neurons. Excitatory synapses increase post-synaptic voltage; inhibitory synapses decrease it. Adjust the <strong>Synaptic Weight</strong> and <strong>Connection Probability</strong> to see network dynamics.</p>` },
+    3: { title: "Network Plasticity", content: `<h1>Lesson 3: Network Plasticity</h1><p>Plasticity mechanisms change synaptic strengths over time. This lesson demonstrates simplified plastic changes: repeated co-activation can strengthen connections.</p>` },
+    4: { title: "Pattern Recognition", content: `<h1>Lesson 4: Pattern Recognition</h1><p>Inject patterns and test partial cues for recall. Use <strong>Inject Pattern</strong> and <strong>Test Memory</strong> to experiment with pattern completion in the network.</p>` }
+  };
+  let currentLesson = 1;
 
-  const probSlider = document.getElementById('connectionProb');
-  if (probSlider) {
-    probSlider.addEventListener('input', () => {
-      const v = parseFloat(probSlider.value);
-      const label = document.getElementById('probValue');
-      if (label) label.textContent = v.toFixed(3);
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ cmd: 'setConnectionProb', value: v }));
-      }
-    });
-  }
-
-  const sizeSlider = document.getElementById('networkSize');
-  if (sizeSlider) {
-    sizeSlider.addEventListener('input', () => {
-      const v = parseInt(sizeSlider.value, 10);
-      const label = document.getElementById('sizeValue');
-      if (label) label.textContent = v;
-      // send command to server to rebuild network with new size
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ cmd: 'setNetworkSize', value: v }));
-        // also request reset to apply immediately
-        ws.send(JSON.stringify({ cmd: 'reset' }));
-      }
-    });
-  }
-
-  const injectBtn = document.getElementById('injectPattern');
-  if (injectBtn) injectBtn.addEventListener('click', () => { if (ws && ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify({cmd:'injectPattern'})); });
-
-  const testBtn = document.getElementById('testMemory');
-  if (testBtn) testBtn.addEventListener('click', () => { if (ws && ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify({cmd:'testMemory'})); });
-
-  // lesson navigation handlers
-  const lessonSel = document.getElementById('lessonSelect');
-  if (lessonSel) {
-    lessonSel.addEventListener('change', (e) => {
-      currentLesson = parseInt(e.target.value, 10) || 1;
-      updateLessonContent(); updateLessonControls();
-    });
-  }
-  const prevBtn = document.getElementById('prevLesson');
-  if (prevBtn) prevBtn.addEventListener('click', () => { currentLesson = Math.max(1, currentLesson-1); updateLessonContent(); updateLessonControls(); updateNavigationButtons(); });
-  const nextBtn = document.getElementById('nextLesson');
-  if (nextBtn) nextBtn.addEventListener('click', () => { currentLesson = Math.min(4, currentLesson+1); updateLessonContent(); updateLessonControls(); updateNavigationButtons(); });
-
-  // ensure trace and other calls remain unchanged
-  // ...existing code...
-})();
-</script>
-
-<!-- ...existing code... -->
-    content.innerHTML = lesson ? lesson.content : `<p>Lesson ${currentLesson} not available.</p>`;
+  function openLessonModal() {
+    const modal = document.getElementById('lessonModal');
+    const content = document.getElementById('lessonFullContent');
+    if (!modal || !content) return;
+    modal.style.display = 'block';
+    const lesson = lessonContent[currentLesson];
+    content.innerHTML = lesson ? lesson.content : `<p style="color:#e6e9ef">Lesson ${currentLesson} not available.</p>`;
   }
 
   function updateLessonContent() {
@@ -799,6 +757,61 @@
     if (!box) return;
     const lesson = lessonContent[currentLesson];
     box.innerHTML = `<div class="lesson"><strong>Lesson ${currentLesson}: ${lesson ? lesson.title : 'N/A'}</strong><br>${lesson ? lesson.content : ''}</div>`;
+  }
+
+  function updateLessonControls() {
+    // toggle pattern controls only for lesson 4
+    const pc = document.getElementById('patternControls');
+    if (pc) pc.style.display = currentLesson === 4 ? 'block' : 'none';
+  }
+
+  function updateNavigationButtons() {
+    const sel = document.getElementById('lessonSelect');
+    if (sel) sel.value = currentLesson;
+  }
+
+  // Hook modal close/view buttons
+  const viewBtn = document.getElementById('viewLesson');
+  if (viewBtn) viewBtn.addEventListener('click', openLessonModal);
+  const closeModal = document.getElementById('closeModal');
+  const modal = document.getElementById('lessonModal');
+  if (closeModal) closeModal.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
+  if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+  // Restore legacy toggles behavior
+  document.querySelectorAll('.toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.toggle').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLesson = parseInt(btn.id.replace('lesson','')) || 1;
+      updateLessonContent();
+      updateLessonControls();
+      updateNavigationButtons();
+    });
+  });
+
+  // ensure functions and animate call remain as before
+  // ...existing code...
+
+  // Initialize lesson UI state
+  updateLessonContent();
+  updateLessonControls();
+  updateNavigationButtons();
+
+  // Initialize
+  createNetworkTopology();
+  connectWS();
+  animate();
+
+  // Handle window resize
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+})(); // end IIFE - ensure no stray JS follows
+</script>
   }
 
   function updateLessonControls() {
