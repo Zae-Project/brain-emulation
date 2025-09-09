@@ -15,8 +15,8 @@ class SNNVisualizer {
     };
 
     this.config = {
-      networkSize: 50,
-      connectionProb: 0.1,
+      networkSize: 120,
+      connectionProb: 0.3,
       neuronSize: 1.0,
       pulseIntensity: 1.5,
       cameraMoveSpeed: 0.3,
@@ -24,24 +24,20 @@ class SNNVisualizer {
 
     this.CLUSTER_COLORS = [
       {
-        primary: { r: 0.22, g: 0.31, b: 0.52 }, // Neural blue
-        glow: { r: 0.4, g: 0.5, b: 0.7 },
-        name: "Neural",
+        primary: { r: 0.95, g: 0.95, b: 0.95 },
+        glow: { r: 1.0, g: 1.0, b: 1.0 },
       },
       {
-        primary: { r: 0.53, g: 0.47, b: 0.56 }, // Pulse purple
-        glow: { r: 0.7, g: 0.6, b: 0.75 },
-        name: "Pulse",
+        primary: { r: 0.85, g: 0.85, b: 0.85 },
+        glow: { r: 0.95, g: 0.95, b: 0.95 },
       },
       {
-        primary: { r: 0.54, g: 0.35, b: 0.45 }, // Highlight rose
-        glow: { r: 0.75, g: 0.5, b: 0.65 },
-        name: "Highlight",
+        primary: { r: 0.75, g: 0.75, b: 0.75 },
+        glow: { r: 0.9, g: 0.9, b: 0.9 },
       },
       {
-        primary: { r: 0.29, g: 0.21, b: 0.32 }, // Deep purple
-        glow: { r: 0.5, g: 0.4, b: 0.55 },
-        name: "Deep",
+        primary: { r: 0.65, g: 0.65, b: 0.65 },
+        glow: { r: 0.85, g: 0.85, b: 0.85 },
       },
     ];
 
@@ -867,17 +863,19 @@ class SNNVisualizer {
         this.ctx.fill();
       }
 
-      // Draw neuron body with enhanced brightness
-      const color =
-        intensity > 0.1 ? neuron.colors.glow : neuron.colors.primary;
+      // Draw neuron body - FORCE WHITE/GREY ONLY
+      const intensity = neuron.pulse / this.config.pulseIntensity;
       const depthFade = Math.min(1, 300 / Math.max(20, projected.depth));
-      const brightness = (intensity > 0.1 ? 1.0 : 0.9) * depthFade;
 
-      this.ctx.fillStyle = `rgb(${Math.floor(
-        color.r * 255 * brightness
-      )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
-        color.b * 255 * brightness
-      )})`;
+      // PURE WHITE/GREY COLORS ONLY - NO OTHER COLORS
+      let greyValue;
+      if (intensity > 0.1) {
+        greyValue = 255; // Pure white when firing
+      } else {
+        greyValue = Math.floor(200 * depthFade); // Grey when inactive
+      }
+
+      this.ctx.fillStyle = `rgb(${greyValue}, ${greyValue}, ${greyValue})`;
 
       this.ctx.beginPath();
       this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
