@@ -1,5 +1,4 @@
-// Fixed SNN Visualizer with working 3D camera system
-// Neural network visualization with proper 3D rendering
+// Fixed SNN Visualizer with a stable orbit camera system
 
 class SNNVisualizer {
   constructor() {
@@ -111,35 +110,12 @@ class SNNVisualizer {
     this.ctx = this.dom.canvas.getContext("2d");
     this.resizeCanvas();
 
-    // Add roundRect support for older browsers
-    if (!this.ctx.roundRect) {
-      this.ctx.roundRect = function (x, y, width, height, radius) {
-        this.beginPath();
-        this.moveTo(x + radius, y);
-        this.lineTo(x + width - radius, y);
-        this.quadraticCurveTo(x + width, y, x + width, y + radius);
-        this.lineTo(x + width, y + height - radius);
-        this.quadraticCurveTo(
-          x + width,
-          y + height,
-          x + width - radius,
-          y + height
-        );
-        this.lineTo(x + radius, y + height);
-        this.quadraticCurveTo(x, y + height, x, y + height - radius);
-        this.lineTo(x, y + radius);
-        this.quadraticCurveTo(x, y, x + radius, y);
-        this.closePath();
-      };
-    }
-
-    // Set up working 3D camera system with proper centering and distance
+    // Set up a proper orbit camera system
     this.camera = {
-      position: { x: 0, y: 0, z: 400 },
+      position: { x: 0, y: 0, z: 0 }, // Calculated from orbit
       target: { x: 0, y: 0, z: 0 },
-      rotation: { pitch: 0, yaw: 0 },
-      distance: 200,
-      move: { forward: 0, right: 0, up: 0 },
+      rotation: { pitch: 0.2, yaw: -0.5 },
+      distance: 1800, // Adjusted for a closer view
       mouse: {
         x: 0,
         y: 0,
@@ -147,9 +123,10 @@ class SNNVisualizer {
         lastY: 0,
         isLeftDown: false,
         isRightDown: false,
-        sensitivity: 0.01,
+        sensitivity: 0.006,
       },
-      moveSpeed: 1.0,
+      moveSpeed: 3.0,
+      move: { forward: 0, right: 0, up: 0 },
     };
 
     this.initCameraControls();
@@ -194,40 +171,31 @@ class SNNVisualizer {
     this.camera.mouse.lastY = e.clientY;
 
     if (this.camera.mouse.isLeftDown) {
+      // Orbit mode
+      this.camera.rotation.yaw -= deltaX * this.camera.mouse.sensitivity;
+      this.camera.rotation.pitch -= deltaY * this.camera.mouse.sensitivity;
+      this.camera.rotation.pitch = Math.max(
+        -Math.PI / 2.1,
+        Math.min(Math.PI / 2.1, this.camera.rotation.pitch)
+      );
+    } else if (this.camera.mouse.isRightDown) {
       // Pan mode
       const right = this.getCameraRight();
       const up = this.getCameraUp();
+      const panSpeed = 0.9;
 
-      const panSpeed = 0.5; // Adjusted pan speed
-      this.camera.target.x -= right.x * deltaX * panSpeed;
-      this.camera.target.y += up.y * deltaY * panSpeed;
-      this.camera.target.z -= right.z * deltaX * panSpeed;
-
-      this.camera.position.x -= right.x * deltaX * panSpeed;
-      this.camera.position.y += up.y * deltaY * panSpeed;
-      this.camera.position.z -= right.z * deltaX * panSpeed;
-    } else if (this.camera.mouse.isRightDown) {
-      // Mouse look - update rotation
-      this.camera.rotation.yaw -= deltaX * this.camera.mouse.sensitivity;
-      this.camera.rotation.pitch -= deltaY * this.camera.mouse.sensitivity;
-
-      // Clamp pitch
-      this.camera.rotation.pitch = Math.max(
-        -Math.PI / 2,
-        Math.min(Math.PI / 2, this.camera.rotation.pitch)
-      );
+      // Pan the target
+      this.camera.target.x -= (right.x * deltaX - up.x * deltaY) * panSpeed;
+      this.camera.target.y -= (right.y * deltaX - up.y * deltaY) * panSpeed;
+      this.camera.target.z -= (right.z * deltaX - up.z * deltaY) * panSpeed;
     }
   }
 
   onWheel(e) {
     e.preventDefault();
-    const forward = this.getCameraForward();
-    const zoomSpeed = 3;
-    const direction = e.deltaY > 0 ? -1 : 1;
-
-    this.camera.position.x += forward.x * direction * zoomSpeed;
-    this.camera.position.y += forward.y * direction * zoomSpeed;
-    this.camera.position.z += forward.z * direction * zoomSpeed;
+    const zoomSpeed = 40;
+    this.camera.distance += (e.deltaY > 0 ? 1 : -1) * zoomSpeed;
+    this.camera.distance = Math.max(200, Math.min(5000, this.camera.distance));
   }
 
   onCanvasClick(e) {
@@ -277,126 +245,90 @@ class SNNVisualizer {
   }
 
   getCameraForward() {
-    return {
-      x:
-        Math.sin(this.camera.rotation.yaw) *
-        Math.cos(this.camera.rotation.pitch),
-      y: Math.sin(this.camera.rotation.pitch),
-      z:
-        Math.cos(this.camera.rotation.yaw) *
-        Math.cos(this.camera.rotation.pitch),
-    };
+    return this.normalize({
+      x: this.camera.target.x - this.camera.position.x,
+      y: this.camera.target.y - this.camera.position.y,
+      z: this.camera.target.z - this.camera.position.z,
+    });
   }
 
   getCameraRight() {
-    const forward = this.getCameraForward();
-    const worldUp = { x: 0, y: 1, z: 0 };
-
-    return this.normalize({
-      x: forward.z * worldUp.y - forward.y * worldUp.z,
-      y: forward.x * worldUp.z - forward.z * worldUp.x,
-      z: forward.y * worldUp.x - forward.x * worldUp.y,
-    });
+    return this.normalize(
+      this.cross({ x: 0, y: 1, z: 0 }, this.getCameraForward())
+    );
   }
 
   getCameraUp() {
-    const forward = this.getCameraForward();
-    const right = this.getCameraRight();
-
-    return this.normalize({
-      x: right.y * forward.z - right.z * forward.y,
-      y: right.z * forward.x - right.x * forward.z,
-      z: right.x * forward.y - right.y * forward.x,
-    });
+    return this.cross(this.getCameraForward(), this.getCameraRight());
   }
 
-  normalize(vector) {
-    const length = Math.sqrt(
-      vector.x * vector.x + vector.y * vector.y + vector.z * vector.z
-    );
-    if (length === 0) return { x: 0, y: 1, z: 0 };
+  normalize(v) {
+    const l = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    if (l === 0) return { x: 0, y: 1, z: 0 };
+    return { x: v.x / l, y: v.y / l, z: v.z / l };
+  }
+
+  cross(a, b) {
     return {
-      x: vector.x / length,
-      y: vector.y / length,
-      z: vector.z / length,
+      x: a.y * b.z - a.z * b.y,
+      y: a.z * b.x - a.x * b.z,
+      z: a.x * b.y - a.y * b.x,
     };
   }
 
   updateCameraPosition() {
-    // Apply WASD movement
-    const forward = this.getCameraForward();
+    const cam = this.camera;
+
+    // Handle WASD panning (moves the target)
+    const speed = cam.moveSpeed;
+    const lookDir = this.getCameraForward();
+    const forward = this.normalize({ x: lookDir.x, y: 0, z: lookDir.z });
     const right = this.getCameraRight();
-    const speed = this.camera.moveSpeed * this.state.speed;
 
-    // Move forward/backward
-    this.camera.position.x += forward.x * this.camera.move.forward * speed;
-    this.camera.position.y += forward.y * this.camera.move.forward * speed;
-    this.camera.position.z += forward.z * this.camera.move.forward * speed;
+    cam.target.x +=
+      (forward.x * cam.move.forward + right.x * cam.move.right) * speed;
+    cam.target.z +=
+      (forward.z * cam.move.forward + right.z * cam.move.right) * speed;
+    cam.target.y += cam.move.up * speed;
 
-    // Move left/right
-    this.camera.position.x += right.x * this.camera.move.right * speed;
-    this.camera.position.y += right.y * this.camera.move.right * speed;
-    this.camera.position.z += right.z * this.camera.move.right * speed;
+    // Calculate camera position based on orbit (distance, rotation, target)
+    const hDist = cam.distance * Math.cos(cam.rotation.pitch);
+    const vDist = cam.distance * Math.sin(cam.rotation.pitch);
 
-    // Move up/down (world space)
-    this.camera.position.y += this.camera.move.up * speed;
+    cam.position.x = cam.target.x - hDist * Math.sin(cam.rotation.yaw);
+    cam.position.y = cam.target.y + vDist;
+    cam.position.z = cam.target.z - hDist * Math.cos(cam.rotation.yaw);
   }
 
   resetCamera() {
-    this.camera.position = { x: 0, y: 0, z: 400 };
     this.camera.target = { x: 0, y: 0, z: 0 };
-    this.camera.rotation = { pitch: 0, yaw: 0 };
+    this.camera.rotation = { pitch: 0.2, yaw: -0.5 };
+    this.camera.distance = 1800;
   }
 
   project3D(pos) {
-    // Simple but working 3D projection that centers the network
     const cam = this.camera;
+    const fwd = this.getCameraForward();
+    const right = this.getCameraRight();
+    const up = this.getCameraUp();
 
-    // Transform point relative to camera - simplified approach
     const dx = pos.x - cam.position.x;
     const dy = pos.y - cam.position.y;
     const dz = pos.z - cam.position.z;
 
-    // Apply camera rotation
-    const cosYaw = Math.cos(-cam.rotation.yaw);
-    const sinYaw = Math.sin(-cam.rotation.yaw);
-    const cosPitch = Math.cos(-cam.rotation.pitch);
-    const sinPitch = Math.sin(-cam.rotation.pitch);
+    const x2 = dx * right.x + dy * right.y + dz * right.z;
+    const y2 = dx * up.x + dy * up.y + dz * up.z;
+    const z2 = dx * fwd.x + dy * fwd.y + dz * fwd.z;
 
-    // Rotate around Y axis (yaw)
-    const x1 = dx * cosYaw - dz * sinYaw;
-    const z1 = dx * sinYaw + dz * cosYaw;
-    const y1 = dy;
-
-    // Rotate around X axis (pitch)
-    const x2 = x1;
-    const y2 = y1 * cosPitch - z1 * sinPitch;
-    const z2 = y1 * sinPitch + z1 * cosPitch;
-
-    // Simple perspective projection that ensures visibility
-    const perspectiveScale = 350; // Adjusted for ideal zoom
-    const distance = Math.max(1, z2 + 400); // Match camera z
-
-    const screenX =
-      this.dom.canvas.width / 2 + (x2 * perspectiveScale) / distance;
-    const screenY =
-      this.dom.canvas.height / 2 - (y2 * perspectiveScale) / distance;
-
-    // Calculate zoom factor
-    const cameraDistance = Math.sqrt(
-      cam.position.x * cam.position.x +
-        cam.position.y * cam.position.y +
-        cam.position.z * cam.position.z
-    );
-
-    const zoomFactor = Math.max(0.5, Math.min(5.0, 400 / cameraDistance));
+    const fov = 1000; // Adjusted field of view factor
+    const distance = Math.max(1, z2);
+    const scale = fov / distance;
 
     return {
-      x: screenX,
-      y: screenY,
-      scale: Math.max(0.05, (perspectiveScale / distance) * zoomFactor * 0.5),
+      x: this.dom.canvas.width / 2 + x2 * scale,
+      y: this.dom.canvas.height / 2 - y2 * scale,
+      scale: scale,
       depth: z2,
-      zoomFactor: zoomFactor,
     };
   }
 
@@ -520,155 +452,16 @@ class SNNVisualizer {
       this.ctx.stroke();
     });
 
-    // Debug info
-    this.ctx.fillStyle = "#ffffff";
-    this.ctx.font = "12px Arial";
-    this.ctx.fillText(
-      `Neurons: ${this.neurons.length}, Running: ${this.state.isRunning}`,
-      10,
-      30
-    );
-  }
-
-  createNetwork() {
-    this.neurons = [];
-    this.connections = [];
-
-    // Create neurons in 3D space - adjusted for overview
-    const radius = 120;
-
-    for (let i = 0; i < this.config.networkSize; i++) {
-      const clusterId = Math.floor(i / (this.config.networkSize / 4));
-      const colors =
-        this.CLUSTER_COLORS[clusterId % this.CLUSTER_COLORS.length];
-
-      const neuron = {
-        id: i,
-        position: {
-          x: (Math.random() - 0.5) * radius * 2,
-          y: (Math.random() - 0.5) * radius * 2,
-          z: (Math.random() - 0.5) * radius * 2,
-        },
-        voltage: 0,
-        pulse: 0,
-        lastFire: 0,
-        colors: colors,
-        connections: [],
-      };
-
-      this.neurons.push(neuron);
-    }
-
-    // Create connections
-    for (let i = 0; i < this.neurons.length; i++) {
-      for (let j = i + 1; j < this.neurons.length; j++) {
-        if (Math.random() < this.config.connectionProb) {
-          const connection = {
-            from: this.neurons[i],
-            to: this.neurons[j],
-            weight: 0.1 + Math.random() * 0.4,
-          };
-          this.connections.push(connection);
-          this.neurons[i].connections.push(connection);
-
-          // Also create reverse connection for bidirectional
-          const reverseConnection = {
-            from: this.neurons[j],
-            to: this.neurons[i],
-            weight: 0.1 + Math.random() * 0.4,
-          };
-          this.connections.push(reverseConnection);
-          this.neurons[j].connections.push(reverseConnection);
-        }
-      }
-    }
-  }
-
-  updateNetwork() {
-    if (this.state.pauseSpikes) return;
-
-    this.neurons.forEach((neuron) => {
-      // Random firing
-      if (Math.random() < this.state.firingRate * this.state.speed) {
-        this.fireNeuron(neuron);
-      }
-
-      // Pulse decay
-      if (neuron.pulse > 0.01) {
-        neuron.pulse *= this.state.pulseDecay;
-      } else {
-        neuron.pulse = 0;
-      }
-
-      // Voltage decay
-      neuron.voltage *= 0.99;
-    });
-
-    // Update voltage display for selected neuron
-    if (this.state.selectedNeuron && this.dom.voltageValue) {
-      this.dom.voltageValue.textContent =
-        this.state.selectedNeuron.voltage.toFixed(3);
-      this.updateTrace();
-    }
-  }
-
-  fireNeuron(neuron) {
-    neuron.pulse = this.config.pulseIntensity;
-    neuron.voltage = 0;
-    neuron.lastFire = Date.now();
-
-    // Propagate to connected neurons
-    neuron.connections.forEach((conn) => {
-      conn.to.voltage += conn.weight;
-      if (conn.to.voltage >= this.state.threshold) {
-        setTimeout(() => this.fireNeuron(conn.to), Math.random() * 50);
-      }
-    });
-  }
-
-  updateTrace() {
-    if (!this.traceCtx || !this.state.selectedNeuron) return;
-
-    this.voltageHistory.push(this.state.selectedNeuron.voltage);
-    if (this.voltageHistory.length > 260) {
-      this.voltageHistory.shift();
-    }
-
-    this.clearTrace();
-
-    // Draw voltage trace with clean white
-    this.traceCtx.strokeStyle = "#ffffff";
-    this.traceCtx.lineWidth = 2;
-    this.traceCtx.beginPath();
-
-    this.voltageHistory.forEach((voltage, i) => {
-      const x = i;
-      const y = 150 - (voltage / this.state.threshold) * 100;
-
-      if (i === 0) {
-        this.traceCtx.moveTo(x, y);
-      } else {
-        this.traceCtx.lineTo(x, y);
-      }
-    });
-
-    this.traceCtx.stroke();
-
-    // Draw threshold line with muted grey
-    this.traceCtx.strokeStyle = "#808080";
-    this.traceCtx.lineWidth = 1;
-    this.traceCtx.setLineDash([5, 5]);
-    this.traceCtx.beginPath();
-    this.traceCtx.moveTo(0, 150 - 100);
-    this.traceCtx.lineTo(260, 150 - 100);
-    this.traceCtx.stroke();
-    this.traceCtx.setLineDash([]);
-  }
-
-  clearTrace() {
-    if (!this.traceCtx) return;
-    this.traceCtx.fillStyle = "#000000";
-    this.traceCtx.fillRect(0, 0, 260, 150);
+    // Debug info - top center and always visible
+    this.ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    this.ctx.font = "12px Inter, monospace";
+    this.ctx.textAlign = "center";
+    const zoom = (1800 / this.camera.distance).toFixed(2);
+    const debugText = `CAM DIST: ${Math.round(
+      this.camera.distance
+    )} | ZOOM: ${zoom}x | NEURONS: ${this.neurons.length}`;
+    this.ctx.fillText(debugText, this.dom.canvas.width / 2, 30);
+    this.ctx.textAlign = "left"; // Reset alignment
   }
 
   render() {
@@ -702,7 +495,7 @@ class SNNVisualizer {
         )}, ${Math.floor(activeColor.g * 255)}, ${Math.floor(
           activeColor.b * 255
         )}, ${0.8 * intensity})`;
-        this.ctx.lineWidth = 0.3; // Extremely thin active connections
+        this.ctx.lineWidth = 0.4;
       } else {
         // Inactive connection - extremely thin grey line with lighter color
         this.ctx.strokeStyle = `rgba(189, 189, 189, 0.25)`; // #bdbdbd with transparency
@@ -730,12 +523,12 @@ class SNNVisualizer {
       }
 
       // Zoom-responsive neuron size - much smaller base size
-      const baseRadius = 4; // Reduced from 12 to 4
+      const baseRadius = 8; // Reduced from 12 to 4
       const radius = Math.max(
-        1,
+        1.5,
         baseRadius *
           projected.scale *
-          projected.zoomFactor *
+          (projected.zoomFactor || 1) *
           this.config.neuronSize
       );
       const intensity = neuron.pulse / this.config.pulseIntensity;
@@ -776,7 +569,7 @@ class SNNVisualizer {
       // Draw neuron body with enhanced brightness
       const color =
         intensity > 0.1 ? neuron.colors.glow : neuron.colors.primary;
-      const depthFade = Math.min(1, 300 / Math.max(20, projected.depth));
+      const depthFade = Math.min(1, 800 / Math.max(20, projected.depth));
       const brightness = (intensity > 0.1 ? 1.0 : 0.9) * depthFade;
 
       this.ctx.fillStyle = `rgb(${Math.floor(
@@ -795,39 +588,18 @@ class SNNVisualizer {
         this.ctx.lineWidth = Math.max(2, radius * 0.15);
         this.ctx.stroke();
       }
-
-      // Add subtle rim lighting that scales with zoom
-      this.ctx.strokeStyle = `rgba(255, 255, 255, ${
-        0.6 * depthFade * Math.min(1, projected.zoomFactor)
-      })`;
-      this.ctx.lineWidth = Math.max(0.5, radius * 0.08);
-      this.ctx.stroke();
-
-      // Show weight information panels if enabled
-      if (
-        this.state.showWeights &&
-        neuron.connections.length > 0 &&
-        radius > 8
-      ) {
-        this.renderWeightPanel(neuron, projected);
-      }
     });
 
-    // Debug info with premium styling
-    this.ctx.fillStyle = "#B5B7C3"; // Use text-2 color
-    this.ctx.font = "11px Inter, monospace";
-    const cameraDistance = Math.sqrt(
-      this.camera.position.x * this.camera.position.x +
-        this.camera.position.y * this.camera.position.y +
-        this.camera.position.z * this.camera.position.z
-    );
-    this.ctx.fillText(
-      `CAM: ${Math.round(cameraDistance)} | NEURONS: ${
-        this.neurons.length
-      } | ZOOM: ${(200 / cameraDistance).toFixed(1)}x`,
-      10,
-      this.dom.canvas.height - 15
-    );
+    // Debug info - top center and always visible
+    this.ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    this.ctx.font = "12px Inter, monospace";
+    this.ctx.textAlign = "center";
+    const zoom = (1800 / this.camera.distance).toFixed(2);
+    const debugText = `CAM DIST: ${Math.round(
+      this.camera.distance
+    )} | ZOOM: ${zoom}x | NEURONS: ${this.neurons.length}`;
+    this.ctx.fillText(debugText, this.dom.canvas.width / 2, 30);
+    this.ctx.textAlign = "left"; // Reset alignment
   }
 
   renderEnhancedNeuron(neuron, projected, radius, intensity) {
@@ -866,7 +638,7 @@ class SNNVisualizer {
 
     // Draw neuron body with sophisticated cluster colors
     const color = intensity > 0.3 ? neuron.colors.glow : neuron.colors.primary;
-    const depthFade = Math.min(1, 300 / Math.max(20, projected.depth));
+    const depthFade = Math.min(1, 800 / Math.max(20, projected.depth));
     const brightness = (intensity > 0.3 ? 1.0 : 0.6) * depthFade;
 
     this.ctx.fillStyle = `rgb(${Math.floor(
