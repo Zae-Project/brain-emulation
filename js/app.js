@@ -6,7 +6,7 @@ class SNNVisualizer {
       isRunning: true,
       showWeights: false,
       speed: 1,
-      firingRate: 0.01, // Increased from 0.001 to 0.01
+      firingRate: 0.0002, // Much lower default firing rate
       pulseDecay: 0.95,
       threshold: 1.0,
       pauseSpikes: false,
@@ -978,39 +978,57 @@ class SNNVisualizer {
     this.neurons = [];
     this.connections = [];
 
-    // Create neurons in 3D space - adjusted for overview
-    const radius = 200; // Adjusted radius for a tighter cluster
+    // Create neurons in 3D space with cluster-specific positioning
+    const radius = 200;
+    const clusterSeparation = 150; // Distance between cluster centers
 
     for (let i = 0; i < this.config.networkSize; i++) {
       const clusterId = Math.floor(i / (this.config.networkSize / 4));
       const colors =
         this.CLUSTER_COLORS[clusterId % this.CLUSTER_COLORS.length];
 
+      // Position clusters in different areas of 3D space
+      const clusterCenterX =
+        (clusterId % 2) * clusterSeparation - clusterSeparation / 2;
+      const clusterCenterY =
+        Math.floor(clusterId / 2) * clusterSeparation - clusterSeparation / 2;
+      const clusterCenterZ = 0;
+
       const neuron = {
         id: i,
         position: {
-          x: (Math.random() - 0.5) * radius * 2,
-          y: (Math.random() - 0.5) * radius * 2,
-          z: (Math.random() - 0.5) * radius * 2,
+          x: clusterCenterX + (Math.random() - 0.5) * radius,
+          y: clusterCenterY + (Math.random() - 0.5) * radius,
+          z: clusterCenterZ + (Math.random() - 0.5) * radius,
         },
-        voltage: Math.random() * 0.5, // Start with some voltage
+        voltage: Math.random() * 0.3, // Start with lower voltage
         pulse: 0,
         lastFire: 0,
         colors: colors,
         connections: [],
+        clusterId: clusterId, // Store cluster ID for easier access
       };
 
       this.neurons.push(neuron);
     }
 
-    // Create connections
+    // Create connections with cluster bias
     for (let i = 0; i < this.neurons.length; i++) {
       for (let j = i + 1; j < this.neurons.length; j++) {
-        if (Math.random() < this.config.connectionProb) {
+        const sameCluster =
+          this.neurons[i].clusterId === this.neurons[j].clusterId;
+        // Higher probability within cluster, lower between clusters
+        const connectionProb = sameCluster
+          ? this.config.connectionProb * 2.5
+          : this.config.connectionProb * 0.3;
+
+        if (Math.random() < connectionProb) {
           const connection = {
             from: this.neurons[i],
             to: this.neurons[j],
-            weight: 0.3 + Math.random() * 0.7, // Higher weights: 0.3-1.0
+            weight: sameCluster
+              ? 0.4 + Math.random() * 0.6 // Stronger within cluster: 0.4-1.0
+              : 0.1 + Math.random() * 0.3, // Weaker between clusters: 0.1-0.4
           };
           this.connections.push(connection);
           this.neurons[i].connections.push(connection);
@@ -1019,7 +1037,9 @@ class SNNVisualizer {
           const reverseConnection = {
             from: this.neurons[j],
             to: this.neurons[i],
-            weight: 0.3 + Math.random() * 0.7, // Higher weights: 0.3-1.0
+            weight: sameCluster
+              ? 0.4 + Math.random() * 0.6
+              : 0.1 + Math.random() * 0.3,
           };
           this.connections.push(reverseConnection);
           this.neurons[j].connections.push(reverseConnection);
@@ -1027,11 +1047,18 @@ class SNNVisualizer {
       }
     }
 
-    // Immediately fire several neurons to kickstart network activity
-    for (let i = 0; i < 10; i++) {
-      const randomIndex = Math.floor(Math.random() * this.neurons.length);
-      const randomNeuron = this.neurons[randomIndex];
-      randomNeuron.voltage = this.state.threshold + 0.1; // Set above threshold to force firing
+    // Start with only ONE cluster being active to demonstrate async behavior
+    const activeCluster = Math.floor(Math.random() * 4);
+    for (let i = 0; i < 3; i++) {
+      // Only fire 3 neurons in one cluster
+      const neuronsInCluster = this.neurons.filter(
+        (n) => n.clusterId === activeCluster
+      );
+      if (neuronsInCluster.length > 0) {
+        const randomNeuron =
+          neuronsInCluster[Math.floor(Math.random() * neuronsInCluster.length)];
+        randomNeuron.voltage = this.state.threshold + 0.1;
+      }
     }
   }
 
@@ -1063,8 +1090,13 @@ class SNNVisualizer {
         return;
       }
 
-      // Random firing with higher probability for visual interest
-      if (Math.random() < this.state.firingRate * this.state.speed * 1.5) {
+      // Random firing - much lower probability and cluster-specific
+      const clusterBasedRate =
+        this.state.firingRate *
+        this.state.speed *
+        (1 + Math.sin(Date.now() * 0.001 + neuron.clusterId * 1.5) * 0.5); // Async cluster activity
+
+      if (Math.random() < clusterBasedRate) {
         neuron.pulse = this.config.pulseIntensity;
         neuron.voltage = 0;
         neuron.lastFire = Date.now();
@@ -1086,9 +1118,9 @@ class SNNVisualizer {
       // Voltage decay - slower to allow buildup
       neuron.voltage *= 0.998;
 
-      // Small random voltage increase for some neurons (mimics background activity)
-      if (Math.random() < 0.01 * this.state.speed) {
-        neuron.voltage += Math.random() * 0.1;
+      // Much reduced random voltage increase - cluster specific timing
+      if (Math.random() < 0.002 * this.state.speed) {
+        neuron.voltage += Math.random() * 0.05; // Much smaller increments
       }
     });
 
