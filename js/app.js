@@ -6,7 +6,7 @@ class SNNVisualizer {
       isRunning: true,
       showWeights: false,
       speed: 1,
-      firingRate: 0.001,
+      firingRate: 0.01, // Increased from 0.001 to 0.01
       pulseDecay: 0.95,
       threshold: 1.0,
       pauseSpikes: false,
@@ -469,36 +469,29 @@ class SNNVisualizer {
     this.ctx.fillStyle = "#000000";
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
-    // Render connections with extremely thin lines
+    // Render connections: most are light grey, only recently active ones are colored
+    const now = Date.now();
     this.connections.forEach((conn) => {
       const startProj = this.project3D(conn.from.position);
       const endProj = this.project3D(conn.to.position);
 
-      // Check if connection is active
-      const timeSinceFromFire = Date.now() - (conn.from.lastFire || 0);
-      const timeSinceToFire = Date.now() - (conn.to.lastFire || 0);
-      const isActive =
-        timeSinceFromFire < 300 &&
-        timeSinceToFire < 300 &&
-        (conn.from.pulse > 0.1 || conn.to.pulse > 0.1);
+      // Check if BOTH neurons have fired within the last 500ms
+      const fromFiredRecently = now - (conn.from.lastFire || 0) < 500;
+      const toFiredRecently = now - (conn.to.lastFire || 0) < 500;
+      const bothFiredRecently = fromFiredRecently && toFiredRecently;
 
-      if (isActive) {
-        // Active connection - show in cluster color with extremely thin line
-        const activeColor =
-          conn.from.pulse > conn.to.pulse
-            ? conn.from.colors.glow
-            : conn.to.colors.glow;
-        const intensity =
-          Math.max(conn.from.pulse, conn.to.pulse) / this.config.pulseIntensity;
+      if (bothFiredRecently) {
+        // Active connection between recently fired neurons - highlight with color
+        const activeColor = conn.from.colors.glow;
         this.ctx.strokeStyle = `rgba(${Math.floor(
           activeColor.r * 255
         )}, ${Math.floor(activeColor.g * 255)}, ${Math.floor(
           activeColor.b * 255
-        )}, ${0.8 * intensity})`;
-        this.ctx.lineWidth = 0.4;
+        )}, 0.8)`;
+        this.ctx.lineWidth = 0.6; // Slightly thicker for active connections
       } else {
-        // Inactive connection - extremely thin grey line with lighter color
-        this.ctx.strokeStyle = `rgba(189, 189, 189, 0.25)`; // #bdbdbd with transparency
+        // Inactive connection - extremely thin grey line
+        this.ctx.strokeStyle = `rgba(189, 189, 189, 0.15)`; // Very light grey
         this.ctx.lineWidth = 0.2; // Ultra-thin inactive connections
       }
 
@@ -964,7 +957,7 @@ class SNNVisualizer {
           y: (Math.random() - 0.5) * radius * 2,
           z: (Math.random() - 0.5) * radius * 2,
         },
-        voltage: 0,
+        voltage: Math.random() * 0.5, // Start with some voltage
         pulse: 0,
         lastFire: 0,
         colors: colors,
@@ -981,7 +974,7 @@ class SNNVisualizer {
           const connection = {
             from: this.neurons[i],
             to: this.neurons[j],
-            weight: 0.2 + Math.random() * 0.6, // Increased weights: 0.2-0.8
+            weight: 0.3 + Math.random() * 0.7, // Higher weights: 0.3-1.0
           };
           this.connections.push(connection);
           this.neurons[i].connections.push(connection);
@@ -990,27 +983,61 @@ class SNNVisualizer {
           const reverseConnection = {
             from: this.neurons[j],
             to: this.neurons[i],
-            weight: 0.2 + Math.random() * 0.6, // Increased weights: 0.2-0.8
+            weight: 0.3 + Math.random() * 0.7, // Higher weights: 0.3-1.0
           };
           this.connections.push(reverseConnection);
           this.neurons[j].connections.push(reverseConnection);
         }
       }
     }
+
+    // Immediately fire several neurons to kickstart network activity
+    for (let i = 0; i < 10; i++) {
+      const randomIndex = Math.floor(Math.random() * this.neurons.length);
+      const randomNeuron = this.neurons[randomIndex];
+      randomNeuron.voltage = this.state.threshold + 0.1; // Set above threshold to force firing
+    }
   }
 
   updateNetwork() {
     if (this.state.pauseSpikes) return;
 
+    // Process each neuron
     this.neurons.forEach((neuron) => {
-      // Random firing
-      if (Math.random() < this.state.firingRate * this.state.speed) {
-        this.fireNeuron(neuron);
+      // Check if neuron should fire due to accumulated voltage FIRST
+      if (neuron.voltage >= this.state.threshold) {
+        // Direct implementation of firing without calling method to ensure it works
+        neuron.pulse = this.config.pulseIntensity;
+        neuron.voltage = 0; // Reset voltage to 0
+        neuron.lastFire = Date.now();
+
+        // Propagate to connected neurons
+        neuron.connections.forEach((conn) => {
+          conn.to.voltage += conn.weight;
+        });
+
+        // Force immediate update for connected neurons that might now be above threshold
+        neuron.connections.forEach((conn) => {
+          if (conn.to.voltage >= this.state.threshold) {
+            conn.to.pulse = this.config.pulseIntensity;
+            conn.to.voltage = 0;
+            conn.to.lastFire = Date.now();
+          }
+        });
+        return;
       }
 
-      // Check if neuron should fire due to accumulated voltage
-      if (neuron.voltage >= this.state.threshold) {
-        this.fireNeuron(neuron);
+      // Random firing with higher probability for visual interest
+      if (Math.random() < this.state.firingRate * this.state.speed * 1.5) {
+        neuron.pulse = this.config.pulseIntensity;
+        neuron.voltage = 0;
+        neuron.lastFire = Date.now();
+
+        // Propagate to connected neurons
+        neuron.connections.forEach((conn) => {
+          conn.to.voltage += conn.weight;
+        });
+        return;
       }
 
       // Pulse decay
@@ -1020,8 +1047,13 @@ class SNNVisualizer {
         neuron.pulse = 0;
       }
 
-      // Voltage decay (small leak)
-      neuron.voltage *= 0.998; // Much slower decay so voltage can accumulate
+      // Voltage decay - slower to allow buildup
+      neuron.voltage *= 0.998;
+
+      // Small random voltage increase for some neurons (mimics background activity)
+      if (Math.random() < 0.01 * this.state.speed) {
+        neuron.voltage += Math.random() * 0.1;
+      }
     });
 
     // Update voltage display for selected neuron
@@ -1033,14 +1065,22 @@ class SNNVisualizer {
   }
 
   fireNeuron(neuron) {
+    // Set pulse and timestamp
     neuron.pulse = this.config.pulseIntensity;
     neuron.voltage = 0; // Reset to 0 after firing
     neuron.lastFire = Date.now();
 
-    // Propagate to connected neurons
+    // Propagate to connected neurons with stronger effect
     neuron.connections.forEach((conn) => {
-      conn.to.voltage += conn.weight;
-      // Don't fire immediately, let the update loop handle threshold checking
+      // Add a multiplier to make sure connections have more effect
+      conn.to.voltage += conn.weight * 1.2;
+
+      // Debug log for voltage propagation
+      console.log(
+        `Neuron ${neuron.id} fired, voltage ${
+          conn.weight * 1.2
+        } sent to neuron ${conn.to.id}`
+      );
     });
   }
 
