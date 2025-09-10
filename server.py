@@ -117,6 +117,18 @@ async def handler(ws,path):
                     PARAMS["connection_prob"] = float(d["value"])
                     recreate_network()
                     print(f"Connection probability set to {PARAMS['connection_prob']}")
+                elif d.get("cmd") == "setNetworkSize":
+                    try:
+                        new_num = int(d.get("value", NUM))
+                        if new_num >= 10 and new_num <= 200:
+                            print(f"Changing network size: {NUM} -> {new_num}")
+                            globals()['NUM'] = new_num
+                            recreate_network()
+                            await ws.send(json.dumps({"cmd":"networkSizeChanged","value":new_num}))
+                        else:
+                            print("setNetworkSize out of allowed range")
+                    except Exception as ex:
+                        print(f"Error setting network size: {ex}")
                 elif d.get("cmd") == "reset":
                     recreate_network()
                     print("Network reset with new parameters")
