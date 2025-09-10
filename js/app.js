@@ -981,7 +981,7 @@ class SNNVisualizer {
           const connection = {
             from: this.neurons[i],
             to: this.neurons[j],
-            weight: 0.1 + Math.random() * 0.4,
+            weight: 0.2 + Math.random() * 0.6, // Increased weights: 0.2-0.8
           };
           this.connections.push(connection);
           this.neurons[i].connections.push(connection);
@@ -990,7 +990,7 @@ class SNNVisualizer {
           const reverseConnection = {
             from: this.neurons[j],
             to: this.neurons[i],
-            weight: 0.1 + Math.random() * 0.4,
+            weight: 0.2 + Math.random() * 0.6, // Increased weights: 0.2-0.8
           };
           this.connections.push(reverseConnection);
           this.neurons[j].connections.push(reverseConnection);
@@ -1021,7 +1021,7 @@ class SNNVisualizer {
       }
 
       // Voltage decay (small leak)
-      neuron.voltage *= 0.995; // Slower decay so voltage can accumulate
+      neuron.voltage *= 0.998; // Much slower decay so voltage can accumulate
     });
 
     // Update voltage display for selected neuron
