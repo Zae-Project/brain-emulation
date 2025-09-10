@@ -1,0 +1,55 @@
+name: Branch Protection Info
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  branch-protection-info:
+    runs-on: ubuntu-latest
+    if: github.base_ref == 'main'
+    steps:
+      - name: Comment on PR about branch protection
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `
+            ## 🛡️ Branch Protection Active
+            
+            This repository uses branch protection rules for the \`main\` branch. This means:
+            
+            ✅ **What this enables:**
+            - Quality control through required reviews
+            - Prevention of accidental direct pushes to main
+            - Safer collaboration for all contributors
+            
+            📋 **For contributors:**
+            - Always create feature branches for your changes
+            - Submit pull requests for review before merging
+            - Follow the contributing guidelines in \`docs/instructions.md\`
+            
+            💬 **Questions?** Please use [GitHub Discussions](https://github.com/venturaEffect/brain_emulation/discussions) for questions about contributing or the development process.
+            
+            Thank you for contributing to brain_emulation! 🧠
+            `;
+            
+            // Check if we already commented
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.find(comment => 
+              comment.body.includes('🛡️ Branch Protection Active')
+            );
+            
+            if (!existingComment) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
