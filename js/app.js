@@ -57,6 +57,7 @@ class SNNVisualizer {
   init() {
     this.initDOM();
     this.initCanvas();
+    this.initWebSocket(); // Restore WebSocket initialization
     this.createNetwork();
     this.bindUI();
     this.initLessons();
@@ -139,6 +140,38 @@ class SNNVisualizer {
     this.dom.canvas.height = window.innerHeight;
     this.dom.canvas.style.width = window.innerWidth + "px";
     this.dom.canvas.style.height = window.innerHeight + "px";
+  }
+
+  initWebSocket() {
+    const wsUrl = "ws://localhost:8766";
+    this.ws = new WebSocket(wsUrl);
+
+    this.ws.onopen = () => {
+      console.log("WebSocket connection established");
+      if (this.dom.errEl) this.dom.errEl.style.display = "none";
+    };
+
+    this.ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      this.handleNetworkData(data);
+    };
+
+    this.ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      if (this.dom.errEl) {
+        this.dom.errEl.textContent =
+          "Connection to the neural network server failed. Is the server running?";
+        this.dom.errEl.style.display = "block";
+      }
+    };
+
+    this.ws.onclose = () => {
+      console.log("WebSocket connection closed");
+      if (this.dom.errEl) {
+        this.dom.errEl.textContent = "Connection to server lost. Please refresh.";
+        this.dom.errEl.style.display = "block";
+      }
+    };
   }
 
   initCameraControls() {
@@ -462,6 +495,30 @@ class SNNVisualizer {
     )} | ZOOM: ${zoom}x | NEURONS: ${this.neurons.length}`;
     this.ctx.fillText(debugText, this.dom.canvas.width / 2, 30);
     this.ctx.textAlign = "left"; // Reset alignment
+  }
+
+  renderWeightPanel(neuron, projected) {
+    const panelWidth = 120;
+    const panelHeight = 80;
+    const x = projected.x + 20;
+    const y = projected.y - panelHeight / 2;
+
+    this.ctx.fillStyle = "rgba(10, 10, 10, 0.8)";
+    this.ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    this.ctx.lineWidth = 1;
+    this.ctx.beginPath();
+    this.ctx.rect(x, y, panelWidth, panelHeight);
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    this.ctx.fillStyle = "#B5B7C3";
+    this.ctx.font = "10px Inter, monospace";
+    this.ctx.fillText(`Neuron ${neuron.id} Weights:`, x + 5, y + 12);
+
+    neuron.connections.slice(0, 5).forEach((conn, i) => {
+      const weightText = `to ${conn.to.id}: ${conn.weight.toFixed(2)}`;
+      this.ctx.fillText(weightText, x + 5, y + 28 + i * 10);
+    });
   }
 
   render() {
