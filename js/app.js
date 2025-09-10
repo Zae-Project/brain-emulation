@@ -469,19 +469,29 @@ class SNNVisualizer {
     this.ctx.fillStyle = "#000000";
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
-    // Render connections: most are light grey, only recently active ones are colored
+    // Track which neurons have fired recently for cluster visualization
     const now = Date.now();
+    const recentlyFired = new Set();
+    this.neurons.forEach((neuron) => {
+      if (now - (neuron.lastFire || 0) < 500) {
+        recentlyFired.add(neuron.id);
+      }
+    });
+
+    // Render connections: all light grey except between active neurons in same cluster
     this.connections.forEach((conn) => {
       const startProj = this.project3D(conn.from.position);
       const endProj = this.project3D(conn.to.position);
 
-      // Check if BOTH neurons have fired within the last 500ms
-      const fromFiredRecently = now - (conn.from.lastFire || 0) < 500;
-      const toFiredRecently = now - (conn.to.lastFire || 0) < 500;
-      const bothFiredRecently = fromFiredRecently && toFiredRecently;
+      // Check if BOTH neurons have fired recently AND are in the same cluster
+      const bothFiredRecently =
+        recentlyFired.has(conn.from.id) && recentlyFired.has(conn.to.id);
+      const sameCluster =
+        Math.floor(conn.from.id / (this.config.networkSize / 4)) ===
+        Math.floor(conn.to.id / (this.config.networkSize / 4));
 
-      if (bothFiredRecently) {
-        // Active connection between recently fired neurons - highlight with color
+      if (bothFiredRecently && sameCluster) {
+        // Active connection within the same cluster - highlight with that cluster's color
         const activeColor = conn.from.colors.glow;
         this.ctx.strokeStyle = `rgba(${Math.floor(
           activeColor.r * 255
@@ -526,8 +536,27 @@ class SNNVisualizer {
       );
       const intensity = neuron.pulse / this.config.pulseIntensity;
 
+      // Check if this neuron or its cluster is active
+      const isActive = intensity > 0.1;
+      const clusterId = Math.floor(neuron.id / (this.config.networkSize / 4));
+
+      // Check if any neuron in this cluster has fired recently
+      let clusterActive = isActive;
+      if (!clusterActive) {
+        // Only check for cluster activity if the neuron itself isn't active
+        for (let i = 0; i < this.neurons.length; i++) {
+          if (Math.floor(i / (this.config.networkSize / 4)) === clusterId) {
+            const otherNeuron = this.neurons[i];
+            if (otherNeuron.pulse / this.config.pulseIntensity > 0.1) {
+              clusterActive = true;
+              break;
+            }
+          }
+        }
+      }
+
       // Draw glow effect when firing - scales with zoom
-      if (intensity > 0.1) {
+      if (isActive) {
         const glowRadius = radius * (1.8 + intensity * 2.0);
         const gradient = this.ctx.createRadialGradient(
           projected.x,
@@ -559,17 +588,24 @@ class SNNVisualizer {
         this.ctx.fill();
       }
 
-      // Draw neuron body with enhanced brightness
-      const color =
-        intensity > 0.1 ? neuron.colors.glow : neuron.colors.primary;
+      // Draw neuron body - use grey for inactive clusters, color for active ones
       const depthFade = Math.min(1, 800 / Math.max(20, projected.depth));
-      const brightness = (intensity > 0.1 ? 1.0 : 0.9) * depthFade;
 
-      this.ctx.fillStyle = `rgb(${Math.floor(
-        color.r * 255 * brightness
-      )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
-        color.b * 255 * brightness
-      )})`;
+      if (clusterActive) {
+        // Use cluster color for active clusters
+        const color = isActive ? neuron.colors.glow : neuron.colors.primary;
+        const brightness = (isActive ? 1.0 : 0.9) * depthFade;
+
+        this.ctx.fillStyle = `rgb(${Math.floor(
+          color.r * 255 * brightness
+        )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
+          color.b * 255 * brightness
+        )})`;
+      } else {
+        // Use grey for inactive clusters
+        const greyLevel = Math.floor(150 * depthFade);
+        this.ctx.fillStyle = `rgb(${greyLevel}, ${greyLevel}, ${greyLevel})`;
+      }
 
       this.ctx.beginPath();
       this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
