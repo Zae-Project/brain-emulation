@@ -1,295 +1,8 @@
-// WORKING SNN Brain Emulation - Complete Rebuild
+// Fixed SNN Visualizer with working 3D camera system
+// Neural network visualization with proper 3D rendering
+
 class SNNVisualizer {
   constructor() {
-    // Initialize state first
-    this.state = {
-      isRunning: true,
-      showWeights: false,
-      speed: 1,
-      selectedNeuron: null,
-    };
-
-    this.neurons = [];
-    this.connections = [];
-    
-    // Initialize immediately
-    this.initializeSystem();
-  }
-
-  initializeSystem() {
-    this.setupDOM();
-    this.setupCanvas();
-    this.createBrainNetwork();
-    this.setupEventHandlers();
-    this.startAnimation();
-    
-    // Make globally accessible
-    window.snnVisualizer = this;
-    
-    console.log("SNN Brain Emulation Ready:", this.neurons.length, "neurons");
-  }
-
-  setupDOM() {
-    this.dom = {
-      canvas: document.getElementById("three-canvas"),
-      playBtn: document.getElementById("play"),
-      resetBtn: document.getElementById("resetNetwork"),
-      showWeightsBtn: document.getElementById("showWeights"),
-      lessonSelect: document.getElementById("lessonSelect"),
-      lessonContent: document.getElementById("lessonContent"),
-    };
-  }
-
-  setupCanvas() {
-    if (!this.dom.canvas) return;
-    
-    this.ctx = this.dom.canvas.getContext("2d");
-    this.dom.canvas.width = window.innerWidth;
-    this.dom.canvas.height = window.innerHeight;
-    
-    // Simple camera for 3D
-    this.camera = { x: 0, y: 0, z: 150 };
-  }
-
-  createBrainNetwork() {
-    this.neurons = [];
-    this.connections = [];
-
-    // Create 120 neurons for brain emulation
-    for (let i = 0; i < 120; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI;
-      const radius = 30 + Math.random() * 20;
-      
-      this.neurons.push({
-        id: i,
-        x: radius * Math.sin(phi) * Math.cos(theta),
-        y: radius * Math.sin(phi) * Math.sin(theta),
-        z: radius * Math.cos(phi),
-        voltage: Math.random() * 0.5,
-        pulse: 0,
-        connections: [],
-      });
-    }
-
-    // Create connections with 0.30 probability
-    for (let i = 0; i < this.neurons.length; i++) {
-      for (let j = i + 1; j < this.neurons.length; j++) {
-        if (Math.random() < 0.30) {
-          const conn = {
-            from: this.neurons[i],
-            to: this.neurons[j],
-            weight: 0.1 + Math.random() * 0.4,
-          };
-          this.connections.push(conn);
-          this.neurons[i].connections.push(conn);
-        }
-      }
-    }
-  }
-
-  setupEventHandlers() {
-    // Play/Pause button
-    if (this.dom.playBtn) {
-      this.dom.playBtn.addEventListener("click", () => {
-        this.state.isRunning = !this.state.isRunning;
-        this.dom.playBtn.textContent = this.state.isRunning ? "PAUSE" : "PLAY";
-        this.dom.playBtn.classList.toggle("on", this.state.isRunning);
-        console.log("Animation:", this.state.isRunning ? "Started" : "Paused");
-      });
-    }
-
-    // Reset button
-    if (this.dom.resetBtn) {
-      this.dom.resetBtn.addEventListener("click", () => {
-        this.createBrainNetwork();
-        console.log("Network reset:", this.neurons.length, "neurons");
-      });
-    }
-
-    // Show weights button
-    if (this.dom.showWeightsBtn) {
-      this.dom.showWeightsBtn.addEventListener("click", () => {
-        this.state.showWeights = !this.state.showWeights;
-        this.dom.showWeightsBtn.classList.toggle("on", this.state.showWeights);
-        console.log("Show weights:", this.state.showWeights);
-      });
-    }
-
-    // Lesson selector
-    if (this.dom.lessonSelect) {
-      this.dom.lessonSelect.addEventListener("change", (e) => {
-        this.updateLesson(parseInt(e.target.value));
-      });
-    }
-
-    // Initialize first lesson
-    this.updateLesson(1);
-  }
-
-  updateLesson(lessonNumber) {
-    const lessons = {
-      1: {
-        title: "Lesson 1: Basic Spikes",
-        content: "Each neuron accumulates voltage over time. When it reaches threshold (v≥1), it fires a spike and resets to 0.",
-      },
-      2: {
-        title: "Lesson 2: Synaptic Transmission", 
-        content: "Spikes travel along synapses (connections) between neurons, with varying weights affecting signal strength.",
-      },
-      3: {
-        title: "Lesson 3: Network Plasticity",
-        content: "Synaptic weights can change over time based on neural activity, enabling learning and adaptation.",
-      },
-      4: {
-        title: "Lesson 4: Pattern Recognition",
-        content: "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
-      },
-    };
-
-    const lesson = lessons[lessonNumber];
-    if (lesson && this.dom.lessonContent) {
-      this.dom.lessonContent.innerHTML = `
-        <div class="lesson">
-          <strong>${lesson.title}</strong><br />
-          ${lesson.content}
-          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">VIEW FULL LESSON</button>
-        </div>
-      `;
-      console.log("Lesson updated:", lesson.title);
-    }
-  }
-
-  showFullLesson(lessonNumber) {
-    const lessonContent = {
-      1: "<h1>Basic Spike Dynamics</h1><p>Neurons fire when voltage exceeds threshold...</p>",
-      2: "<h1>Synaptic Transmission</h1><p>Information flows through synaptic connections...</p>", 
-      3: "<h1>Network Plasticity</h1><p>Networks adapt through synaptic weight changes...</p>",
-      4: "<h1>Pattern Recognition</h1><p>SNNs excel at temporal pattern detection...</p>",
-    };
-
-    const modal = document.createElement("div");
-    modal.className = "lesson-modal";
-    modal.innerHTML = `
-      <div class="lesson-modal-content">
-        <button class="close-btn" onclick="this.closest('.lesson-modal').remove()">&times;</button>
-        ${lessonContent[lessonNumber] || "<h1>Lesson Content</h1><p>Detailed lesson information...</p>"}
-        <button class="btn" onclick="this.closest('.lesson-modal').remove()" style="margin-top: 20px;">Close Lesson</button>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    console.log("Full lesson opened:", lessonNumber);
-  }
-
-  updateNetwork() {
-    if (!this.state.isRunning) return;
-
-    this.neurons.forEach(neuron => {
-      // Random neural firing
-      if (Math.random() < 0.002) {
-        neuron.pulse = 1.0;
-        neuron.voltage = 0;
-        
-        // Propagate to connected neurons
-        neuron.connections.forEach(conn => {
-          conn.to.voltage += conn.weight;
-        });
-      }
-
-      // Decay pulse and voltage
-      neuron.pulse *= 0.95;
-      neuron.voltage *= 0.99;
-    });
-  }
-
-  project3D(x, y, z) {
-    const scale = 800 / Math.max(1, z - this.camera.z + 100);
-    return {
-      x: this.dom.canvas.width / 2 + (x - this.camera.x) * scale,
-      y: this.dom.canvas.height / 2 - (y - this.camera.y) * scale,
-      scale: scale / 8,
-    };
-  }
-
-  render() {
-    // Clear canvas
-    this.ctx.fillStyle = "#000000";
-    this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
-
-    if (!this.neurons.length) {
-      this.ctx.fillStyle = "#ffffff";
-      this.ctx.font = "20px Arial";
-      this.ctx.fillText("Loading brain network...", this.dom.canvas.width / 2 - 100, this.dom.canvas.height / 2);
-      return;
-    }
-
-    // Draw connections
-    this.ctx.strokeStyle = "rgba(150, 150, 150, 0.3)";
-    this.ctx.lineWidth = 1;
-    this.connections.forEach(conn => {
-      const start = this.project3D(conn.from.x, conn.from.y, conn.from.z);
-      const end = this.project3D(conn.to.x, conn.to.y, conn.to.z);
-      
-      this.ctx.beginPath();
-      this.ctx.moveTo(start.x, start.y);
-      this.ctx.lineTo(end.x, end.y);
-      this.ctx.stroke();
-    });
-
-    // Draw neurons
-    this.neurons.forEach(neuron => {
-      const pos = this.project3D(neuron.x, neuron.y, neuron.z);
-      const radius = Math.max(6, 15 * pos.scale);
-      
-      // Neuron color - pure white/grey
-      const intensity = neuron.pulse;
-      const grey = intensity > 0.1 ? 255 : 200;
-      this.ctx.fillStyle = `rgb(${grey}, ${grey}, ${grey})`;
-      
-      // Draw neuron
-      this.ctx.beginPath();
-      this.ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-      this.ctx.fill();
-      
-      // Draw neuron ID
-      if (radius > 8) {
-        this.ctx.fillStyle = intensity > 0.3 ? "#000000" : "#ffffff";
-        this.ctx.font = `${Math.max(8, radius * 0.6)}px Arial`;
-        this.ctx.textAlign = "center";
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillText(neuron.id.toString(), pos.x, pos.y);
-      }
-    });
-
-    // Debug info
-    this.ctx.fillStyle = "#ffffff";
-    this.ctx.font = "12px Arial";
-    this.ctx.textAlign = "left";
-    this.ctx.fillText(`Brain Emulation: ${this.neurons.length} neurons, ${this.connections.length} synapses`, 10, 30);
-    this.ctx.fillText(`Status: ${this.state.isRunning ? 'RUNNING' : 'PAUSED'}`, 10, 50);
-  }
-
-  startAnimation() {
-    const animate = () => {
-      this.updateNetwork();
-      this.render();
-      requestAnimationFrame(animate);
-    };
-    animate();
-    console.log("Animation loop started");
-  }
-}
-
-// Initialize the brain emulation system
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Initializing SNN Brain Emulation...");
-  try {
-    new SNNVisualizer();
-    console.log("SNN Brain Emulation initialized successfully");
-  } catch (error) {
-    console.error("Failed to initialize brain emulation:", error);
-  }
-});
     this.state = {
       isRunning: true,
       showWeights: false,
@@ -302,8 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     this.config = {
-      networkSize: 120,
-      connectionProb: 0.3,
+      networkSize: 50,
+      connectionProb: 0.1,
       neuronSize: 1.0,
       pulseIntensity: 1.5,
       cameraMoveSpeed: 0.3,
@@ -311,20 +24,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     this.CLUSTER_COLORS = [
       {
-        primary: { r: 0.95, g: 0.95, b: 0.95 },
-        glow: { r: 1.0, g: 1.0, b: 1.0 },
+        primary: { r: 0.22, g: 0.31, b: 0.52 }, // Neural blue
+        glow: { r: 0.4, g: 0.5, b: 0.7 },
+        name: "Neural",
       },
       {
-        primary: { r: 0.85, g: 0.85, b: 0.85 },
-        glow: { r: 0.95, g: 0.95, b: 0.95 },
+        primary: { r: 0.53, g: 0.47, b: 0.56 }, // Pulse purple
+        glow: { r: 0.7, g: 0.6, b: 0.75 },
+        name: "Pulse",
       },
       {
-        primary: { r: 0.75, g: 0.75, b: 0.75 },
-        glow: { r: 0.9, g: 0.9, b: 0.9 },
+        primary: { r: 0.54, g: 0.35, b: 0.45 }, // Highlight rose
+        glow: { r: 0.75, g: 0.5, b: 0.65 },
+        name: "Highlight",
       },
       {
-        primary: { r: 0.65, g: 0.65, b: 0.65 },
-        glow: { r: 0.85, g: 0.85, b: 0.85 },
+        primary: { r: 0.29, g: 0.21, b: 0.32 }, // Deep purple
+        glow: { r: 0.5, g: 0.4, b: 0.55 },
+        name: "Deep",
       },
     ];
 
@@ -341,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
   init() {
     this.initDOM();
     this.initCanvas();
-    this.forceNetworkCreation(); // FORCE NETWORK CREATION IMMEDIATELY
+    this.createNetwork();
     this.bindUI();
     this.initLessons();
 
@@ -416,9 +133,9 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
 
-    // Set up working 3D camera system with proper centering
+    // Set up working 3D camera system
     this.camera = {
-      position: { x: 0, y: 0, z: 150 }, // Moved closer for visibility
+      position: { x: 0, y: 0, z: 200 },
       target: { x: 0, y: 0, z: 0 },
       rotation: { pitch: 0, yaw: 0 },
       distance: 100,
@@ -627,13 +344,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   resetCamera() {
-    this.camera.position = { x: 0, y: 0, z: 150 }; // Closer to see network
+    this.camera.position = { x: 0, y: 0, z: 100 };
     this.camera.target = { x: 0, y: 0, z: 0 };
     this.camera.rotation = { pitch: 0, yaw: 0 };
   }
 
   project3D(pos) {
-    // Working 3D projection with better visibility
+    // Working 3D projection with proper zoom scaling
     const cam = this.camera;
 
     // Transform point relative to camera
@@ -657,27 +374,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const y2 = y1 * cosPitch - z1 * sinPitch;
     const z2 = y1 * sinPitch + z1 * cosPitch;
 
-    // Enhanced perspective projection with better scaling
+    // Enhanced perspective projection with better zoom scaling
     const distance = Math.max(1, z2);
-    const baseScale = 1200; // Increased for better visibility
+    const baseScale = 800; // Increased base scale for better zoom response
     const scale = baseScale / distance;
 
     const screenX = this.dom.canvas.width / 2 + x2 * scale;
     const screenY = this.dom.canvas.height / 2 - y2 * scale;
 
-    // Calculate zoom factor for responsive scaling
+    // Calculate camera distance for zoom-responsive scaling
     const cameraDistance = Math.sqrt(
       cam.position.x * cam.position.x +
         cam.position.y * cam.position.y +
         cam.position.z * cam.position.z
     );
 
-    const zoomFactor = Math.max(0.8, Math.min(6.0, 250 / cameraDistance));
+    // Zoom factor that increases neuron size when closer
+    const zoomFactor = Math.max(0.5, Math.min(5.0, 200 / cameraDistance));
 
     return {
       x: screenX,
       y: screenY,
-      scale: Math.max(0.2, (scale / baseScale) * zoomFactor),
+      scale: Math.max(0.1, (scale / baseScale) * zoomFactor),
       depth: z2,
       zoomFactor: zoomFactor,
     };
@@ -817,15 +535,11 @@ document.addEventListener("DOMContentLoaded", () => {
     this.neurons = [];
     this.connections = [];
 
-    // Use the proper default values: 120 neurons, 0.30 connection probability
-    const networkSize = 120;
-    const connectionProb = 0.3;
-
     // Create neurons in 3D space
     const radius = 60;
 
-    for (let i = 0; i < networkSize; i++) {
-      const clusterId = Math.floor(i / (networkSize / 4));
+    for (let i = 0; i < this.config.networkSize; i++) {
+      const clusterId = Math.floor(i / (this.config.networkSize / 4));
       const colors =
         this.CLUSTER_COLORS[clusterId % this.CLUSTER_COLORS.length];
 
@@ -846,10 +560,10 @@ document.addEventListener("DOMContentLoaded", () => {
       this.neurons.push(neuron);
     }
 
-    // Create connections with 0.30 probability
+    // Create connections
     for (let i = 0; i < this.neurons.length; i++) {
       for (let j = i + 1; j < this.neurons.length; j++) {
-        if (Math.random() < connectionProb) {
+        if (Math.random() < this.config.connectionProb) {
           const connection = {
             from: this.neurons[i],
             to: this.neurons[j],
@@ -866,150 +580,6 @@ document.addEventListener("DOMContentLoaded", () => {
           };
           this.connections.push(reverseConnection);
           this.neurons[j].connections.push(reverseConnection);
-        }
-      }
-    }
-
-    console.log(
-      `Network created: ${this.neurons.length} neurons, ${this.connections.length} connections`
-    );
-  }
-
-  // Force immediate network creation and display
-  forceNetworkCreation() {
-    this.neurons = [];
-    this.connections = [];
-
-    // Create 120 neurons in a visible sphere around origin
-    for (let i = 0; i < 120; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI;
-      const radius = 20 + Math.random() * 25;
-
-      const neuron = {
-        id: i,
-        position: {
-          x: radius * Math.sin(phi) * Math.cos(theta),
-          y: radius * Math.sin(phi) * Math.sin(theta),
-          z: radius * Math.cos(phi),
-        },
-        voltage: Math.random() * 0.5,
-        pulse: 0,
-        lastFire: 0,
-        colors: {
-          primary: { r: 0.9, g: 0.9, b: 0.9 },
-          glow: { r: 1.0, g: 1.0, b: 1.0 },
-        },
-        connections: [],
-      };
-      this.neurons.push(neuron);
-    }
-
-    // Create connections with 0.30 probability
-    for (let i = 0; i < this.neurons.length; i++) {
-      for (let j = i + 1; j < this.neurons.length; j++) {
-        if (Math.random() < 0.3) {
-          const connection = {
-            from: this.neurons[i],
-            to: this.neurons[j],
-            weight: 0.1 + Math.random() * 0.4,
-          };
-          this.connections.push(connection);
-          this.neurons[i].connections.push(connection);
-
-          const reverseConnection = {
-            from: this.neurons[j],
-            to: this.neurons[i],
-            weight: 0.1 + Math.random() * 0.4,
-          };
-          this.connections.push(reverseConnection);
-          this.neurons[j].connections.push(reverseConnection);
-        }
-      }
-    }
-
-    console.log(
-      `FORCED NETWORK: ${this.neurons.length} neurons, ${this.connections.length} connections`
-    );
-  }
-
-  // Force clean initialization on page load
-  forceCleanInit() {
-    // Override any bad defaults immediately
-    this.config = {
-      networkSize: 120,
-      connectionProbability: 0.3,
-      neuronSize: 1.0,
-      pulseIntensity: 2.0,
-      decayRate: 0.95,
-      threshold: 1.0,
-      inputCurrent: 0.1,
-    };
-
-    // Clean white/grey color palette
-    this.CLUSTER_COLORS = [
-      {
-        primary: { r: 0.95, g: 0.95, b: 0.95 },
-        glow: { r: 1.0, g: 0.8, b: 0.8 },
-      },
-      {
-        primary: { r: 0.85, g: 0.85, b: 0.85 },
-        glow: { r: 0.8, g: 1.0, b: 0.8 },
-      },
-      {
-        primary: { r: 0.75, g: 0.75, b: 0.75 },
-        glow: { r: 0.8, g: 0.9, b: 1.0 },
-      },
-      {
-        primary: { r: 0.65, g: 0.65, b: 0.65 },
-        glow: { r: 1.0, g: 0.9, b: 0.8 },
-      },
-    ];
-
-    // Proper camera positioning
-    this.camera.position = { x: 0, y: 0, z: 200 };
-
-    // Generate clean network immediately
-    this.generateCleanNetwork();
-  }
-
-  generateCleanNetwork() {
-    this.neurons = [];
-    this.connections = [];
-
-    // Create 120 neurons in properly centered 3D space
-    for (let i = 0; i < 120; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI;
-      const radius = 35 + Math.random() * 35;
-
-      const neuron = {
-        id: i,
-        position: {
-          x: radius * Math.sin(phi) * Math.cos(theta),
-          y: radius * Math.sin(phi) * Math.sin(theta),
-          z: radius * Math.cos(phi),
-        },
-        voltage: Math.random() * 0.5,
-        pulse: 0,
-        connections: [],
-        colors: this.CLUSTER_COLORS[i % this.CLUSTER_COLORS.length],
-        lastFire: 0,
-      };
-      this.neurons.push(neuron);
-    }
-
-    // Create connections with 0.30 probability
-    for (let i = 0; i < this.neurons.length; i++) {
-      for (let j = 0; j < this.neurons.length; j++) {
-        if (i !== j && Math.random() < 0.3) {
-          const connection = {
-            from: this.neurons[i],
-            to: this.neurons[j],
-            weight: 0.1 + Math.random() * 0.4,
-          };
-          this.neurons[i].connections.push(connection);
-          this.connections.push(connection);
         }
       }
     }
@@ -1208,19 +778,17 @@ document.addEventListener("DOMContentLoaded", () => {
         this.ctx.fill();
       }
 
-      // Draw neuron body - FORCE WHITE/GREY ONLY
-      const intensity = neuron.pulse / this.config.pulseIntensity;
+      // Draw neuron body with enhanced brightness
+      const color =
+        intensity > 0.1 ? neuron.colors.glow : neuron.colors.primary;
       const depthFade = Math.min(1, 300 / Math.max(20, projected.depth));
+      const brightness = (intensity > 0.1 ? 1.0 : 0.9) * depthFade;
 
-      // PURE WHITE/GREY COLORS ONLY - NO OTHER COLORS
-      let greyValue;
-      if (intensity > 0.1) {
-        greyValue = 255; // Pure white when firing
-      } else {
-        greyValue = Math.floor(200 * depthFade); // Grey when inactive
-      }
-
-      this.ctx.fillStyle = `rgb(${greyValue}, ${greyValue}, ${greyValue})`;
+      this.ctx.fillStyle = `rgb(${Math.floor(
+        color.r * 255 * brightness
+      )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
+        color.b * 255 * brightness
+      )})`;
 
       this.ctx.beginPath();
       this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
@@ -1239,18 +807,6 @@ document.addEventListener("DOMContentLoaded", () => {
       })`;
       this.ctx.lineWidth = Math.max(0.5, radius * 0.08);
       this.ctx.stroke();
-
-      // Draw neuron ID number - ALWAYS VISIBLE
-      if (radius > 4) {
-        this.ctx.fillStyle = intensity > 0.3 ? "#000000" : "#ffffff";
-        this.ctx.font = `${Math.max(
-          8,
-          Math.min(14, radius * 0.7)
-        )}px Inter, sans-serif`;
-        this.ctx.textAlign = "center";
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillText(neuron.id.toString(), projected.x, projected.y);
-      }
 
       // Show weight information panels if enabled
       if (
@@ -1355,7 +911,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (this.dom.playBtn) {
       this.dom.playBtn.addEventListener("click", () => {
         this.state.isRunning = !this.state.isRunning;
-        this.dom.playBtn.textContent = this.state.isRunning ? "PAUSE" : "PLAY";
+        this.dom.playBtn.textContent = this.state.isRunning ? "Pause" : "Play";
         this.dom.playBtn.classList.toggle("on", this.state.isRunning);
       });
     }
@@ -1395,12 +951,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (this.dom.resetBtn) {
       this.dom.resetBtn.addEventListener("click", () => {
-        this.forceNetworkCreation();
-        console.log(
-          "RESET: Network recreated with",
-          this.neurons.length,
-          "neurons"
-        );
+        this.createNetwork();
       });
     }
 
@@ -1457,21 +1008,25 @@ document.addEventListener("DOMContentLoaded", () => {
         title: "Lesson 1: Basic Spikes",
         content:
           "Each neuron accumulates voltage over time. When it reaches threshold (v≥1), it fires a spike and resets to 0.",
+        file: "lessons/lesson1.html",
       },
       2: {
         title: "Lesson 2: Synaptic Transmission",
         content:
           "Spikes travel along synapses (connections) between neurons, with varying weights affecting signal strength.",
+        file: "lessons/lesson2.html",
       },
       3: {
         title: "Lesson 3: Network Plasticity",
         content:
           "Synaptic weights can change over time based on neural activity, enabling learning and adaptation.",
+        file: "lessons/lesson3.html",
       },
       4: {
         title: "Lesson 4: Pattern Recognition",
         content:
           "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
+        file: "lessons/lesson4.html",
       },
     };
 
@@ -1481,7 +1036,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="lesson">
           <strong>${lesson.title}</strong><br />
           ${lesson.content}
-          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">VIEW FULL LESSON</button>
+          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">View Full Lesson</button>
         </div>
       `;
     }
@@ -1632,73 +1187,17 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  renderWeightPanel(neuron, projected) {
-    if (!neuron.connections || neuron.connections.length === 0) return;
-
-    const panelWidth = 120;
-    const panelHeight = Math.min(100, 15 + neuron.connections.length * 12);
-    const offsetX = 25;
-    const offsetY = -panelHeight - 10;
-
-    const panelX = projected.x + offsetX;
-    const panelY = projected.y + offsetY;
-
-    // Draw panel background
-    this.ctx.fillStyle = "rgba(10, 10, 10, 0.95)";
-    this.ctx.strokeStyle = "#2a2a2a";
-    this.ctx.lineWidth = 1;
-    this.ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
-    this.ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
-
-    // Draw header
-    this.ctx.fillStyle = "#ffffff";
-    this.ctx.font = "10px Inter, sans-serif";
-    this.ctx.fontWeight = "600";
-    this.ctx.fillText(`Neuron ${neuron.id} Weights`, panelX + 5, panelY + 12);
-
-    // Draw connections
-    let yOffset = 25;
-    const maxConnections = Math.floor((panelHeight - 30) / 12);
-    const connectionsToShow = neuron.connections.slice(0, maxConnections);
-
-    connectionsToShow.forEach((conn, i) => {
-      const weight = conn.weight.toFixed(2);
-      const targetId = conn.to.id;
-
-      this.ctx.fillStyle = "#cccccc";
-      this.ctx.font = "9px Inter, sans-serif";
-      this.ctx.fontWeight = "400";
-      this.ctx.fillText(
-        `→${targetId}: ${weight}`,
-        panelX + 5,
-        panelY + yOffset
-      );
-
-      yOffset += 12;
-    });
-
-    // Show "..." if there are more connections
-    if (neuron.connections.length > maxConnections) {
-      this.ctx.fillStyle = "#808080";
-      this.ctx.fillText(
-        `+${neuron.connections.length - maxConnections} more...`,
-        panelX + 5,
-        panelY + yOffset
-      );
-    }
-  }
-
   animate() {
+    requestAnimationFrame(() => this.animate());
+
+    this.updateCameraPosition();
+
     if (this.state.isRunning) {
       this.updateNetwork();
-      this.updateCameraPosition();
     }
 
     this.render();
-    requestAnimationFrame(() => this.animate());
   }
-
-  // ...existing code...
 }
 
 // Initialize the application when DOM is loaded
@@ -1863,20 +1362,4 @@ window.addEventListener("load", () => {
       }
     }, 3000);
   }, 1000);
-});
-
-// Force clean initialization on page load
-window.addEventListener("DOMContentLoaded", () => {
-  if (window.app) {
-    window.app.forceCleanInit();
-  }
-});
-
-// Also force on window load
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    if (window.app) {
-      window.app.forceCleanInit();
-    }
-  }, 100);
 });
