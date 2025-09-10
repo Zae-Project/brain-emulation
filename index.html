@@ -21,15 +21,15 @@
       <div style="font-weight: 600; color: #f1f5f9">SNN • Neural Network</div>
       <button id="play" class="btn on">Pause</button>
       <label style="color: #94a3b8"
-        >Speed
+        >Speed:
         <input
           id="speed"
-          class="range"
           type="range"
           min="0.1"
-          max="5"
+          max="3"
           step="0.1"
           value="1"
+          class="range"
         />
       </label>
     </div>
@@ -50,49 +50,81 @@
     <!-- LEFT CONTROLS -->
     <div id="controls">
       <h4 style="margin: 0 0 12px; color: #f1f5f9">Learning Controls</h4>
+
       <div class="control-group">
-        <label for="networkSize"
-          >Network Size: <span id="sizeValue">120</span></label
-        >
+        <label>Network Size: <span id="sizeValue">120</span></label>
         <input
-          type="range"
           id="networkSize"
-          min="10"
+          type="range"
+          min="20"
           max="200"
-          step="5"
+          step="10"
           value="120"
         />
       </div>
+
       <div class="control-group">
-        <label for="connectionProb"
-          >Connection Probability: <span id="probValue">0.30</span></label
-        >
+        <label>Connection Probability: <span id="probValue">0.30</span></label>
         <input
-          type="range"
           id="connectionProb"
-          min="0"
+          type="range"
+          min="0.05"
           max="0.5"
-          step="0.01"
+          step="0.05"
           value="0.30"
         />
       </div>
+
+      <div class="control-group">
+        <label>Firing Rate: <span id="firingValue">0.0010</span></label>
+        <input
+          id="firingRate"
+          type="range"
+          min="0.0001"
+          max="0.01"
+          step="0.0001"
+          value="0.001"
+        />
+      </div>
+
+      <div class="control-group">
+        <label>Pulse Decay: <span id="decayValue">0.95</span></label>
+        <input
+          id="pulseDecay"
+          type="range"
+          min="0.8"
+          max="0.99"
+          step="0.01"
+          value="0.95"
+        />
+      </div>
+
+      <div class="control-group">
+        <label>Threshold: <span id="thresholdValue">1.0</span></label>
+        <input
+          id="threshold"
+          type="range"
+          min="0.5"
+          max="2.0"
+          step="0.1"
+          value="1.0"
+        />
+      </div>
+
       <button id="resetNetwork" class="btn">Reset Network</button>
       <button id="showWeights" class="btn">Show Weights</button>
+      <button id="pauseSpikes" class="btn">Pause Spikes</button>
+      <button id="injectSpike" class="btn">Inject Spike</button>
     </div>
 
     <!-- RIGHT INFO -->
     <div id="panel">
       <h4 id="sel">Select Neuron</h4>
       <div style="margin-bottom: 8px; font-size: 12px; color: #94a3b8">
-        Voltage:
-        <span id="voltageValue" style="color: #f223e0; font-weight: bold"
-          >--</span
-        >
-        <span style="margin-left: 10px"
-          >Threshold: <span style="color: #60a5fa">1.0</span></span
-        >
+        Voltage: <span id="voltageValue">--</span> | Threshold: 1.0
       </div>
       <canvas id="trace" width="260" height="150"></canvas>
+      <div id="lessonContent"></div>
     </div>
 
     <div id="navControls">
@@ -103,21 +135,12 @@
       <div class="nav-tip"><strong>Q/E:</strong> Up/Down</div>
       <div class="nav-tip"><strong>Mouse Wheel:</strong> Fly Forward/Back</div>
       <div class="nav-tip"><strong>Space:</strong> Reset Position</div>
-      <div style="margin-top: 8px; font-size: 10px; color: #6b7280">
-        <em>Fly inside the neural network!</em>
+      <div style="margin-top: 8px; font-style: italic; color: #808080">
+        Fly inside the neural network!
       </div>
     </div>
 
-    <div id="info">
-      <h4 style="margin: 0 0 8px; color: #f1f5f9">Learning Guide</h4>
-      <div id="lessonContent">
-        <div class="lesson">
-          <strong>Lesson 1: Basic Spikes</strong><br />
-          Each neuron accumulates voltage over time. When it reaches threshold
-          (v=1), it fires a spike and resets to 0.
-        </div>
-      </div>
-    </div>
+    <div id="info"></div>
 
     <div id="err"></div>
 

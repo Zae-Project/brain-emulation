@@ -14,8 +14,8 @@ class SNNVisualizer {
     };
 
     this.config = {
-      networkSize: 50,
-      connectionProb: 0.1,
+      networkSize: 120,
+      connectionProb: 0.3,
       neuronSize: 1.0,
       pulseIntensity: 1.5,
       cameraMoveSpeed: 0.3,
@@ -727,6 +727,363 @@ class SNNVisualizer {
           : "Pause Spikes";
       });
     }
+
+    // Additional parameter controls
+    if (this.dom.pulseDecaySlider) {
+      this.dom.pulseDecaySlider.addEventListener("input", (e) => {
+        this.state.pulseDecay = parseFloat(e.target.value);
+        if (this.dom.decayValueLabel) {
+          this.dom.decayValueLabel.textContent =
+            this.state.pulseDecay.toFixed(2);
+        }
+      });
+    }
+
+    if (this.dom.thresholdSlider) {
+      this.dom.thresholdSlider.addEventListener("input", (e) => {
+        this.state.threshold = parseFloat(e.target.value);
+        if (this.dom.thresholdValueLabel) {
+          this.dom.thresholdValueLabel.textContent =
+            this.state.threshold.toFixed(1);
+        }
+      });
+    }
+  }
+
+  initLessons() {
+    if (this.dom.lessonSelect) {
+      this.dom.lessonSelect.addEventListener("change", (e) => {
+        this.updateLesson(parseInt(e.target.value));
+      });
+    }
+
+    this.updateLesson(1);
+  }
+
+  updateLesson(lessonNumber) {
+    const lessons = {
+      1: {
+        title: "Lesson 1: Basic Spikes",
+        content:
+          "Each neuron accumulates voltage over time. When it reaches threshold (v≥1), it fires a spike and resets to 0.",
+        file: "lessons/lesson1.html",
+      },
+      2: {
+        title: "Lesson 2: Synaptic Transmission",
+        content:
+          "Spikes travel along synapses (connections) between neurons, with varying weights affecting signal strength.",
+        file: "lessons/lesson2.html",
+      },
+      3: {
+        title: "Lesson 3: Network Plasticity",
+        content:
+          "Synaptic weights can change over time based on neural activity, enabling learning and adaptation.",
+        file: "lessons/lesson3.html",
+      },
+      4: {
+        title: "Lesson 4: Pattern Recognition",
+        content:
+          "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
+        file: "lessons/lesson4.html",
+      },
+    };
+
+    const lesson = lessons[lessonNumber];
+    if (lesson && this.dom.lessonContent) {
+      this.dom.lessonContent.innerHTML = `
+        <div class="lesson">
+          <strong>${lesson.title}</strong><br />
+          ${lesson.content}
+          <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">View Full Lesson</button>
+        </div>
+      `;
+    }
+  }
+
+  async showFullLesson(lessonNumber) {
+    const lessons = {
+      1: { title: "Basic Spike Dynamics", file: "lessons/lesson1.html" },
+      2: { title: "Synaptic Transmission", file: "lessons/lesson2.html" },
+      3: { title: "Network Plasticity", file: "lessons/lesson3.html" },
+      4: { title: "Pattern Recognition", file: "lessons/lesson4.html" },
+    };
+
+    const lesson = lessons[lessonNumber];
+    if (!lesson) return;
+
+    try {
+      const response = await fetch(lesson.file);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const content = await response.text();
+
+      // Create modal
+      const modal = document.createElement("div");
+      modal.className = "lesson-modal";
+
+      const modalContent = document.createElement("div");
+      modalContent.className = "lesson-modal-content";
+      modalContent.innerHTML = `
+        <button class="close-btn">&times;</button>
+        ${content}
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
+          <button class="btn" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
+        </div>
+      `;
+
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+
+      // Close modal functionality
+      const closeBtn = modalContent.querySelector(".close-btn");
+      const closeModal = () => {
+        if (document.body.contains(modal)) {
+          document.body.removeChild(modal);
+        }
+      };
+
+      closeBtn.addEventListener("click", closeModal);
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      // Close on escape key
+      const handleKeydown = (e) => {
+        if (e.key === "Escape") {
+          closeModal();
+          document.removeEventListener("keydown", handleKeydown);
+        }
+      };
+      document.addEventListener("keydown", handleKeydown);
+    } catch (error) {
+      console.error("Failed to load lesson:", error);
+
+      // Show fallback content if file loading fails
+      const modal = document.createElement("div");
+      modal.className = "lesson-modal";
+
+      const modalContent = document.createElement("div");
+      modalContent.className = "lesson-modal-content";
+      modalContent.innerHTML = `
+        <button class="close-btn">&times;</button>
+        <h1>${lesson.title}</h1>
+        <p style="color: #fbbf24; margin-bottom: 16px;">
+          <strong>Note:</strong> Lesson file could not be loaded. Here's the basic content:
+        </p>
+        ${this.getFallbackContent(lessonNumber)}
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
+          <button class="btn" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
+        </div>
+      `;
+
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+
+      // Close functionality for fallback
+      const closeBtn = modalContent.querySelector(".close-btn");
+      closeBtn.addEventListener("click", () => {
+        if (document.body.contains(modal)) {
+          document.body.removeChild(modal);
+        }
+      });
+    }
+  }
+
+  getFallbackContent(lessonNumber) {
+    const fallbackContent = {
+      1: `
+        <h2>Basic Spike Dynamics</h2>
+        <p>Spiking Neural Networks use discrete spikes to communicate information. Key concepts include:</p>
+        <ul>
+          <li><strong>Membrane Potential:</strong> Voltage that accumulates over time</li>
+          <li><strong>Threshold:</strong> Critical level that triggers spike firing</li>
+          <li><strong>Spike:</strong> Brief electrical pulse sent to connected neurons</li>
+          <li><strong>Reset:</strong> Return to baseline voltage after firing</li>
+        </ul>
+        <p>Experiment with the network parameters to see how these dynamics affect spike propagation!</p>
+      `,
+      2: `
+        <h2>Synaptic Transmission</h2>
+        <p>Spikes travel through synaptic connections between neurons:</p>
+        <ul>
+          <li><strong>Synapses:</strong> Connections visible as grey lines</li>
+          <li><strong>Weights:</strong> Connection strength affecting signal transmission</li>
+          <li><strong>Propagation:</strong> How spikes spread through the network</li>
+          <li><strong>Clustering:</strong> Groups of neurons that fire together</li>
+        </ul>
+        <p>Enable "Show Weights" to see detailed connection information for each neuron.</p>
+      `,
+      3: `
+        <h2>Network Plasticity</h2>
+        <p>Networks adapt and learn through connection modifications:</p>
+        <ul>
+          <li><strong>Hebbian Learning:</strong> "Neurons that fire together, wire together"</li>
+          <li><strong>Strengthening:</strong> Frequently used connections become stronger</li>
+          <li><strong>Weakening:</strong> Unused connections fade over time</li>
+          <li><strong>Homeostasis:</strong> Balance between stability and adaptability</li>
+        </ul>
+        <p>Watch how network patterns evolve as neurons interact over time.</p>
+      `,
+      4: `
+        <h2>Pattern Recognition</h2>
+        <p>SNNs excel at temporal pattern detection:</p>
+        <ul>
+          <li><strong>Temporal Coding:</strong> Information in spike timing</li>
+          <li><strong>Feature Detection:</strong> Specialized neural responses</li>
+          <li><strong>Competition:</strong> Winner-take-all mechanisms</li>
+          <li><strong>Real-time Processing:</strong> Event-driven computation</li>
+        </ul>
+        <p>Use "Inject Spike" to trigger patterns and observe how they propagate through different clusters.</p>
+      `,
+    };
+
+    return (
+      fallbackContent[lessonNumber] || "<p>Lesson content not available.</p>"
+    );
+  }
+
+  createNetwork() {
+    this.neurons = [];
+    this.connections = [];
+
+    // Create neurons in 3D space - adjusted for overview
+    const radius = 200; // Adjusted radius for a tighter cluster
+
+    for (let i = 0; i < this.config.networkSize; i++) {
+      const clusterId = Math.floor(i / (this.config.networkSize / 4));
+      const colors =
+        this.CLUSTER_COLORS[clusterId % this.CLUSTER_COLORS.length];
+
+      const neuron = {
+        id: i,
+        position: {
+          x: (Math.random() - 0.5) * radius * 2,
+          y: (Math.random() - 0.5) * radius * 2,
+          z: (Math.random() - 0.5) * radius * 2,
+        },
+        voltage: 0,
+        pulse: 0,
+        lastFire: 0,
+        colors: colors,
+        connections: [],
+      };
+
+      this.neurons.push(neuron);
+    }
+
+    // Create connections
+    for (let i = 0; i < this.neurons.length; i++) {
+      for (let j = i + 1; j < this.neurons.length; j++) {
+        if (Math.random() < this.config.connectionProb) {
+          const connection = {
+            from: this.neurons[i],
+            to: this.neurons[j],
+            weight: 0.1 + Math.random() * 0.4,
+          };
+          this.connections.push(connection);
+          this.neurons[i].connections.push(connection);
+
+          // Also create reverse connection for bidirectional
+          const reverseConnection = {
+            from: this.neurons[j],
+            to: this.neurons[i],
+            weight: 0.1 + Math.random() * 0.4,
+          };
+          this.connections.push(reverseConnection);
+          this.neurons[j].connections.push(reverseConnection);
+        }
+      }
+    }
+  }
+
+  updateNetwork() {
+    if (this.state.pauseSpikes) return;
+
+    this.neurons.forEach((neuron) => {
+      // Random firing
+      if (Math.random() < this.state.firingRate * this.state.speed) {
+        this.fireNeuron(neuron);
+      }
+
+      // Pulse decay
+      if (neuron.pulse > 0.01) {
+        neuron.pulse *= this.state.pulseDecay;
+      } else {
+        neuron.pulse = 0;
+      }
+
+      // Voltage decay
+      neuron.voltage *= 0.99;
+    });
+
+    // Update voltage display for selected neuron
+    if (this.state.selectedNeuron && this.dom.voltageValue) {
+      this.dom.voltageValue.textContent =
+        this.state.selectedNeuron.voltage.toFixed(3);
+      this.updateTrace();
+    }
+  }
+
+  fireNeuron(neuron) {
+    neuron.pulse = this.config.pulseIntensity;
+    neuron.voltage = 0;
+    neuron.lastFire = Date.now();
+
+    // Propagate to connected neurons
+    neuron.connections.forEach((conn) => {
+      conn.to.voltage += conn.weight;
+      if (conn.to.voltage >= this.state.threshold) {
+        setTimeout(() => this.fireNeuron(conn.to), Math.random() * 50);
+      }
+    });
+  }
+
+  updateTrace() {
+    if (!this.traceCtx || !this.state.selectedNeuron) return;
+
+    this.voltageHistory.push(this.state.selectedNeuron.voltage);
+    if (this.voltageHistory.length > 260) {
+      this.voltageHistory.shift();
+    }
+
+    this.clearTrace();
+
+    // Draw voltage trace with clean white
+    this.traceCtx.strokeStyle = "#ffffff";
+    this.traceCtx.lineWidth = 2;
+    this.traceCtx.beginPath();
+
+    this.voltageHistory.forEach((voltage, i) => {
+      const x = i;
+      const y = 150 - (voltage / this.state.threshold) * 100;
+
+      if (i === 0) {
+        this.traceCtx.moveTo(x, y);
+      } else {
+        this.traceCtx.lineTo(x, y);
+      }
+    });
+
+    this.traceCtx.stroke();
+
+    // Draw threshold line with muted grey
+    this.traceCtx.strokeStyle = "#808080";
+    this.traceCtx.lineWidth = 1;
+    this.traceCtx.setLineDash([5, 5]);
+    this.traceCtx.beginPath();
+    this.traceCtx.moveTo(0, 150 - 100);
+    this.traceCtx.lineTo(260, 150 - 100);
+    this.traceCtx.stroke();
+    this.traceCtx.setLineDash([]);
+  }
+
+  clearTrace() {
+    if (!this.traceCtx) return;
+    this.traceCtx.fillStyle = "#000000";
+    this.traceCtx.fillRect(0, 0, 260, 150);
   }
 
   initLessons() {
