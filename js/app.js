@@ -57,7 +57,6 @@ class SNNVisualizer {
   init() {
     this.initDOM();
     this.initCanvas();
-    this.initWebSocket(); // Restore WebSocket initialization
     this.createNetwork();
     this.bindUI();
     this.initLessons();
@@ -140,38 +139,6 @@ class SNNVisualizer {
     this.dom.canvas.height = window.innerHeight;
     this.dom.canvas.style.width = window.innerWidth + "px";
     this.dom.canvas.style.height = window.innerHeight + "px";
-  }
-
-  initWebSocket() {
-    const wsUrl = "ws://localhost:8766";
-    this.ws = new WebSocket(wsUrl);
-
-    this.ws.onopen = () => {
-      console.log("WebSocket connection established");
-      if (this.dom.errEl) this.dom.errEl.style.display = "none";
-    };
-
-    this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      this.handleNetworkData(data);
-    };
-
-    this.ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-      if (this.dom.errEl) {
-        this.dom.errEl.textContent =
-          "Connection to the neural network server failed. Is the server running?";
-        this.dom.errEl.style.display = "block";
-      }
-    };
-
-    this.ws.onclose = () => {
-      console.log("WebSocket connection closed");
-      if (this.dom.errEl) {
-        this.dom.errEl.textContent = "Connection to server lost. Please refresh.";
-        this.dom.errEl.style.display = "block";
-      }
-    };
   }
 
   initCameraControls() {
@@ -497,30 +464,6 @@ class SNNVisualizer {
     this.ctx.textAlign = "left"; // Reset alignment
   }
 
-  renderWeightPanel(neuron, projected) {
-    const panelWidth = 120;
-    const panelHeight = 80;
-    const x = projected.x + 20;
-    const y = projected.y - panelHeight / 2;
-
-    this.ctx.fillStyle = "rgba(10, 10, 10, 0.8)";
-    this.ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-    this.ctx.lineWidth = 1;
-    this.ctx.beginPath();
-    this.ctx.rect(x, y, panelWidth, panelHeight);
-    this.ctx.fill();
-    this.ctx.stroke();
-
-    this.ctx.fillStyle = "#B5B7C3";
-    this.ctx.font = "10px Inter, monospace";
-    this.ctx.fillText(`Neuron ${neuron.id} Weights:`, x + 5, y + 12);
-
-    neuron.connections.slice(0, 5).forEach((conn, i) => {
-      const weightText = `to ${conn.to.id}: ${conn.weight.toFixed(2)}`;
-      this.ctx.fillText(weightText, x + 5, y + 28 + i * 10);
-    });
-  }
-
   render() {
     // Clear canvas with pure black background
     this.ctx.fillStyle = "#000000";
@@ -645,6 +588,15 @@ class SNNVisualizer {
         this.ctx.lineWidth = Math.max(2, radius * 0.15);
         this.ctx.stroke();
       }
+
+      // Show weight information panels if enabled
+      if (
+        this.state.showWeights &&
+        neuron.connections.length > 0 &&
+        radius > 8
+      ) {
+        this.renderWeightPanel(neuron, projected);
+      }
     });
 
     // Debug info - top center and always visible
@@ -659,75 +611,36 @@ class SNNVisualizer {
     this.ctx.textAlign = "left"; // Reset alignment
   }
 
-  renderEnhancedNeuron(neuron, projected, radius, intensity) {
-    // Draw enhanced glow effect when firing
-    if (intensity > 0.1) {
-      const glowRadius = radius * (2.0 + intensity * 2.5);
-      const gradient = this.ctx.createRadialGradient(
-        projected.x,
-        projected.y,
-        0,
-        projected.x,
-        projected.y,
-        glowRadius
-      );
-
-      const glowColor = neuron.colors.glow;
-      gradient.addColorStop(
-        0,
-        `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
-          glowColor.g * 255
-        )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.9})`
-      );
-      gradient.addColorStop(
-        0.4,
-        `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
-          glowColor.g * 255
-        )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.5})`
-      );
-      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-
-      this.ctx.fillStyle = gradient;
-      this.ctx.beginPath();
-      this.ctx.arc(projected.x, projected.y, glowRadius, 0, Math.PI * 2);
-      this.ctx.fill();
-    }
-
-    // Draw neuron body with sophisticated cluster colors
-    const color = intensity > 0.3 ? neuron.colors.glow : neuron.colors.primary;
-    const depthFade = Math.min(1, 800 / Math.max(20, projected.depth));
-    const brightness = (intensity > 0.3 ? 1.0 : 0.6) * depthFade;
-
-    this.ctx.fillStyle = `rgb(${Math.floor(
-      color.r * 255 * brightness
-    )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
-      color.b * 255 * brightness
-    )})`;
-
+  renderWeightPanel(neuron, projected) {
+    // Draw a small panel near the neuron showing its outgoing weights
+    const panelWidth = 90;
+    const panelHeight = 18 + Math.min(5, neuron.connections.length) * 14;
+    const x = projected.x + 18;
+    const y = projected.y - panelHeight / 2;
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.92;
+    this.ctx.fillStyle = "#181b22";
+    this.ctx.strokeStyle = "#374E84";
+    this.ctx.lineWidth = 1.2;
     this.ctx.beginPath();
-    this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
+    this.ctx.roundRect(x, y, panelWidth, panelHeight, 6);
     this.ctx.fill();
-
-    // Highlight selected neuron
-    if (neuron === this.state.selectedNeuron) {
-      this.ctx.strokeStyle = "#374E84";
-      this.ctx.lineWidth = 2;
-      this.ctx.stroke();
+    this.ctx.stroke();
+    this.ctx.globalAlpha = 1.0;
+    this.ctx.fillStyle = "#b5b7c3";
+    this.ctx.font = "11px Inter, monospace";
+    this.ctx.textAlign = "left";
+    this.ctx.fillText("Weights:", x + 8, y + 14);
+    for (let i = 0; i < Math.min(5, neuron.connections.length); i++) {
+      const conn = neuron.connections[i];
+      this.ctx.fillStyle = "#b5b7c3";
+      this.ctx.fillText(
+        `→ ${conn.to.id}: ${conn.weight.toFixed(2)}`,
+        x + 8,
+        y + 14 + (i + 1) * 13
+      );
     }
-
-    // Draw neuron number with smart contrast
-    if (radius > 6) {
-      const textColor = intensity > 0.3 ? "#060709" : "#F2F2F3";
-      this.ctx.fillStyle = textColor;
-      this.ctx.font = `${Math.max(
-        8,
-        Math.min(14, radius * 0.7)
-      )}px Inter, sans-serif`;
-      this.ctx.fontWeight = "500";
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "middle";
-      this.ctx.fillText(neuron.id.toString(), projected.x, projected.y);
-    }
+    this.ctx.restore();
   }
 
   bindUI() {
