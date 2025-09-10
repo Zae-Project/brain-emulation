@@ -133,12 +133,12 @@ class SNNVisualizer {
       };
     }
 
-    // Set up working 3D camera system
+    // Set up working 3D camera system with proper centering and distance
     this.camera = {
-      position: { x: 0, y: 0, z: 200 },
+      position: { x: 0, y: 0, z: 400 },
       target: { x: 0, y: 0, z: 0 },
       rotation: { pitch: 0, yaw: 0 },
-      distance: 100,
+      distance: 200,
       move: { forward: 0, right: 0, up: 0 },
       mouse: {
         x: 0,
@@ -194,6 +194,19 @@ class SNNVisualizer {
     this.camera.mouse.lastY = e.clientY;
 
     if (this.camera.mouse.isLeftDown) {
+      // Pan mode
+      const right = this.getCameraRight();
+      const up = this.getCameraUp();
+
+      const panSpeed = 0.5; // Adjusted pan speed
+      this.camera.target.x -= right.x * deltaX * panSpeed;
+      this.camera.target.y += up.y * deltaY * panSpeed;
+      this.camera.target.z -= right.z * deltaX * panSpeed;
+
+      this.camera.position.x -= right.x * deltaX * panSpeed;
+      this.camera.position.y += up.y * deltaY * panSpeed;
+      this.camera.position.z -= right.z * deltaX * panSpeed;
+    } else if (this.camera.mouse.isRightDown) {
       // Mouse look - update rotation
       this.camera.rotation.yaw -= deltaX * this.camera.mouse.sensitivity;
       this.camera.rotation.pitch -= deltaY * this.camera.mouse.sensitivity;
@@ -203,20 +216,6 @@ class SNNVisualizer {
         -Math.PI / 2,
         Math.min(Math.PI / 2, this.camera.rotation.pitch)
       );
-
-      this.updateCameraPosition();
-    } else if (this.camera.mouse.isRightDown) {
-      // Pan mode
-      const forward = this.getCameraForward();
-      const right = this.getCameraRight();
-      const up = this.getCameraUp();
-
-      const panSpeed = 0.1;
-      this.camera.target.x -= right.x * deltaX * panSpeed;
-      this.camera.target.y += up.y * deltaY * panSpeed;
-      this.camera.target.z -= right.z * deltaX * panSpeed;
-
-      this.updateCameraPosition();
     }
   }
 
@@ -344,16 +343,16 @@ class SNNVisualizer {
   }
 
   resetCamera() {
-    this.camera.position = { x: 0, y: 0, z: 100 };
+    this.camera.position = { x: 0, y: 0, z: 400 };
     this.camera.target = { x: 0, y: 0, z: 0 };
     this.camera.rotation = { pitch: 0, yaw: 0 };
   }
 
   project3D(pos) {
-    // Working 3D projection with proper zoom scaling
+    // Simple but working 3D projection that centers the network
     const cam = this.camera;
 
-    // Transform point relative to camera
+    // Transform point relative to camera - simplified approach
     const dx = pos.x - cam.position.x;
     const dy = pos.y - cam.position.y;
     const dz = pos.z - cam.position.z;
@@ -374,28 +373,28 @@ class SNNVisualizer {
     const y2 = y1 * cosPitch - z1 * sinPitch;
     const z2 = y1 * sinPitch + z1 * cosPitch;
 
-    // Enhanced perspective projection with better zoom scaling
-    const distance = Math.max(1, z2);
-    const baseScale = 800; // Increased base scale for better zoom response
-    const scale = baseScale / distance;
+    // Simple perspective projection that ensures visibility
+    const perspectiveScale = 350; // Adjusted for ideal zoom
+    const distance = Math.max(1, z2 + 400); // Match camera z
 
-    const screenX = this.dom.canvas.width / 2 + x2 * scale;
-    const screenY = this.dom.canvas.height / 2 - y2 * scale;
+    const screenX =
+      this.dom.canvas.width / 2 + (x2 * perspectiveScale) / distance;
+    const screenY =
+      this.dom.canvas.height / 2 - (y2 * perspectiveScale) / distance;
 
-    // Calculate camera distance for zoom-responsive scaling
+    // Calculate zoom factor
     const cameraDistance = Math.sqrt(
       cam.position.x * cam.position.x +
         cam.position.y * cam.position.y +
         cam.position.z * cam.position.z
     );
 
-    // Zoom factor that increases neuron size when closer
-    const zoomFactor = Math.max(0.5, Math.min(5.0, 200 / cameraDistance));
+    const zoomFactor = Math.max(0.5, Math.min(5.0, 400 / cameraDistance));
 
     return {
       x: screenX,
       y: screenY,
-      scale: Math.max(0.1, (scale / baseScale) * zoomFactor),
+      scale: Math.max(0.05, (perspectiveScale / distance) * zoomFactor * 0.5),
       depth: z2,
       zoomFactor: zoomFactor,
     };
@@ -535,8 +534,8 @@ class SNNVisualizer {
     this.neurons = [];
     this.connections = [];
 
-    // Create neurons in 3D space
-    const radius = 60;
+    // Create neurons in 3D space - adjusted for overview
+    const radius = 120;
 
     for (let i = 0; i < this.config.networkSize; i++) {
       const clusterId = Math.floor(i / (this.config.networkSize / 4));
@@ -682,9 +681,6 @@ class SNNVisualizer {
       const startProj = this.project3D(conn.from.position);
       const endProj = this.project3D(conn.to.position);
 
-      // Skip if behind camera
-      if (startProj.depth <= 0 || endProj.depth <= 0) return;
-
       // Check if connection is active
       const timeSinceFromFire = Date.now() - (conn.from.lastFire || 0);
       const timeSinceToFire = Date.now() - (conn.to.lastFire || 0);
@@ -723,9 +719,8 @@ class SNNVisualizer {
     this.neurons.forEach((neuron) => {
       const projected = this.project3D(neuron.position);
 
-      // Skip if behind camera or way off screen
+      // Skip if way off screen (but allow negative depth for now)
       if (
-        projected.depth <= 0 ||
         projected.x < -200 ||
         projected.x > this.dom.canvas.width + 200 ||
         projected.y < -200 ||
@@ -734,10 +729,10 @@ class SNNVisualizer {
         return;
       }
 
-      // Zoom-responsive neuron size - grows significantly when zooming in
-      const baseRadius = 12; // Base neuron size
+      // Zoom-responsive neuron size - much smaller base size
+      const baseRadius = 4; // Reduced from 12 to 4
       const radius = Math.max(
-        3,
+        1,
         baseRadius *
           projected.scale *
           projected.zoomFactor *
@@ -1218,148 +1213,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Emergency fix for neural network visibility
-window.addEventListener("load", () => {
-  console.log("Emergency neural network fix loading...");
-
-  // Wait a moment for the main app to initialize
-  setTimeout(() => {
-    const canvas = document.getElementById("three-canvas");
-    if (!canvas) {
-      console.error("Canvas not found!");
-      return;
-    }
-
-    const ctx = canvas.getContext("2d");
-
-    // Create a simple working neural network visualization
-    const emergencyNeurons = [];
-    const emergencyConnections = [];
-
-    // Create neurons
-    for (let i = 0; i < 30; i++) {
-      emergencyNeurons.push({
-        id: i,
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        z: Math.random() * 200 - 100,
-        radius: 8 + Math.random() * 12,
-        color:
-          i < 8
-            ? "#60a5fa"
-            : i < 16
-            ? "#f59e0b"
-            : i < 24
-            ? "#34d399"
-            : "#ef4444",
-        pulse: 0,
-        voltage: 0,
-      });
-    }
-
-    // Create connections
-    for (let i = 0; i < emergencyNeurons.length; i++) {
-      for (let j = i + 1; j < emergencyNeurons.length; j++) {
-        if (Math.random() < 0.1) {
-          emergencyConnections.push({
-            from: emergencyNeurons[i],
-            to: emergencyNeurons[j],
-          });
-        }
-      }
-    }
-
-    let animationRunning = true;
-
-    function emergencyRender() {
-      if (!animationRunning) return;
-
-      // Clear canvas
-      ctx.fillStyle = "#0a0c12";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Draw connections
-      ctx.strokeStyle = "rgba(100, 116, 139, 0.3)";
-      ctx.lineWidth = 1;
-      emergencyConnections.forEach((conn) => {
-        ctx.beginPath();
-        ctx.moveTo(conn.from.x, conn.from.y);
-        ctx.lineTo(conn.to.x, conn.to.y);
-        ctx.stroke();
-      });
-
-      // Draw neurons
-      emergencyNeurons.forEach((neuron) => {
-        // Random firing
-        if (Math.random() < 0.002) {
-          neuron.pulse = 1;
-        }
-
-        // Pulse decay
-        if (neuron.pulse > 0) {
-          neuron.pulse *= 0.95;
-        }
-
-        // Draw glow if firing
-        if (neuron.pulse > 0.1) {
-          const glowRadius = neuron.radius * (1 + neuron.pulse);
-          const gradient = ctx.createRadialGradient(
-            neuron.x,
-            neuron.y,
-            0,
-            neuron.x,
-            neuron.y,
-            glowRadius
-          );
-          gradient.addColorStop(0, neuron.color + "80");
-          gradient.addColorStop(1, neuron.color + "00");
-
-          ctx.fillStyle = gradient;
-          ctx.beginPath();
-          ctx.arc(neuron.x, neuron.y, glowRadius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Draw neuron body
-        const brightness = neuron.pulse > 0.1 ? 1 : 0.8;
-        ctx.fillStyle =
-          neuron.color +
-          Math.floor(brightness * 255)
-            .toString(16)
-            .padStart(2, "0");
-        ctx.beginPath();
-        ctx.arc(neuron.x, neuron.y, neuron.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw rim
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      });
-
-      // Draw status
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "14px Arial";
-      ctx.fillText("Emergency Neural Network Active", 20, 30);
-      ctx.fillText(
-        `Neurons: ${emergencyNeurons.length} | Connections: ${emergencyConnections.length}`,
-        20,
-        50
-      );
-
-      requestAnimationFrame(emergencyRender);
-    }
-
-    console.log("Emergency neural network starting...");
-    emergencyRender();
-
-    // Stop emergency render if main app starts working
-    setTimeout(() => {
-      const mainApp = window.snnVisualizer;
-      if (mainApp && mainApp.neurons && mainApp.neurons.length > 0) {
-        console.log("Main app detected, stopping emergency render");
-        animationRunning = false;
-      }
-    }, 3000);
-  }, 1000);
-});
+// Remove emergency fallback - it causes the wrong style flash
