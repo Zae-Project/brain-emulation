@@ -37,12 +37,41 @@ Testing
 pytest -q
 ```
 
-Contributing
-- Discuss first: open an issue to align on goals and scope.
-- Fork and branch: use descriptive branch names (e.g., docs/lesson-intro-snn).
-- Make small, focused changes with clear commit messages.
-- Update docs for user-facing changes.
-- Open a PR and link to any relevant issues or discussions.
+## Contributing
+
+This repository uses GitHub Discussions and branch protection rules to ensure quality collaboration.
+
+### 🗣️ Before Contributing: Start with Discussions
+- **New features or ideas:** Use [GitHub Discussions](https://github.com/venturaEffect/brain_emulation/discussions) to gather feedback first
+- **Questions:** Ask about implementation, neuroscience concepts, or project direction
+- **Research:** Discuss papers, share insights, brainstorm approaches
+- **Help:** Get assistance with setup, bugs, or development
+
+### 🛡️ Branch Protection Workflow
+This repository protects the `main` branch to ensure code quality:
+
+1. **Fork** the repository or create a **feature branch** (never work directly on `main`)
+2. **Make your changes** with clear, focused commits
+3. **Test thoroughly** - ensure your changes work and don't break existing functionality
+4. **Submit a pull request** using our PR template
+5. **Address review feedback** promptly and respectfully
+6. **Wait for approval** before changes are merged
+
+### 📝 Contribution Types
+- **Bug fixes:** Use our bug report template to identify issues first
+- **New features:** Start with a Discussion, then use the feature request template
+- **Documentation:** Improve setup guides, add examples, update API docs
+- **Educational content:** New lessons, visualizations, or research summaries
+
+### 📋 Pull Request Guidelines
+- Use descriptive commit messages and PR titles
+- Fill out the entire PR template
+- Link to related issues or discussions
+- Include tests for new functionality
+- Update documentation for user-facing changes
+- Ensure backward compatibility
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines.
 
 Coding style and checks
 - Prefer clear, readable code and comments over cleverness.
