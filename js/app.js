@@ -1008,6 +1008,11 @@ class SNNVisualizer {
         this.fireNeuron(neuron);
       }
 
+      // Check if neuron should fire due to accumulated voltage
+      if (neuron.voltage >= this.state.threshold) {
+        this.fireNeuron(neuron);
+      }
+
       // Pulse decay
       if (neuron.pulse > 0.01) {
         neuron.pulse *= this.state.pulseDecay;
@@ -1015,8 +1020,8 @@ class SNNVisualizer {
         neuron.pulse = 0;
       }
 
-      // Voltage decay
-      neuron.voltage *= 0.99;
+      // Voltage decay (small leak)
+      neuron.voltage *= 0.995; // Slower decay so voltage can accumulate
     });
 
     // Update voltage display for selected neuron
@@ -1029,15 +1034,13 @@ class SNNVisualizer {
 
   fireNeuron(neuron) {
     neuron.pulse = this.config.pulseIntensity;
-    neuron.voltage = 0;
+    neuron.voltage = 0; // Reset to 0 after firing
     neuron.lastFire = Date.now();
 
     // Propagate to connected neurons
     neuron.connections.forEach((conn) => {
       conn.to.voltage += conn.weight;
-      if (conn.to.voltage >= this.state.threshold) {
-        setTimeout(() => this.fireNeuron(conn.to), Math.random() * 50);
-      }
+      // Don't fire immediately, let the update loop handle threshold checking
     });
   }
 
@@ -1051,14 +1054,38 @@ class SNNVisualizer {
 
     this.clearTrace();
 
-    // Draw voltage trace with clean white
-    this.traceCtx.strokeStyle = "#ffffff";
+    // Draw background grid
+    this.traceCtx.strokeStyle = "#333333";
+    this.traceCtx.lineWidth = 0.5;
+    this.traceCtx.setLineDash([2, 2]);
+
+    // Horizontal grid lines
+    for (let i = 0; i <= 4; i++) {
+      const y = (150 * i) / 4;
+      this.traceCtx.beginPath();
+      this.traceCtx.moveTo(0, y);
+      this.traceCtx.lineTo(260, y);
+      this.traceCtx.stroke();
+    }
+
+    // Vertical grid lines
+    for (let i = 0; i <= 8; i++) {
+      const x = (260 * i) / 8;
+      this.traceCtx.beginPath();
+      this.traceCtx.moveTo(x, 0);
+      this.traceCtx.lineTo(x, 150);
+      this.traceCtx.stroke();
+    }
+    this.traceCtx.setLineDash([]);
+
+    // Draw voltage trace with clean white - corrected direction
+    this.traceCtx.strokeStyle = "#00ff88";
     this.traceCtx.lineWidth = 2;
     this.traceCtx.beginPath();
 
     this.voltageHistory.forEach((voltage, i) => {
       const x = i;
-      const y = 150 - (voltage / this.state.threshold) * 100;
+      const y = 150 - (voltage / (this.state.threshold * 1.2)) * 150; // Inverted so spikes go up
 
       if (i === 0) {
         this.traceCtx.moveTo(x, y);
@@ -1069,15 +1096,41 @@ class SNNVisualizer {
 
     this.traceCtx.stroke();
 
-    // Draw threshold line with muted grey
-    this.traceCtx.strokeStyle = "#808080";
-    this.traceCtx.lineWidth = 1;
+    // Draw threshold line with bright red
+    this.traceCtx.strokeStyle = "#ff4444";
+    this.traceCtx.lineWidth = 2;
     this.traceCtx.setLineDash([5, 5]);
+    const thresholdY =
+      150 - (this.state.threshold / (this.state.threshold * 1.2)) * 150;
     this.traceCtx.beginPath();
-    this.traceCtx.moveTo(0, 150 - 100);
-    this.traceCtx.lineTo(260, 150 - 100);
+    this.traceCtx.moveTo(0, thresholdY);
+    this.traceCtx.lineTo(260, thresholdY);
     this.traceCtx.stroke();
     this.traceCtx.setLineDash([]);
+
+    // Add voltage scale labels
+    this.traceCtx.fillStyle = "#cccccc";
+    this.traceCtx.font = "10px Inter, monospace";
+    this.traceCtx.textAlign = "right";
+
+    // Y-axis labels (voltage values)
+    const maxVoltage = this.state.threshold * 1.2;
+    for (let i = 0; i <= 4; i++) {
+      const voltage = (maxVoltage * (4 - i)) / 4;
+      const y = (150 * i) / 4;
+      this.traceCtx.fillText(voltage.toFixed(1), 25, y + 3);
+    }
+
+    // Add axis labels
+    this.traceCtx.textAlign = "left";
+    this.traceCtx.fillStyle = "#888888";
+    this.traceCtx.font = "9px Inter, sans-serif";
+    this.traceCtx.fillText("Voltage (V)", 5, 12);
+    this.traceCtx.fillText("Time →", 200, 145);
+
+    // Add threshold label
+    this.traceCtx.fillStyle = "#ff4444";
+    this.traceCtx.fillText("Threshold", 180, thresholdY - 5);
   }
 
   clearTrace() {
