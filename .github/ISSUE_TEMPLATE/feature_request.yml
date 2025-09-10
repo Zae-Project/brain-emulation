@@ -1,0 +1,71 @@
+name: Feature Request
+description: Suggest an idea for the brain emulation project
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature!
+        
+        **Before submitting:** Please check if a similar request already exists and consider starting a [Discussion](../../discussions) to gather community feedback first.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of what the problem is.
+      placeholder: I'm always frustrated when...
+    validations:
+      required: false
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature category
+      description: What category does this feature relate to?
+      options:
+        - Spiking Neural Networks (SNN) functionality
+        - Visualization and UI
+        - Educational content and lessons
+        - Documentation
+        - Performance and optimization
+        - API and integrations
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context, mockups, or examples about the feature request here.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our Code of Conduct and Contributing Guidelines.
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
+        - label: I have checked existing issues and discussions before creating this request
+          required: true
+        - label: I have considered starting a Discussion to gather community input first
+          required: true

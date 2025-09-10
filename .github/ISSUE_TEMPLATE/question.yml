@@ -1,0 +1,41 @@
+name: Question/Discussion
+description: Ask a question or start a discussion about the brain emulation project
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Heads up!** This issue template is for quick questions. For more in-depth discussions, consider using [GitHub Discussions](../../discussions) instead.
+        
+        GitHub Discussions is better suited for:
+        - General questions about neural networks
+        - Research discussions
+        - Brainstorming new ideas
+        - Getting help with implementation
+        - Community conversations
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Please be as specific as possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any additional information that might help us understand your question better.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our Code of Conduct.
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
+        - label: I have considered using GitHub Discussions for broader conversation
+          required: true

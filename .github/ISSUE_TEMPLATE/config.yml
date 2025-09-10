@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/venturaEffect/brain_emulation/discussions
+    about: Ask questions, share ideas, and discuss brain emulation concepts with the community
+  - name: 📚 Documentation
+    url: https://github.com/venturaEffect/brain_emulation/tree/main/docs
+    about: Read the project documentation for setup, contributing, and learning resources
