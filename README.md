@@ -34,7 +34,21 @@ An open, educational, and research-focused project for learning spiking neural n
 - Ethical Guidelines: [docs/ethics.md](./docs/ethics.md)
 
 ## Contributing
-We welcome contributions and forks. Please open an issue or discussion to propose features or lessons, and submit focused PRs with documentation updates. See [docs/instructions.md](./docs/instructions.md) and [docs/lessons.md](./docs/lessons.md).
+
+We welcome contributions and collaboration! This project uses GitHub Discussions and branch protection to ensure quality and foster community engagement.
+
+**🗣️ Start with [Discussions](https://github.com/venturaEffect/brain_emulation/discussions)** for:
+- New ideas and feature proposals
+- Questions about implementation or neuroscience concepts  
+- Research discussions and brainstorming
+- Getting help with the codebase
+
+**📋 For formal contributions:**
+- All changes must go through pull requests (direct pushes to `main` are protected)
+- Use our issue templates for bugs and feature requests
+- Follow the guidelines in [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+See also: [docs/instructions.md](./docs/instructions.md) and [docs/lessons.md](./docs/lessons.md)
 
 ## License
 Open source—see [LICENSE](./LICENSE).
