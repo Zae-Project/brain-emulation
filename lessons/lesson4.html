@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 4: Pattern Recognition</title>
+    <style>
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        background: #0f1419;
+        color: #e6e9ef;
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #ff9bf0;
+        margin-top: 24px;
+      }
+      h1 {
+        font-size: 28px;
+        margin-bottom: 16px;
+      }
+      h2 {
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+      ul,
+      ol {
+        margin-left: 20px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      strong {
+        color: #ff9bf0;
+      }
+      p {
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 4: Pattern Recognition</h1>
+
+    <p>
+      Spiking Neural Networks excel at recognizing patterns in temporal data due
+      to their inherent time dynamics. Unlike traditional neural networks, SNNs
+      can process information as it arrives in real-time, making them ideal for
+      time-series analysis and event-driven processing.
+    </p>
+
+    <h2>Temporal Coding</h2>
+
+    <h3>Spike Timing</h3>
+    <p>
+      Information is encoded not just in which neurons fire, but when they fire.
+      The precise timing of spikes carries meaning, allowing for much richer
+      information representation than simple rate-based coding.
+    </p>
+
+    <h3>Temporal Patterns</h3>
+    <p>
+      Sequences of spikes that represent specific inputs or states. In our
+      simulation, you can observe these as:
+    </p>
+    <ul>
+      <li>
+        <strong>Synchronous Bursts:</strong> Multiple neurons firing together
+      </li>
+      <li>
+        <strong>Sequential Activation:</strong> Spikes propagating through
+        neural chains
+      </li>
+      <li>
+        <strong>Oscillatory Patterns:</strong> Rhythmic firing that repeats over
+        time
+      </li>
+    </ul>
+
+    <h2>Recognition Mechanisms</h2>
+
+    <h3>Receptive Fields</h3>
+    <p>
+      Regions of the input space that activate specific neurons. Different
+      neurons respond to different patterns, creating a distributed
+      representation of information.
+    </p>
+
+    <h3>Winner-Take-All Competition</h3>
+    <p>
+      When multiple neurons compete to represent a pattern, the most strongly
+      activated neuron "wins" and suppresses others. This creates clear,
+      distinct responses to different inputs.
+    </p>
+
+    <h3>Feature Detection</h3>
+    <p>
+      Networks learn to detect specific features or patterns through experience.
+      Neurons become selective for particular combinations of inputs.
+    </p>
+
+    <h2>Network Dynamics in Pattern Recognition</h2>
+
+    <h3>Cluster Behavior</h3>
+    <p>
+      In our visualization, the four colored clusters represent different
+      pattern detectors:
+    </p>
+    <ul>
+      <li><strong>Blue Cluster:</strong> Responds to one type of pattern</li>
+      <li><strong>Pink Cluster:</strong> Specialized for different features</li>
+      <li>
+        <strong>Yellow Cluster:</strong> Detects unique temporal sequences
+      </li>
+      <li>
+        <strong>Orange Cluster:</strong> Integrates information from other
+        clusters
+      </li>
+    </ul>
+
+    <h3>Information Flow</h3>
+    <p>Watch how information propagates through the network:</p>
+    <ul>
+      <li>Input signals trigger specific clusters</li>
+      <li>Active clusters influence connected regions</li>
+      <li>Competition between clusters determines the final output</li>
+      <li>Feedback connections refine the recognition process</li>
+    </ul>
+
+    <h2>Interactive Exploration</h2>
+
+    <p>Experiment with pattern recognition by:</p>
+    <ul>
+      <li>
+        <strong>Injecting Spikes:</strong> See how different starting points
+        create different patterns
+      </li>
+      <li>
+        <strong>Monitoring Voltage Traces:</strong> Click neurons to see their
+        response patterns
+      </li>
+      <li>
+        <strong>Adjusting Parameters:</strong> Change network properties to
+        affect recognition
+      </li>
+      <li>
+        <strong>3D Navigation:</strong> Fly through the network to see pattern
+        propagation from different angles
+      </li>
+    </ul>
+
+    <h2>Applications</h2>
+
+    <p>SNN pattern recognition is used in:</p>
+    <ul>
+      <li>
+        <strong>Computer Vision:</strong> Real-time object detection and
+        tracking
+      </li>
+      <li>
+        <strong>Speech Processing:</strong> Temporal pattern recognition in
+        audio signals
+      </li>
+      <li>
+        <strong>Sensor Networks:</strong> Event-driven processing of sensor data
+      </li>
+      <li>
+        <strong>Robotics:</strong> Real-time decision making and motor control
+      </li>
+      <li>
+        <strong>Brain-Computer Interfaces:</strong> Decoding neural signals for
+        prosthetic control
+      </li>
+    </ul>
+
+    <p>
+      The efficiency and biological realism of SNNs make them particularly
+      valuable for applications requiring low power consumption and real-time
+      processing.
+    </p>
+  </body>
+</html>

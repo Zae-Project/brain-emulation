@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 1: Basic Spike Dynamics</title>
+    <style>
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        background: #0f1419;
+        color: #e6e9ef;
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #ff9bf0;
+        margin-top: 24px;
+      }
+      h1 {
+        font-size: 28px;
+        margin-bottom: 16px;
+      }
+      h2 {
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+      code {
+        background: #1e293b;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+      }
+      ul,
+      ol {
+        margin-left: 20px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      strong {
+        color: #ff9bf0;
+      }
+      p {
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 1: Basic Spike Dynamics</h1>
+
+    <p>
+      Spiking Neural Networks (SNNs) use discrete spikes to communicate
+      information, unlike traditional neural networks that use continuous
+      values. This fundamental difference makes SNNs more biologically realistic
+      and energy-efficient.
+    </p>
+
+    <h2>Key Concepts</h2>
+
+    <h3>Membrane Potential</h3>
+    <p>
+      The voltage inside a neuron that accumulates over time. In our simulation,
+      this is represented by the <code>voltage</code> property of each neuron.
+      As the neuron receives inputs from connected neurons, its membrane
+      potential increases.
+    </p>
+
+    <h3>Threshold</h3>
+    <p>
+      When the membrane potential reaches this critical level (typically 1.0 in
+      our simulation), the neuron fires a spike. This is the fundamental
+      mechanism that determines when information is transmitted.
+    </p>
+
+    <h3>Spike Generation</h3>
+    <p>
+      A brief electrical pulse sent to all connected neurons when the threshold
+      is reached. In our visualization, you can see this as the bright glow
+      effect around firing neurons.
+    </p>
+
+    <h3>Reset Mechanism</h3>
+    <p>
+      After firing, the membrane potential returns to 0, preparing the neuron
+      for the next accumulation cycle. This prevents continuous firing and
+      creates the discrete nature of spikes.
+    </p>
+
+    <h2>Interactive Exploration</h2>
+
+    <p>
+      Try adjusting the following parameters to see how they affect spike
+      dynamics:
+    </p>
+    <ul>
+      <li>
+        <strong>Network Size:</strong> More neurons create more complex spike
+        patterns
+      </li>
+      <li>
+        <strong>Connection Probability:</strong> Higher values create more
+        interconnected networks
+      </li>
+      <li>
+        <strong>Firing Rate:</strong> Controls how often neurons spontaneously
+        fire
+      </li>
+      <li>
+        <strong>Spike Threshold:</strong> Lower values make neurons fire more
+        easily
+      </li>
+    </ul>
+
+    <p>
+      Watch how spikes propagate through the network and create cascading
+      patterns of activity!
+    </p>
+  </body>
+</html>

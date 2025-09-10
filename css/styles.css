@@ -1,0 +1,445 @@
+:root {
+  /* Sophisticated Minimalist Dark Palette */
+  --bg: #000000; /* Pure black background */
+  --surface-1: #0a0a0a; /* Subtle dark surface */
+  --surface-2: #151515; /* Slightly lighter surface */
+  --surface-3: #1a1a1a; /* Card backgrounds */
+  --border: #2a2a2a; /* Minimal borders */
+
+  --text: #ffffff; /* Pure white text */
+  --text-2: #cccccc; /* Secondary text */
+  --text-muted: #808080; /* Muted text */
+  --text-accent: #b0b0b0; /* Accent text */
+
+  --accent-primary: #ffffff; /* Pure white accents */
+  --accent-subtle: #404040; /* Subtle accents */
+  --accent-glow: #606060; /* Glow effects */
+  --accent-danger: #ff4444; /* Minimal red for errors */
+
+  /* Typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+    "Segoe UI Emoji";
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", "SFMono-Regular", Menlo,
+    Consolas, monospace;
+
+  /* Legacy mappings for compatibility */
+  --panel: var(--surface-1);
+  --edge: var(--border);
+  --edgeHot: var(--accent-primary);
+  --node: var(--accent-primary);
+  --hot: var(--accent-glow);
+  --pulse: var(--accent-primary);
+  --muted: var(--text-muted);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow: hidden;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+canvas {
+  display: block;
+}
+
+#overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+      1400px 900px at 30% 0%,
+      rgba(255, 255, 255, 0.005),
+      transparent 70%
+    ),
+    radial-gradient(
+      1000px 600px at 80% 100%,
+      rgba(255, 255, 255, 0.003),
+      transparent 60%
+    );
+}
+
+#hud {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: var(--surface-1);
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  padding: 10px 16px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: var(--surface-1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.btn.on {
+  background: var(--accent-primary);
+  color: var(--bg);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.range {
+  accent-color: var(--accent-primary);
+}
+
+#panel {
+  position: fixed;
+  right: 16px;
+  top: 16px;
+  width: 320px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+#panel h4 {
+  margin: 0 0 12px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--text);
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+#trace {
+  width: 100%;
+  height: 160px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+#err {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  background: var(--accent-danger);
+  color: var(--text);
+  padding: 12px 16px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  display: none;
+  border: 1px solid var(--border);
+}
+
+#controls {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  width: 320px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.control-group {
+  margin-bottom: 16px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent-primary);
+  background: var(--surface-2);
+}
+
+.toggle {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  cursor: pointer;
+  display: inline-block;
+  margin: 2px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle.active {
+  background: var(--accent-primary);
+  color: var(--bg);
+  border-color: var(--accent-primary);
+}
+
+#info {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  width: 340px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  z-index: 10;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.lesson {
+  background: var(--surface-2);
+  padding: 16px;
+  margin: 12px 0;
+  border-left: 2px solid var(--accent-primary);
+  border-top: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.lesson strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Lesson Modal Styles */
+.lesson-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.lesson-modal-content {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  padding: 32px;
+  max-width: 800px;
+  max-height: 85vh;
+  overflow-y: auto;
+  color: var(--text);
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  font-family: var(--font-sans);
+}
+
+.lesson-modal-content h1,
+.lesson-modal-content h2,
+.lesson-modal-content h3 {
+  color: var(--text);
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.lesson-modal-content h1 {
+  color: var(--accent-primary);
+  margin-top: 0;
+  font-size: 28px;
+  text-transform: uppercase;
+}
+
+.lesson-modal-content h2 {
+  color: var(--text);
+  font-size: 20px;
+}
+
+.lesson-modal-content h3 {
+  color: var(--text-2);
+  font-size: 16px;
+}
+
+.lesson-modal-content p {
+  margin-bottom: 16px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.lesson-modal-content ul,
+.lesson-modal-content ol {
+  margin: 16px 0;
+  padding-left: 24px;
+  color: var(--text-2);
+}
+
+.lesson-modal-content li {
+  margin-bottom: 8px;
+}
+
+.lesson-modal-content code {
+  background: var(--bg);
+  padding: 3px 8px;
+  color: var(--text-accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 1px solid var(--border);
+}
+
+.lesson-modal-content .close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: all 0.15s ease;
+}
+
+.lesson-modal-content .close-btn:hover {
+  background: var(--accent-danger);
+  color: var(--text);
+}
+
+#lessonPanel {
+  left: 16px;
+  top: 80px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: var(--surface-1);
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  position: fixed;
+  z-index: 10;
+}
+
+#lessonPanel select {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+#lessonPanel select option {
+  background: var(--surface-1);
+  color: var(--text);
+  padding: 8px;
+}
+
+#lessonPanel label {
+  color: var(--text-2);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+#navControls {
+  right: 16px;
+  top: 300px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  padding: 16px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1.4;
+  backdrop-filter: blur(12px);
+  max-width: 200px;
+  position: fixed;
+  z-index: 10;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+#navControls h5 {
+  margin: 0 0 12px 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.nav-tip {
+  margin: 6px 0;
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.nav-tip strong {
+  color: var(--text-accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+#three-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  cursor: grab;
+}
+
+#three-canvas:active {
+  cursor: grabbing;
+}

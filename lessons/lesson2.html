@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 2: Synaptic Transmission</title>
+    <style>
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        background: #0f1419;
+        color: #e6e9ef;
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #ff9bf0;
+        margin-top: 24px;
+      }
+      h1 {
+        font-size: 28px;
+        margin-bottom: 16px;
+      }
+      h2 {
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+      ul,
+      ol {
+        margin-left: 20px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      strong {
+        color: #ff9bf0;
+      }
+      p {
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 2: Synaptic Transmission</h1>
+
+    <p>
+      When a neuron fires, it sends spikes to all connected neurons through
+      synapses. These connections are the pathways that allow information to
+      flow through the neural network.
+    </p>
+
+    <h2>Understanding Synapses</h2>
+
+    <h3>Synaptic Connections</h3>
+    <p>
+      In our visualization, you can see these as the grey lines connecting
+      neurons. Each connection represents a synapse where spikes travel from one
+      neuron to another.
+    </p>
+
+    <h3>Synaptic Weights</h3>
+    <p>
+      The strength of each connection, shown in the weight panels when you
+      enable "Show Weights". Stronger connections (higher weights) have more
+      influence on the receiving neuron.
+    </p>
+
+    <h3>Signal Propagation</h3>
+    <p>
+      When a neuron fires, its spike travels along all its outgoing connections.
+      The receiving neurons add the connection weight to their membrane
+      potential.
+    </p>
+
+    <h2>Dynamic Connection Activity</h2>
+
+    <p>Watch for these visual cues:</p>
+    <ul>
+      <li>
+        <strong>Grey Connections:</strong> Inactive synapses (always visible)
+      </li>
+      <li>
+        <strong>Colored Connections:</strong> Active synapses carrying spikes
+      </li>
+      <li>
+        <strong>Cluster Colors:</strong> Connections light up in the color of
+        the firing neuron cluster
+      </li>
+      <li>
+        <strong>Synchronous Activity:</strong> When neurons fire together, their
+        connections brighten
+      </li>
+    </ul>
+
+    <h2>Weight Information Panels</h2>
+
+    <p>Enable "Show Weights" to see detailed information about each neuron:</p>
+    <ul>
+      <li><strong>Neuron ID:</strong> Unique identifier</li>
+      <li><strong>Current Voltage:</strong> Real-time membrane potential</li>
+      <li>
+        <strong>Connection List:</strong> All outgoing connections with their
+        weights
+      </li>
+      <li>
+        <strong>Color Coding:</strong> Green (strong), Yellow (medium), Grey
+        (weak)
+      </li>
+    </ul>
+
+    <h2>Experimentation</h2>
+
+    <p>Try these experiments:</p>
+    <ul>
+      <li>Increase connection probability to see denser networks</li>
+      <li>Use "Inject Spike" to trigger cascading activity</li>
+      <li>Click on neurons to monitor their voltage traces</li>
+      <li>Watch how different clusters interact through their connections</li>
+    </ul>
+  </body>
+</html>
