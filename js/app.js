@@ -975,6 +975,94 @@ class SNNVisualizer {
         </ul>
         <p>Use "Inject Spike" to trigger patterns and observe how they propagate through different clusters.</p>
       `,
+      5: `
+        <h2>Network Topology</h2>
+        <p>Brain-like networks have specific organizational principles:</p>
+        <ul>
+          <li><strong>Small-World Properties:</strong> High clustering with short path lengths</li>
+          <li><strong>Modularity:</strong> Groups of densely connected neurons</li>
+          <li><strong>Hub Nodes:</strong> Highly connected neurons that integrate information</li>
+          <li><strong>Hierarchical Structure:</strong> Multiple scales of organization</li>
+        </ul>
+        <p>Observe how cluster formation affects information flow and processing efficiency.</p>
+      `,
+      6: `
+        <h2>Inhibition and Competition</h2>
+        <p>Inhibitory mechanisms create selection and decision-making:</p>
+        <ul>
+          <li><strong>Lateral Inhibition:</strong> Neighboring neurons suppress each other</li>
+          <li><strong>Winner-Take-All:</strong> Only the strongest signals survive</li>
+          <li><strong>E/I Balance:</strong> Critical ratio of excitation to inhibition</li>
+          <li><strong>Attention Mechanisms:</strong> Selecting relevant information</li>
+        </ul>
+        <p>Experiment with thresholds to see how they affect competitive dynamics.</p>
+      `,
+      7: `
+        <h2>Multi-layer Processing</h2>
+        <p>Hierarchical networks extract increasingly complex features:</p>
+        <ul>
+          <li><strong>Feature Hierarchy:</strong> Simple to complex pattern detection</li>
+          <li><strong>Cortical Columns:</strong> Functional processing units</li>
+          <li><strong>Feed-forward/Feedback:</strong> Bottom-up and top-down processing</li>
+          <li><strong>Abstraction Levels:</strong> From pixels to concepts</li>
+        </ul>
+        <p>This lesson demonstrates hierarchical processing principles.</p>
+      `,
+      8: `
+        <h2>Memory Systems</h2>
+        <p>Different memory types emerge from distinct network architectures:</p>
+        <ul>
+          <li><strong>Working Memory:</strong> Temporary storage through persistent activity</li>
+          <li><strong>Long-term Memory:</strong> Stable patterns through synaptic changes</li>
+          <li><strong>Episodic Memory:</strong> Time-linked event sequences</li>
+          <li><strong>Associative Memory:</strong> Pattern completion and recall</li>
+        </ul>
+        <p>Observe how persistent activity creates memory-like behavior.</p>
+      `,
+      9: `
+        <h2>Large-Scale Networks</h2>
+        <p>Brain-wide coordination enables higher-order functions:</p>
+        <ul>
+          <li><strong>Global Workspace:</strong> Conscious access through global broadcasting</li>
+          <li><strong>Default Mode Network:</strong> Resting state activity patterns</li>
+          <li><strong>Information Integration:</strong> Binding distributed processing</li>
+          <li><strong>Criticality:</strong> Balanced dynamics at phase transitions</li>
+        </ul>
+        <p>Watch how activity spreads across the entire network.</p>
+      `,
+      10: `
+        <h2>Neural Oscillations</h2>
+        <p>Rhythmic activity coordinates brain-wide processing:</p>
+        <ul>
+          <li><strong>Gamma Rhythms:</strong> Local processing and attention</li>
+          <li><strong>Alpha/Beta Rhythms:</strong> Communication between regions</li>
+          <li><strong>Theta Rhythms:</strong> Memory formation and navigation</li>
+          <li><strong>Phase Coupling:</strong> Temporal coordination mechanisms</li>
+        </ul>
+        <p>Observe rhythmic patterns in the voltage traces.</p>
+      `,
+      11: `
+        <h2>Brain Emulation Theory</h2>
+        <p>The ultimate goal of computational neuroscience:</p>
+        <ul>
+          <li><strong>Whole Brain Emulation:</strong> Complete functional brain copies</li>
+          <li><strong>Scanning Technology:</strong> Mapping every neuron and connection</li>
+          <li><strong>Computational Requirements:</strong> Massive processing and storage needs</li>
+          <li><strong>Technical Challenges:</strong> Scale, speed, and biological accuracy</li>
+        </ul>
+        <p>Understanding these fundamentals prepares us for the challenges ahead.</p>
+      `,
+      12: `
+        <h2>Ethics and Future Implications</h2>
+        <p>Digital minds raise profound philosophical questions:</p>
+        <ul>
+          <li><strong>Consciousness:</strong> Would digital minds be conscious?</li>
+          <li><strong>Identity:</strong> What makes you "you" in digital form?</li>
+          <li><strong>Rights:</strong> What protections do digital minds deserve?</li>
+          <li><strong>Responsibility:</strong> Our duty as creators of digital minds</li>
+        </ul>
+        <p>These questions require careful consideration as we advance the technology.</p>
+      `,
     };
 
     return (
