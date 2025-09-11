@@ -849,13 +849,15 @@ class SNNVisualizer {
     if (!lesson) return;
 
     try {
+      console.log(`Loading lesson ${lessonNumber} from ${lesson.file}`);
       const response = await fetch(lesson.file);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const content = await response.text();
+      const htmlContent = await response.text();
+      console.log(`Lesson ${lessonNumber} HTML content loaded successfully`);
 
       // Create modal
       const modal = document.createElement("div");
@@ -863,13 +865,15 @@ class SNNVisualizer {
 
       const modalContent = document.createElement("div");
       modalContent.className = "lesson-modal-content";
+
+      // Directly use the loaded HTML file content
       modalContent.innerHTML = `
-        <button class="close-btn">&times;</button>
-        ${content}
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
-          <button class="btn" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
-        </div>
-      `;
+      <button class="close-btn">&times;</button>
+      ${htmlContent}
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
+        <button class="btn" onclick="this.closest('.lesson-modal').remove()">CLOSE LESSON</button>
+      </div>
+    `;
 
       modal.appendChild(modalContent);
       document.body.appendChild(modal);
@@ -905,16 +909,16 @@ class SNNVisualizer {
       const modalContent = document.createElement("div");
       modalContent.className = "lesson-modal-content";
       modalContent.innerHTML = `
-        <button class="close-btn">&times;</button>
-        <h1>${lesson.title}</h1>
-        <p style="color: #fbbf24; margin-bottom: 16px;">
-          <strong>Note:</strong> Lesson file could not be loaded. Here's the basic content:
-        </p>
-        ${this.getFallbackContent(lessonNumber)}
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
-          <button class="btn" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
-        </div>
-      `;
+      <button class="close-btn">&times;</button>
+      <h1>${lesson.title.toUpperCase()}</h1>
+      <p style="color: #fbbf24; margin-bottom: 16px;">
+        <strong>Note:</strong> Lesson file could not be loaded. Here's the basic content:
+      </p>
+      ${this.getFallbackContent(lessonNumber)}
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
+        <button class="btn" onclick="this.closest('.lesson-modal').remove()">CLOSE LESSON</button>
+      </div>
+    `;
 
       modal.appendChild(modalContent);
       document.body.appendChild(modal);
