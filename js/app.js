@@ -1513,7 +1513,6 @@ class SNNVisualizer {
     if (!lesson) return;
 
     try {
-      console.log(`Loading lesson ${lessonNumber} from ${lesson.file}`);
       const response = await fetch(lesson.file);
 
       if (!response.ok) {
@@ -1521,11 +1520,7 @@ class SNNVisualizer {
       }
 
       const content = await response.text();
-      console.log(
-        "Raw HTML content loaded:",
-        content.substring(0, 200) + "..."
-      );
-      console.log("Full content length:", content.length);
+      console.log(`Lesson ${lessonNumber} content loaded successfully`);
 
       // Create modal
       const modal = document.createElement("div");
@@ -1534,12 +1529,10 @@ class SNNVisualizer {
       const modalContent = document.createElement("div");
       modalContent.className = "lesson-modal-content";
 
-      // CRITICAL FIX: Directly inject the HTML content without any processing
+      // Simply inject the HTML content directly - no parsing needed
       modalContent.innerHTML = `
         <button class="close-btn">&times;</button>
-        <div class="full-lesson-content">
-          ${content}
-        </div>
+        ${content}
         <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
           <button class="btn" onclick="this.closest('.lesson-modal').remove()">CLOSE LESSON</button>
         </div>
