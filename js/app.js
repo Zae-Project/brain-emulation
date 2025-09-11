@@ -1173,8 +1173,8 @@ class SNNVisualizer {
     this.connections = [];
 
     // Create neurons in 3D space with cluster-specific positioning
-    const radius = 200;
-    const clusterSeparation = 150; // Distance between cluster centers
+    const radius = 350; // Increased from 200 to 350 for more spacing within clusters
+    const clusterSeparation = 300; // Increased from 150 to 300 for more distance between clusters
 
     for (let i = 0; i < this.config.networkSize; i++) {
       const clusterId = Math.floor(i / (this.config.networkSize / 4));
