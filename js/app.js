@@ -835,6 +835,14 @@ class SNNVisualizer {
       2: { title: "Synaptic Transmission", file: "lessons/lesson2.html" },
       3: { title: "Network Plasticity", file: "lessons/lesson3.html" },
       4: { title: "Pattern Recognition", file: "lessons/lesson4.html" },
+      5: { title: "Network Topology", file: "lessons/lesson5.html" },
+      6: { title: "Inhibition & Competition", file: "lessons/lesson6.html" },
+      7: { title: "Multi-layer Processing", file: "lessons/lesson7.html" },
+      8: { title: "Memory Systems", file: "lessons/lesson8.html" },
+      9: { title: "Large-Scale Networks", file: "lessons/lesson9.html" },
+      10: { title: "Neural Oscillations", file: "lessons/lesson10.html" },
+      11: { title: "Brain Emulation Theory", file: "lessons/lesson11.html" },
+      12: { title: "Ethics & Future", file: "lessons/lesson12.html" },
     };
 
     const lesson = lessons[lessonNumber];
@@ -1283,6 +1291,54 @@ class SNNVisualizer {
           "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
         file: "lessons/lesson4.html",
       },
+      5: {
+        title: "Lesson 5: Network Topology",
+        content:
+          "Brain-like networks organize into clusters and modules, creating small-world properties that optimize both local processing and global communication.",
+        file: "lessons/lesson5.html",
+      },
+      6: {
+        title: "Lesson 6: Inhibition & Competition",
+        content:
+          "Inhibitory connections create competitive dynamics, enabling winner-take-all mechanisms crucial for attention and decision-making.",
+        file: "lessons/lesson6.html",
+      },
+      7: {
+        title: "Lesson 7: Multi-layer Processing",
+        content:
+          "Hierarchical networks extract increasingly complex features, similar to cortical organization in biological brains.",
+        file: "lessons/lesson7.html",
+      },
+      8: {
+        title: "Lesson 8: Memory Systems",
+        content:
+          "Different types of memory (working, long-term, episodic) emerge from distinct network architectures and plasticity rules.",
+        file: "lessons/lesson8.html",
+      },
+      9: {
+        title: "Lesson 9: Large-Scale Networks",
+        content:
+          "Brain-wide networks coordinate information integration, giving rise to global workspace dynamics and potentially consciousness.",
+        file: "lessons/lesson9.html",
+      },
+      10: {
+        title: "Lesson 10: Neural Oscillations",
+        content:
+          "Rhythmic neural activity coordinates processing across brain regions, enabling binding and temporal organization of information.",
+        file: "lessons/lesson10.html",
+      },
+      11: {
+        title: "Lesson 11: Brain Emulation Theory",
+        content:
+          "Whole brain emulation aims to create functional copies of specific brains, requiring advances in scanning, modeling, and computing.",
+        file: "lessons/lesson11.html",
+      },
+      12: {
+        title: "Lesson 12: Ethics & Future",
+        content:
+          "Digital minds raise profound questions about consciousness, identity, rights, and humanity's future that we must address responsibly.",
+        file: "lessons/lesson12.html",
+      },
     };
 
     const lesson = lessons[lessonNumber];
@@ -1303,6 +1359,14 @@ class SNNVisualizer {
       2: { title: "Synaptic Transmission", file: "lessons/lesson2.html" },
       3: { title: "Network Plasticity", file: "lessons/lesson3.html" },
       4: { title: "Pattern Recognition", file: "lessons/lesson4.html" },
+      5: { title: "Network Topology", file: "lessons/lesson5.html" },
+      6: { title: "Inhibition & Competition", file: "lessons/lesson6.html" },
+      7: { title: "Multi-layer Processing", file: "lessons/lesson7.html" },
+      8: { title: "Memory Systems", file: "lessons/lesson8.html" },
+      9: { title: "Large-Scale Networks", file: "lessons/lesson9.html" },
+      10: { title: "Neural Oscillations", file: "lessons/lesson10.html" },
+      11: { title: "Brain Emulation Theory", file: "lessons/lesson11.html" },
+      12: { title: "Ethics & Future", file: "lessons/lesson12.html" },
     };
 
     const lesson = lessons[lessonNumber];
