@@ -815,6 +815,54 @@ class SNNVisualizer {
           "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
         file: "lessons/lesson4.html",
       },
+      5: {
+        title: "Lesson 5: Network Topology",
+        content:
+          "Brain-like networks organize into clusters and modules, creating small-world properties that optimize both local processing and global communication.",
+        file: "lessons/lesson5.html",
+      },
+      6: {
+        title: "Lesson 6: Inhibition & Competition",
+        content:
+          "Inhibitory connections create competitive dynamics, enabling winner-take-all mechanisms crucial for attention and decision-making.",
+        file: "lessons/lesson6.html",
+      },
+      7: {
+        title: "Lesson 7: Multi-layer Processing",
+        content:
+          "Hierarchical networks extract increasingly complex features, similar to cortical organization in biological brains.",
+        file: "lessons/lesson7.html",
+      },
+      8: {
+        title: "Lesson 8: Memory Systems",
+        content:
+          "Different types of memory (working, long-term, episodic) emerge from distinct network architectures and plasticity rules.",
+        file: "lessons/lesson8.html",
+      },
+      9: {
+        title: "Lesson 9: Large-Scale Networks",
+        content:
+          "Brain-wide networks coordinate information integration, giving rise to global workspace dynamics and potentially consciousness.",
+        file: "lessons/lesson9.html",
+      },
+      10: {
+        title: "Lesson 10: Neural Oscillations",
+        content:
+          "Rhythmic neural activity coordinates processing across brain regions, enabling binding and temporal organization of information.",
+        file: "lessons/lesson10.html",
+      },
+      11: {
+        title: "Lesson 11: Brain Emulation Theory",
+        content:
+          "Whole brain emulation aims to create functional copies of specific brains, requiring advances in scanning, modeling, and computing.",
+        file: "lessons/lesson11.html",
+      },
+      12: {
+        title: "Lesson 12: Ethics & Future",
+        content:
+          "Digital minds raise profound questions about consciousness, identity, rights, and humanity's future that we must address responsibly.",
+        file: "lessons/lesson12.html",
+      },
     };
 
     const lesson = lessons[lessonNumber];
@@ -1465,6 +1513,7 @@ class SNNVisualizer {
     if (!lesson) return;
 
     try {
+      console.log(`Loading lesson ${lessonNumber} from ${lesson.file}`);
       const response = await fetch(lesson.file);
 
       if (!response.ok) {
@@ -1472,6 +1521,11 @@ class SNNVisualizer {
       }
 
       const content = await response.text();
+      console.log(
+        "Raw HTML content loaded:",
+        content.substring(0, 200) + "..."
+      );
+      console.log("Full content length:", content.length);
 
       // Create modal
       const modal = document.createElement("div");
@@ -1479,11 +1533,15 @@ class SNNVisualizer {
 
       const modalContent = document.createElement("div");
       modalContent.className = "lesson-modal-content";
+
+      // CRITICAL FIX: Directly inject the HTML content without any processing
       modalContent.innerHTML = `
         <button class="close-btn">&times;</button>
-        ${content}
+        <div class="full-lesson-content">
+          ${content}
+        </div>
         <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
-          <button class="btn" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
+          <button class="btn" onclick="this.closest('.lesson-modal').remove()">CLOSE LESSON</button>
         </div>
       `;
 
