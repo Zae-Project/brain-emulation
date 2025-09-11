@@ -60,7 +60,14 @@
       <h4 style="margin: 0 0 12px; color: #f1f5f9">Learning Controls</h4>
 
       <div class="control-group">
-        <label>Network Size: <span id="sizeValue">120</span></label>
+        <label>
+          Network Size: <span id="sizeValue">120</span>
+          <span
+            class="info-icon"
+            data-tooltip="Controls the total number of neurons in the network. More neurons create more complex patterns but require more processing power. Example: 120 neurons = 4 clusters of 30 neurons each."
+            >ⓘ</span
+          >
+        </label>
         <input
           id="networkSize"
           type="range"
@@ -72,7 +79,14 @@
       </div>
 
       <div class="control-group">
-        <label>Connection Probability: <span id="probValue">0.30</span></label>
+        <label>
+          Connection Probability: <span id="probValue">0.30</span>
+          <span
+            class="info-icon"
+            data-tooltip="Probability that any two neurons will be connected. Higher values create denser networks with more interactions. Example: 0.30 = 30% chance any two neurons connect."
+            >ⓘ</span
+          >
+        </label>
         <input
           id="connectionProb"
           type="range"
@@ -84,7 +98,14 @@
       </div>
 
       <div class="control-group">
-        <label>Firing Rate: <span id="firingValue">0.0010</span></label>
+        <label>
+          Firing Rate: <span id="firingValue">0.0010</span>
+          <span
+            class="info-icon"
+            data-tooltip="How often neurons spontaneously fire without external input. Lower values create sparse activity, higher values increase background noise. Example: 0.001 = 0.1% chance per frame."
+            >ⓘ</span
+          >
+        </label>
         <input
           id="firingRate"
           type="range"
@@ -96,7 +117,14 @@
       </div>
 
       <div class="control-group">
-        <label>Pulse Decay: <span id="decayValue">0.95</span></label>
+        <label>
+          Pulse Decay: <span id="decayValue">0.95</span>
+          <span
+            class="info-icon"
+            data-tooltip="How quickly the glow effect fades after a neuron fires. Higher values create longer-lasting visual effects. Example: 0.95 = pulse retains 95% intensity each frame."
+            >ⓘ</span
+          >
+        </label>
         <input
           id="pulseDecay"
           type="range"
@@ -108,7 +136,14 @@
       </div>
 
       <div class="control-group">
-        <label>Threshold: <span id="thresholdValue">1.0</span></label>
+        <label>
+          Threshold: <span id="thresholdValue">1.0</span>
+          <span
+            class="info-icon"
+            data-tooltip="Voltage level needed for a neuron to fire a spike. Lower values make neurons fire more easily, higher values require more input. Example: 1.0 = fires when voltage reaches 1.0."
+            >ⓘ</span
+          >
+        </label>
         <input
           id="threshold"
           type="range"
@@ -119,10 +154,34 @@
         />
       </div>
 
-      <button id="resetNetwork" class="btn">Reset Network</button>
-      <button id="showWeights" class="btn">Show Weights</button>
-      <button id="pauseSpikes" class="btn">Pause Spikes</button>
-      <button id="injectSpike" class="btn">Inject Spike</button>
+      <button
+        id="resetNetwork"
+        class="btn"
+        data-tooltip="Creates a completely new network with random connections and positions."
+      >
+        Reset Network
+      </button>
+      <button
+        id="showWeights"
+        class="btn"
+        data-tooltip="Toggle display of connection weight information panels next to active neurons."
+      >
+        Show Weights
+      </button>
+      <button
+        id="pauseSpikes"
+        class="btn"
+        data-tooltip="Pause all spike activity while keeping the visualization running."
+      >
+        Pause Spikes
+      </button>
+      <button
+        id="injectSpike"
+        class="btn"
+        data-tooltip="Manually trigger a spike in a random neuron to observe propagation patterns."
+      >
+        Inject Spike
+      </button>
     </div>
 
     <!-- RIGHT INFO -->
@@ -156,3 +215,123 @@
     <script src="js/app.js"></script>
   </body>
 </html>
+
+<style>
+  /* Info icon styles */
+  .info-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #374151;
+    color: #9ca3af;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 16px;
+    cursor: help;
+    margin-left: 8px;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .info-icon:hover {
+    background-color: #4f46e5;
+    color: white;
+    transform: scale(1.1);
+  }
+
+  /* Tooltip styles */
+  .info-icon[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: 120%;
+    transform: translateX(-50%);
+    background-color: #1e293b;
+    color: #f1f5f9;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: normal;
+    text-transform: none;
+    letter-spacing: normal;
+    white-space: normal;
+    width: 220px;
+    max-width: 220px;
+    text-align: left;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid #374151;
+    z-index: 1000;
+    opacity: 0;
+    animation: tooltipFadeIn 0.2s ease forwards;
+    pointer-events: none;
+  }
+
+  .info-icon[data-tooltip]:hover::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 110%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1e293b;
+    z-index: 1001;
+    opacity: 0;
+    animation: tooltipFadeIn 0.2s ease forwards;
+  }
+
+  @keyframes tooltipFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  /* Button tooltip styles */
+  .btn[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: 120%;
+    transform: translateX(-50%);
+    background-color: #1e293b;
+    color: #f1f5f9;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: normal;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid #374151;
+    z-index: 1000;
+    opacity: 0;
+    animation: tooltipFadeIn 0.2s ease forwards;
+    pointer-events: none;
+  }
+
+  .btn[data-tooltip]:hover::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 110%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1e293b;
+    z-index: 1001;
+    opacity: 0;
+    animation: tooltipFadeIn 0.2s ease forwards;
+  }
+
+  .btn {
+    position: relative;
+  }
+
+  .control-group label {
+    position: relative;
+  }
+</style>
