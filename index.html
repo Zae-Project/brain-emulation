@@ -11,6 +11,80 @@
     />
     <link rel="stylesheet" href="css/styles.css" />
     <script src="js/three.min.js"></script>
+    <style>
+      /* Parameter info tooltips */
+      .param-info {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background: #374e84;
+        border-radius: 50%;
+        color: white;
+        text-align: center;
+        line-height: 16px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 8px;
+        cursor: help;
+        position: relative;
+        vertical-align: middle;
+      }
+
+      .param-info:hover {
+        background: #4a5f9e;
+      }
+
+      .param-info .tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        z-index: 1000;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1d29;
+        color: #ffffff;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: normal;
+        line-height: 1.4;
+        width: 280px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border: 1px solid #374e84;
+        transition: opacity 0.3s, visibility 0.3s;
+      }
+
+      .param-info .tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #374e84 transparent transparent transparent;
+      }
+
+      .param-info:hover .tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .tooltip-title {
+        color: #ff9bf0;
+        font-weight: bold;
+        margin-bottom: 6px;
+        display: block;
+      }
+
+      .tooltip-example {
+        color: #9ca3af;
+        font-style: italic;
+        margin-top: 6px;
+        font-size: 11px;
+      }
+    </style>
   </head>
   <body>
     <canvas id="three-canvas"></canvas>
@@ -60,13 +134,19 @@
       <h4 style="margin: 0 0 12px; color: #f1f5f9">Learning Controls</h4>
 
       <div class="control-group">
-        <label>
-          Network Size: <span id="sizeValue">120</span>
-          <span
-            class="info-icon"
-            data-tooltip="Controls the total number of neurons in the network. More neurons create more complex patterns but require more processing power. Example: 120 neurons = 4 clusters of 30 neurons each."
-            >ⓘ</span
-          >
+        <label
+          >Network Size: <span id="sizeValue">120</span>
+          <span class="param-info"
+            >i
+            <div class="tooltip">
+              <span class="tooltip-title">Network Size</span>
+              Total number of neurons in the network. More neurons create more
+              complex patterns and interactions.
+              <div class="tooltip-example">
+                Example: 120 = 120 neurons organized into 4 clusters
+              </div>
+            </div>
+          </span>
         </label>
         <input
           id="networkSize"
@@ -79,13 +159,19 @@
       </div>
 
       <div class="control-group">
-        <label>
-          Connection Probability: <span id="probValue">0.30</span>
-          <span
-            class="info-icon"
-            data-tooltip="Probability that any two neurons will be connected. Higher values create denser networks with more interactions. Example: 0.30 = 30% chance any two neurons connect."
-            >ⓘ</span
-          >
+        <label
+          >Connection Probability: <span id="probValue">0.30</span>
+          <span class="param-info"
+            >i
+            <div class="tooltip">
+              <span class="tooltip-title">Connection Probability</span>
+              Probability that any two neurons will be connected. Higher values
+              create denser networks with more interactions.
+              <div class="tooltip-example">
+                Example: 0.30 = 30% chance any two neurons connect
+              </div>
+            </div>
+          </span>
         </label>
         <input
           id="connectionProb"
@@ -98,13 +184,19 @@
       </div>
 
       <div class="control-group">
-        <label>
-          Firing Rate: <span id="firingValue">0.0010</span>
-          <span
-            class="info-icon"
-            data-tooltip="How often neurons spontaneously fire without external input. Lower values create sparse activity, higher values increase background noise. Example: 0.001 = 0.1% chance per frame."
-            >ⓘ</span
-          >
+        <label
+          >Firing Rate: <span id="firingValue">0.0010</span>
+          <span class="param-info"
+            >i
+            <div class="tooltip">
+              <span class="tooltip-title">Spontaneous Firing Rate</span>
+              How often neurons fire randomly without input. Controls background
+              activity and spontaneous pattern generation.
+              <div class="tooltip-example">
+                Example: 0.0002 = very low random firing
+              </div>
+            </div>
+          </span>
         </label>
         <input
           id="firingRate"
@@ -117,13 +209,19 @@
       </div>
 
       <div class="control-group">
-        <label>
-          Pulse Decay: <span id="decayValue">0.95</span>
-          <span
-            class="info-icon"
-            data-tooltip="How quickly the glow effect fades after a neuron fires. Higher values create longer-lasting visual effects. Example: 0.95 = pulse retains 95% intensity each frame."
-            >ⓘ</span
-          >
+        <label
+          >Pulse Decay: <span id="decayValue">0.95</span>
+          <span class="param-info"
+            >i
+            <div class="tooltip">
+              <span class="tooltip-title">Pulse Decay Rate</span>
+              How quickly the visual pulse effect fades after a neuron fires.
+              Closer to 1.0 means slower decay.
+              <div class="tooltip-example">
+                Example: 0.95 = pulse fades to 5% each frame
+              </div>
+            </div>
+          </span>
         </label>
         <input
           id="pulseDecay"
@@ -136,13 +234,19 @@
       </div>
 
       <div class="control-group">
-        <label>
-          Threshold: <span id="thresholdValue">1.0</span>
-          <span
-            class="info-icon"
-            data-tooltip="Voltage level needed for a neuron to fire a spike. Lower values make neurons fire more easily, higher values require more input. Example: 1.0 = fires when voltage reaches 1.0."
-            >ⓘ</span
-          >
+        <label
+          >Threshold: <span id="thresholdValue">1.0</span>
+          <span class="param-info"
+            >i
+            <div class="tooltip">
+              <span class="tooltip-title">Firing Threshold</span>
+              Voltage level a neuron needs to reach before firing. Lower values
+              make neurons fire more easily.
+              <div class="tooltip-example">
+                Example: 1.0 = neuron fires when voltage ≥ 1.0
+              </div>
+            </div>
+          </span>
         </label>
         <input
           id="threshold"
@@ -154,33 +258,61 @@
         />
       </div>
 
-      <button
-        id="resetNetwork"
-        class="btn"
-        data-tooltip="Creates a completely new network with random connections and positions."
-      >
+      <button id="resetNetwork" class="btn">
         Reset Network
+        <span class="param-info"
+          >i
+          <div class="tooltip">
+            <span class="tooltip-title">Reset Network</span>
+            Creates a completely new network with random neuron positions and
+            connections.
+            <div class="tooltip-example">
+              Example: Generates fresh 120-neuron network
+            </div>
+          </div>
+        </span>
       </button>
-      <button
-        id="showWeights"
-        class="btn"
-        data-tooltip="Toggle display of connection weight information panels next to active neurons."
-      >
+      <button class="btn" id="showWeights">
         Show Weights
+        <span class="param-info"
+          >i
+          <div class="tooltip">
+            <span class="tooltip-title">Show Weights</span>
+            Displays connection weight information panels next to neurons when
+            enabled.
+            <div class="tooltip-example">
+              Example: Shows "→ 45: 0.73" for connections
+            </div>
+          </div>
+        </span>
       </button>
-      <button
-        id="pauseSpikes"
-        class="btn"
-        data-tooltip="Pause all spike activity while keeping the visualization running."
-      >
+      <button class="btn" id="pauseSpikes">
         Pause Spikes
+        <span class="param-info"
+          >i
+          <div class="tooltip">
+            <span class="tooltip-title">Pause Spikes</span>
+            Temporarily stops all spike activity while keeping the visualization
+            running.
+            <div class="tooltip-example">
+              Example: Freezes neural firing for observation
+            </div>
+          </div>
+        </span>
       </button>
-      <button
-        id="injectSpike"
-        class="btn"
-        data-tooltip="Manually trigger a spike in a random neuron to observe propagation patterns."
-      >
+      <button class="btn" id="injectSpike">
         Inject Spike
+        <span class="param-info"
+          >i
+          <div class="tooltip">
+            <span class="tooltip-title">Inject Spike</span>
+            Manually triggers a spike in a random neuron to observe propagation
+            patterns.
+            <div class="tooltip-example">
+              Example: Forces neuron #87 to fire immediately
+            </div>
+          </div>
+        </span>
       </button>
     </div>
 
@@ -215,169 +347,3 @@
     <script src="js/app.js"></script>
   </body>
 </html>
-
-<style>
-  /* Fixed tooltip positioning and overflow issues */
-  #controls {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid #1e293b;
-    border-radius: 12px;
-    padding: 20px;
-    width: 280px;
-    z-index: 100;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    overflow: visible !important;
-    max-width: 280px;
-  }
-
-  /* Prevent horizontal scrollbar */
-  .control-group {
-    margin-bottom: 16px;
-    padding: 12px 0;
-    border-bottom: 1px solid #1e293b;
-    overflow: visible;
-    min-width: 0;
-  }
-
-  .control-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #cbd5e1;
-    position: relative;
-    overflow: visible;
-    white-space: nowrap;
-  }
-
-  /* Fixed tooltip styles - position to the right of controls panel */
-  .info-icon[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: fixed;
-    left: 320px;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: #1e293b;
-    color: #f1f5f9;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: normal;
-    text-transform: none;
-    letter-spacing: normal;
-    white-space: normal;
-    width: 220px;
-    max-width: 220px;
-    text-align: left;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid #374151;
-    z-index: 1000;
-    opacity: 0;
-    animation: tooltipSlideIn 0.2s ease forwards;
-    pointer-events: none;
-  }
-
-  .info-icon[data-tooltip]:hover::before {
-    content: "";
-    position: fixed;
-    left: 312px;
-    top: 50%;
-    transform: translateY(-50%);
-    border: 6px solid transparent;
-    border-right-color: #1e293b;
-    z-index: 1001;
-    opacity: 0;
-    animation: tooltipSlideIn 0.2s ease forwards;
-  }
-
-  @keyframes tooltipSlideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-50%) translateX(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(-50%) translateX(0);
-    }
-  }
-
-  /* Button tooltip styles - also fixed positioning */
-  .btn[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: fixed;
-    left: 320px;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: #1e293b;
-    color: #f1f5f9;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: normal;
-    white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid #374151;
-    z-index: 1000;
-    opacity: 0;
-    animation: tooltipSlideIn 0.2s ease forwards;
-    pointer-events: none;
-    max-width: 200px;
-  }
-
-  .btn[data-tooltip]:hover::before {
-    content: "";
-    position: fixed;
-    left: 312px;
-    top: 50%;
-    transform: translateY(-50%);
-    border: 5px solid transparent;
-    border-right-color: #1e293b;
-    z-index: 1001;
-    opacity: 0;
-    animation: tooltipSlideIn 0.2s ease forwards;
-  }
-
-  /* Prevent trembling by ensuring stable positioning */
-  .info-icon {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    background-color: #374151;
-    color: #9ca3af;
-    border-radius: 50%;
-    font-size: 12px;
-    font-weight: bold;
-    text-align: center;
-    line-height: 16px;
-    cursor: help;
-    margin-left: 8px;
-    position: relative;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    vertical-align: middle;
-  }
-
-  .btn {
-    background: #374151;
-    color: #f1f5f9;
-    border: 1px solid #4b5563;
-    padding: 8px 16px;
-    margin: 4px 4px 4px 0;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.2s ease;
-    position: relative;
-    white-space: nowrap;
-    overflow: visible;
-  }
-</style>
