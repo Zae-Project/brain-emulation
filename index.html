@@ -217,37 +217,52 @@
 </html>
 
 <style>
-  /* Info icon styles */
-  .info-icon {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    background-color: #374151;
-    color: #9ca3af;
-    border-radius: 50%;
+  /* Fixed tooltip positioning and overflow issues */
+  #controls {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    width: 280px;
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    overflow: visible !important;
+    max-width: 280px;
+  }
+
+  /* Prevent horizontal scrollbar */
+  .control-group {
+    margin-bottom: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #1e293b;
+    overflow: visible;
+    min-width: 0;
+  }
+
+  .control-group label {
+    display: block;
+    margin-bottom: 6px;
     font-size: 12px;
-    font-weight: bold;
-    text-align: center;
-    line-height: 16px;
-    cursor: help;
-    margin-left: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #cbd5e1;
     position: relative;
-    transition: all 0.2s ease;
+    overflow: visible;
+    white-space: nowrap;
   }
 
-  .info-icon:hover {
-    background-color: #4f46e5;
-    color: white;
-    transform: scale(1.1);
-  }
-
-  /* Tooltip styles */
+  /* Fixed tooltip styles - position to the right of controls panel */
   .info-icon[data-tooltip]:hover::after {
     content: attr(data-tooltip);
-    position: absolute;
-    left: 50%;
-    bottom: 120%;
-    transform: translateX(-50%);
+    position: fixed;
+    left: 320px;
+    top: 50%;
+    transform: translateY(-50%);
     background-color: #1e293b;
     color: #f1f5f9;
     padding: 8px 12px;
@@ -264,41 +279,41 @@
     border: 1px solid #374151;
     z-index: 1000;
     opacity: 0;
-    animation: tooltipFadeIn 0.2s ease forwards;
+    animation: tooltipSlideIn 0.2s ease forwards;
     pointer-events: none;
   }
 
   .info-icon[data-tooltip]:hover::before {
     content: "";
-    position: absolute;
-    left: 50%;
-    bottom: 110%;
-    transform: translateX(-50%);
+    position: fixed;
+    left: 312px;
+    top: 50%;
+    transform: translateY(-50%);
     border: 6px solid transparent;
-    border-top-color: #1e293b;
+    border-right-color: #1e293b;
     z-index: 1001;
     opacity: 0;
-    animation: tooltipFadeIn 0.2s ease forwards;
+    animation: tooltipSlideIn 0.2s ease forwards;
   }
 
-  @keyframes tooltipFadeIn {
+  @keyframes tooltipSlideIn {
     from {
       opacity: 0;
-      transform: translateX(-50%) translateY(-5px);
+      transform: translateY(-50%) translateX(-10px);
     }
     to {
       opacity: 1;
-      transform: translateX(-50%) translateY(0);
+      transform: translateY(-50%) translateX(0);
     }
   }
 
-  /* Button tooltip styles */
+  /* Button tooltip styles - also fixed positioning */
   .btn[data-tooltip]:hover::after {
     content: attr(data-tooltip);
-    position: absolute;
-    left: 50%;
-    bottom: 120%;
-    transform: translateX(-50%);
+    position: fixed;
+    left: 320px;
+    top: 50%;
+    transform: translateY(-50%);
     background-color: #1e293b;
     color: #f1f5f9;
     padding: 6px 10px;
@@ -310,122 +325,59 @@
     border: 1px solid #374151;
     z-index: 1000;
     opacity: 0;
-    animation: tooltipFadeIn 0.2s ease forwards;
+    animation: tooltipSlideIn 0.2s ease forwards;
     pointer-events: none;
+    max-width: 200px;
   }
 
   .btn[data-tooltip]:hover::before {
     content: "";
-    position: absolute;
-    left: 50%;
-    bottom: 110%;
-    transform: translateX(-50%);
+    position: fixed;
+    left: 312px;
+    top: 50%;
+    transform: translateY(-50%);
     border: 5px solid transparent;
-    border-top-color: #1e293b;
+    border-right-color: #1e293b;
     z-index: 1001;
     opacity: 0;
-    animation: tooltipFadeIn 0.2s ease forwards;
+    animation: tooltipSlideIn 0.2s ease forwards;
   }
 
-  /* Fixed Tooltip Styles - Override previous ones */
-  #controls {
-    overflow: visible !important;
-    overflow-x: visible !important;
-    overflow-y: auto;
-    max-height: calc(100vh - 40px);
-  }
-
-  /* Info icon tooltips - positioned to the right */
-  .info-icon[data-tooltip]:hover::after {
-    content: attr(data-tooltip) !important;
-    position: fixed !important;
-    left: 320px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    background-color: #1e293b !important;
-    color: #f1f5f9 !important;
-    padding: 8px 12px !important;
-    border-radius: 8px !important;
-    font-size: 11px !important;
-    font-weight: normal !important;
-    text-transform: none !important;
-    letter-spacing: normal !important;
-    white-space: normal !important;
-    width: 220px !important;
-    max-width: 220px !important;
-    text-align: left !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid #374151 !important;
-    z-index: 1000 !important;
-    opacity: 0 !important;
-    animation: tooltipFadeIn 0.2s ease forwards !important;
-    pointer-events: none !important;
-  }
-
-  .info-icon[data-tooltip]:hover::before {
-    content: "" !important;
-    position: fixed !important;
-    left: 314px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    border: 6px solid transparent !important;
-    border-right-color: #1e293b !important;
-    z-index: 1001 !important;
-    opacity: 0 !important;
-    animation: tooltipFadeIn 0.2s ease forwards !important;
-  }
-
-  /* Button tooltips - positioned to the right */
-  .btn[data-tooltip]:hover::after {
-    content: attr(data-tooltip) !important;
-    position: fixed !important;
-    left: 320px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    background-color: #1e293b !important;
-    color: #f1f5f9 !important;
-    padding: 6px 10px !important;
-    border-radius: 6px !important;
-    font-size: 11px !important;
-    font-weight: normal !important;
-    white-space: nowrap !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid #374151 !important;
-    z-index: 1000 !important;
-    opacity: 0 !important;
-    animation: tooltipFadeIn 0.2s ease forwards !important;
-    pointer-events: none !important;
-  }
-
-  .btn[data-tooltip]:hover::before {
-    content: "" !important;
-    position: fixed !important;
-    left: 314px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    border: 5px solid transparent !important;
-    border-right-color: #1e293b !important;
-    z-index: 1001 !important;
-    opacity: 0 !important;
-    animation: tooltipFadeIn 0.2s ease forwards !important;
-  }
-
-  @keyframes tooltipFadeIn {
-    from {
-      opacity: 0 !important;
-      transform: translateY(-50%) translateX(-5px) !important;
-    }
-    to {
-      opacity: 1 !important;
-      transform: translateY(-50%) translateX(0) !important;
-    }
+  /* Prevent trembling by ensuring stable positioning */
+  .info-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #374151;
+    color: #9ca3af;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 16px;
+    cursor: help;
+    margin-left: 8px;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    vertical-align: middle;
   }
 
   .btn {
+    background: #374151;
+    color: #f1f5f9;
+    border: 1px solid #4b5563;
+    padding: 8px 16px;
+    margin: 4px 4px 4px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
     position: relative;
-  }
-
-  .control-group label {
-    position: relative;
+    white-space: nowrap;
+    overflow: visible;
   }
 </style>
