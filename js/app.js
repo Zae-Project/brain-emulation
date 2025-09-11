@@ -616,7 +616,7 @@ class SNNVisualizer {
         squareSize
       );
 
-      // Draw thin border
+      // Draw thin solid border
       this.ctx.strokeStyle = clusterActive
         ? `rgba(${Math.floor(
             (isActive ? neuron.colors.glow : neuron.colors.primary).r *
@@ -630,17 +630,16 @@ class SNNVisualizer {
             (isActive ? neuron.colors.glow : neuron.colors.primary).b *
               255 *
               depthFade
-          )}, 0.8)`
-        : `rgba(150, 150, 150, 0.8)`;
-      this.ctx.lineWidth = 0.5;
+          )}, 0.9)`
+        : `rgba(200, 200, 200, 0.7)`;
+      this.ctx.lineWidth = 1;
+      this.ctx.setLineDash([]); // Ensure solid line
       this.ctx.strokeRect(
         projected.x - squareSize / 2,
         projected.y - squareSize / 2,
         squareSize,
         squareSize
-      );
-
-      // Draw neuron ID number inside the square
+      ); // Draw neuron ID number inside the square
       if (squareSize > 12) {
         // Only show numbers when square is large enough
         this.ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * depthFade})`; // White text with fade
