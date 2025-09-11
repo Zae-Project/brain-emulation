@@ -55,20 +55,26 @@
         transition: opacity 0.3s, visibility 0.3s;
       }
 
-      .param-info .tooltip::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        margin-left: -5px;
-        border-width: 5px;
-        border-style: solid;
-        border-color: #374e84 transparent transparent transparent;
+      /* Fix horizontal scrollbar and tooltip positioning */
+      .controls-panel {
+        overflow-x: hidden !important;
+        box-sizing: border-box;
       }
 
-      .param-info:hover .tooltip {
-        visibility: visible;
-        opacity: 1;
+      .param-info .tooltip {
+        position: fixed !important;
+        z-index: 10000 !important;
+        bottom: auto !important;
+        left: auto !important;
+        transform: none !important;
+        pointer-events: none;
+        white-space: normal;
+        word-wrap: break-word;
+      }
+
+      /* Remove the arrow since we're using fixed positioning */
+      .param-info .tooltip::after {
+        display: none;
       }
 
       .tooltip-title {
