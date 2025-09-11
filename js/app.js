@@ -588,34 +588,81 @@ class SNNVisualizer {
         this.ctx.fill();
       }
 
-      // Draw neuron body - use grey for inactive clusters, color for active ones
+      // Draw neuron body as square - use grey for inactive clusters, color for active ones
       const depthFade = Math.min(1, 800 / Math.max(20, projected.depth));
+      const squareSize = radius * 2; // Convert radius to square size
 
       if (clusterActive) {
         // Use cluster color for active clusters
         const color = isActive ? neuron.colors.glow : neuron.colors.primary;
         const brightness = (isActive ? 1.0 : 0.9) * depthFade;
 
-        this.ctx.fillStyle = `rgb(${Math.floor(
+        this.ctx.fillStyle = `rgba(${Math.floor(
           color.r * 255 * brightness
         )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
           color.b * 255 * brightness
-        )})`;
+        )}, 0.5)`; // 50% opacity
       } else {
         // Use grey for inactive clusters
         const greyLevel = Math.floor(150 * depthFade);
-        this.ctx.fillStyle = `rgb(${greyLevel}, ${greyLevel}, ${greyLevel})`;
+        this.ctx.fillStyle = `rgba(${greyLevel}, ${greyLevel}, ${greyLevel}, 0.5)`; // 50% opacity
       }
 
-      this.ctx.beginPath();
-      this.ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
-      this.ctx.fill();
+      // Draw square neuron
+      this.ctx.fillRect(
+        projected.x - squareSize / 2,
+        projected.y - squareSize / 2,
+        squareSize,
+        squareSize
+      );
+
+      // Draw thin border
+      this.ctx.strokeStyle = clusterActive
+        ? `rgba(${Math.floor(
+            (isActive ? neuron.colors.glow : neuron.colors.primary).r *
+              255 *
+              depthFade
+          )}, ${Math.floor(
+            (isActive ? neuron.colors.glow : neuron.colors.primary).g *
+              255 *
+              depthFade
+          )}, ${Math.floor(
+            (isActive ? neuron.colors.glow : neuron.colors.primary).b *
+              255 *
+              depthFade
+          )}, 0.8)`
+        : `rgba(150, 150, 150, 0.8)`;
+      this.ctx.lineWidth = 0.5;
+      this.ctx.strokeRect(
+        projected.x - squareSize / 2,
+        projected.y - squareSize / 2,
+        squareSize,
+        squareSize
+      );
+
+      // Draw neuron ID number inside the square
+      if (squareSize > 12) {
+        // Only show numbers when square is large enough
+        this.ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * depthFade})`; // White text with fade
+        this.ctx.font = `${Math.max(
+          8,
+          Math.min(12, squareSize * 0.4)
+        )}px Inter, monospace`;
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillText(neuron.id.toString(), projected.x, projected.y);
+      }
 
       // Highlight selected neuron with premium neural accent color
       if (neuron === this.state.selectedNeuron) {
         this.ctx.strokeStyle = "#374E84"; // Use accent-neural
-        this.ctx.lineWidth = Math.max(2, radius * 0.15);
-        this.ctx.stroke();
+        this.ctx.lineWidth = Math.max(2, squareSize * 0.1);
+        this.ctx.strokeRect(
+          projected.x - squareSize / 2,
+          projected.y - squareSize / 2,
+          squareSize,
+          squareSize
+        );
       }
 
       // Show weight information panels if enabled
