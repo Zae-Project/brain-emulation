@@ -1493,107 +1493,288 @@ class SNNVisualizer {
     }
   }
 
-  async showFullLesson(lessonNumber) {
-    const lessons = {
-      1: { title: "Basic Spike Dynamics", file: "lessons/lesson1.html" },
-      2: { title: "Synaptic Transmission", file: "lessons/lesson2.html" },
-      3: { title: "Network Plasticity", file: "lessons/lesson3.html" },
-      4: { title: "Pattern Recognition", file: "lessons/lesson4.html" },
-      5: { title: "Network Topology", file: "lessons/lesson5.html" },
-      6: { title: "Inhibition & Competition", file: "lessons/lesson6.html" },
-      7: { title: "Multi-layer Processing", file: "lessons/lesson7.html" },
-      8: { title: "Memory Systems", file: "lessons/lesson8.html" },
-      9: { title: "Large-Scale Networks", file: "lessons/lesson9.html" },
-      10: { title: "Neural Oscillations", file: "lessons/lesson10.html" },
-      11: { title: "Brain Emulation Theory", file: "lessons/lesson11.html" },
-      12: { title: "Ethics & Future", file: "lessons/lesson12.html" },
+  showFullLesson(lessonNumber) {
+    // Direct lesson content - no file fetching needed
+    const lessonContent = this.getFullLessonContent(lessonNumber);
+
+    if (!lessonContent) {
+      console.error(`No content found for lesson ${lessonNumber}`);
+      return;
+    }
+
+    // Create modal
+    const modal = document.createElement("div");
+    modal.className = "lesson-modal";
+
+    const modalContent = document.createElement("div");
+    modalContent.className = "lesson-modal-content";
+
+    // Inject the lesson content directly
+    modalContent.innerHTML = `
+      <button class="close-btn">&times;</button>
+      ${lessonContent}
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
+        <button class="btn" onclick="this.closest('.lesson-modal').remove()">CLOSE LESSON</button>
+      </div>
+    `;
+
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    // Close modal functionality
+    const closeBtn = modalContent.querySelector(".close-btn");
+    const closeModal = () => {
+      if (document.body.contains(modal)) {
+        document.body.removeChild(modal);
+      }
     };
 
-    const lesson = lessons[lessonNumber];
-    if (!lesson) return;
+    closeBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
 
-    try {
-      const response = await fetch(lesson.file);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // Close on escape key
+    const handleKeydown = (e) => {
+      if (e.key === "Escape") {
+        closeModal();
+        document.removeEventListener("keydown", handleKeydown);
       }
+    };
+    document.addEventListener("keydown", handleKeydown);
+  }
 
-      const content = await response.text();
-      console.log(`Lesson ${lessonNumber} content loaded successfully`);
+  getFullLessonContent(lessonNumber) {
+    const lessons = {
+      1: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 1: Basic Spike Dynamics</h1>
+        <p>Spiking Neural Networks (SNNs) use discrete spikes to communicate information, unlike traditional neural networks that use continuous values. This fundamental difference makes SNNs more biologically realistic and energy-efficient.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Key Concepts</h2>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Membrane Potential</h3>
+        <p>The voltage inside a neuron that accumulates over time. In our simulation, this is represented by the <code style="background: #1e293b; padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', monospace;">voltage</code> property of each neuron. As the neuron receives inputs from connected neurons, its membrane potential increases.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Threshold</h3>
+        <p>When the membrane potential reaches this critical level (typically 1.0 in our simulation), the neuron fires a spike. This is the fundamental mechanism that determines when information is transmitted.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Spike Generation</h3>
+        <p>A brief electrical pulse sent to all connected neurons when the threshold is reached. In our visualization, you can see this as the bright glow effect around firing neurons.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Reset Mechanism</h3>
+        <p>After firing, the membrane potential returns to 0, preparing the neuron for the next accumulation cycle. This prevents continuous firing and creates the discrete nature of spikes.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Interactive Exploration</h2>
+        <p>Try adjusting the following parameters to see how they affect spike dynamics:</p>
+        <ul style="margin-left: 20px;">
+          <li style="margin-bottom: 8px;"><strong style="color: #ff9bf0;">Network Size:</strong> More neurons create more complex spike patterns</li>
+          <li style="margin-bottom: 8px;"><strong style="color: #ff9bf0;">Connection Probability:</strong> Higher values create more interconnected networks</li>
+          <li style="margin-bottom: 8px;"><strong style="color: #ff9bf0;">Firing Rate:</strong> Controls how often neurons spontaneously fire</li>
+          <li style="margin-bottom: 8px;"><strong style="color: #ff9bf0;">Spike Threshold:</strong> Lower values make neurons fire more easily</li>
+        </ul>
+        <p>Watch how spikes propagate through the network and create cascading patterns of activity!</p>
+      `,
+      2: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 2: Synaptic Transmission</h1>
+        <p>Understanding how spikes travel between neurons and how synaptic weights affect signal transmission in spiking neural networks.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Synaptic Connections</h2>
+        <p>In our visualization, you can see synapses as the thin grey lines connecting neurons. These connections have different strengths (weights) that determine how much voltage is transmitted when a spike occurs.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Connection Weights</h3>
+        <p>Each synapse has a weight value between 0.1 and 1.0. Stronger connections (higher weights) transmit more voltage, making the receiving neuron more likely to fire.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Spike Propagation</h3>
+        <p>When a neuron fires, it sends its spike to all connected neurons simultaneously. The receiving neurons add the weighted input to their membrane potential.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Network Clustering</h2>
+        <p>Notice how neurons are organized into clusters with stronger internal connections and weaker connections between clusters. This creates interesting propagation patterns where activity tends to spread within clusters first.</p>
+        
+        <p><strong style="color: #ff9bf0;">Try this:</strong> Enable "Show Weights" to see detailed connection information for each neuron, and use "Inject Spike" to watch how activity propagates through the network.</p>
+      `,
+      3: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 3: Network Plasticity</h1>
+        <p>How neural networks adapt and learn by modifying their synaptic connections over time.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Hebbian Learning</h2>
+        <p>The fundamental principle "neurons that fire together, wire together" governs how connections strengthen when neurons are repeatedly active at the same time.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Synaptic Strengthening</h3>
+        <p>When two connected neurons fire within a short time window, their synaptic connection becomes stronger, making future co-activation more likely.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Synaptic Weakening</h3>
+        <p>Connections that are rarely used gradually weaken over time, allowing the network to forget unused patterns and focus on relevant information.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Homeostasis</h2>
+        <p>Networks maintain stability through homeostatic mechanisms that prevent runaway excitation or complete silence, balancing learning with stable operation.</p>
+        
+        <p><strong style="color: #ff9bf0;">Observe:</strong> Watch how repeated activation patterns in our network create stronger pathways between frequently co-active neurons.</p>
+      `,
+      4: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 4: Pattern Recognition</h1>
+        <p>How spiking neural networks excel at detecting and learning temporal patterns in spike trains.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Temporal Coding</h2>
+        <p>Unlike rate coding, temporal coding uses the precise timing of spikes to encode information, allowing for much faster and more efficient computation.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Spike Time Dependent Plasticity</h3>
+        <p>The timing between pre- and post-synaptic spikes determines whether connections strengthen or weaken, enabling learning of temporal sequences.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Feature Detection</h3>
+        <p>Specialized neurons can learn to respond to specific temporal patterns, acting as feature detectors for complex spatiotemporal inputs.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Competition and Selection</h2>
+        <p>Winner-take-all mechanisms ensure that only the most relevant patterns survive, creating selective responses to important features.</p>
+        
+        <p><strong style="color: #ff9bf0;">Experiment:</strong> Use the "Inject Spike" button to create different activation patterns and observe how they propagate through different clusters in unique ways.</p>
+      `,
+      5: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 5: Network Topology</h1>
+        <p>Understanding how the organization and structure of neural networks affects information processing and computational capabilities.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Small-World Networks</h2>
+        <p>Brain-like networks exhibit small-world properties: high local clustering combined with short path lengths between distant regions, optimizing both specialized processing and global integration.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Modularity</h3>
+        <p>Networks organize into modules (clusters) with dense internal connections and sparse connections between modules, enabling specialized processing while maintaining coordination.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Hub Neurons</h3>
+        <p>Highly connected neurons act as hubs, integrating information from multiple sources and facilitating communication across the network.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Hierarchical Structure</h2>
+        <p>Multiple scales of organization from local circuits to global networks enable complex information processing and emergent behaviors.</p>
+        
+        <p><strong style="color: #ff9bf0;">Notice:</strong> Our visualization shows clustered organization where neurons within clusters are more densely connected than those between clusters.</p>
+      `,
+      6: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 6: Inhibition & Competition</h1>
+        <p>How inhibitory mechanisms create selection, attention, and decision-making capabilities in neural networks.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Lateral Inhibition</h2>
+        <p>Neighboring neurons suppress each other's activity, creating competitive dynamics that enhance contrast and selectivity in neural responses.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Winner-Take-All</h3>
+        <p>Competition between neurons ensures that only the strongest signals survive, implementing selection and attention mechanisms crucial for focused processing.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Excitation-Inhibition Balance</h3>
+        <p>The critical ratio between excitatory and inhibitory connections determines network dynamics, stability, and computational capabilities.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Attention Mechanisms</h2>
+        <p>Inhibitory circuits can gate information flow, allowing networks to focus on relevant inputs while suppressing distracting information.</p>
+        
+        <p><strong style="color: #ff9bf0;">Experiment:</strong> Try adjusting the threshold parameter to see how it affects competitive dynamics between neurons and clusters.</p>
+      `,
+      7: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 7: Multi-layer Processing</h1>
+        <p>How hierarchical neural networks extract increasingly complex features through multiple processing stages.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Feature Hierarchy</h2>
+        <p>Each layer detects features of increasing complexity, from simple edges and patterns in early layers to complex objects and concepts in deeper layers.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Cortical Columns</h3>
+        <p>Functional units that process specific aspects of input, organized in columnar structures that work together to analyze complex patterns.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Feed-forward and Feedback</h3>
+        <p>Information flows both bottom-up (sensory input) and top-down (predictions and context), enabling sophisticated processing and learning.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Abstraction Levels</h2>
+        <p>Progressive abstraction from concrete sensory data to high-level concepts enables flexible and generalizable representations.</p>
+        
+        <p><strong style="color: #ff9bf0;">Observe:</strong> Notice how activity patterns in our network create hierarchical processing as signals propagate through connected clusters.</p>
+      `,
+      8: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 8: Memory Systems</h1>
+        <p>How different types of memory emerge from distinct neural network architectures and plasticity mechanisms.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Working Memory</h2>
+        <p>Temporary storage through persistent neural activity, maintaining information in active states for immediate use in cognitive tasks.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Long-term Memory</h3>
+        <p>Stable information storage through permanent changes in synaptic strengths, enabling retention of knowledge and experiences over time.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Episodic Memory</h3>
+        <p>Time-linked sequences of events stored as patterns of neural activity, enabling recall of specific experiences and their temporal context.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Associative Memory</h2>
+        <p>Pattern completion and recall mechanisms that retrieve complete memories from partial cues, enabling flexible and robust memory access.</p>
+        
+        <p><strong style="color: #ff9bf0;">Watch:</strong> Observe how persistent activity in our network clusters creates memory-like behavior where patterns can be sustained over time.</p>
+      `,
+      9: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 9: Large-Scale Networks</h1>
+        <p>How brain-wide coordination enables higher-order cognitive functions and potentially consciousness.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Global Workspace</h2>
+        <p>Conscious access through global broadcasting of information across brain networks, enabling integration and flexible cognitive control.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Default Mode Network</h3>
+        <p>Resting state activity patterns that maintain global connectivity and prepare the brain for future cognitive demands.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Information Integration</h3>
+        <p>Binding of distributed processing across brain regions to create unified perceptual and cognitive experiences.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Critical Dynamics</h2>
+        <p>Networks operating at the edge of chaos exhibit optimal information processing, flexibility, and computational capabilities.</p>
+        
+        <p><strong style="color: #ff9bf0;">Observe:</strong> Watch how activity spreads across the entire network, demonstrating global integration of distributed processing.</p>
+      `,
+      10: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 10: Neural Oscillations</h1>
+        <p>How rhythmic neural activity coordinates processing across brain regions and enables temporal organization.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Gamma Rhythms</h2>
+        <p>High-frequency oscillations (30-100 Hz) that coordinate local processing, attention, and conscious awareness within brain regions.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Alpha and Beta Rhythms</h3>
+        <p>Medium-frequency oscillations (8-30 Hz) that facilitate communication between brain regions and regulate information flow.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Theta Rhythms</h3>
+        <p>Low-frequency oscillations (4-8 Hz) crucial for memory formation, spatial navigation, and temporal sequence encoding.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Phase Coupling</h2>
+        <p>Synchronization of oscillations across brain regions enables temporal coordination and binding of distributed processing.</p>
+        
+        <p><strong style="color: #ff9bf0;">Look for:</strong> Rhythmic patterns in the voltage traces and synchronized activity between connected neurons in our simulation.</p>
+      `,
+      11: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 11: Brain Emulation Theory</h1>
+        <p>The ultimate goal of computational neuroscience: creating complete functional copies of biological brains.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Whole Brain Emulation</h2>
+        <p>Creating digital copies of specific brains that preserve individual personality, memories, and cognitive patterns through detailed neural simulation.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Scanning Technology</h3>
+        <p>Advanced imaging techniques needed to map every neuron, synapse, and molecular detail with sufficient resolution for functional reconstruction.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Computational Requirements</h3>
+        <p>Enormous processing power and storage needed to simulate 86 billion neurons and 100 trillion synapses in real-time with biological accuracy.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Technical Challenges</h2>
+        <p>Scaling from current small-scale simulations to full brain complexity while maintaining speed, accuracy, and biological fidelity.</p>
+        
+        <p><strong style="color: #ff9bf0;">Foundation:</strong> Our simple network demonstrates the basic principles that must scale up millions of times for complete brain emulation.</p>
+      `,
+      12: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 12: Ethics & Future</h1>
+        <p>The profound philosophical and ethical questions raised by the possibility of creating digital minds.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Consciousness Questions</h2>
+        <p>Would a perfect neural simulation be conscious? How could we determine consciousness in digital minds, and what are the implications?</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Identity and Continuity</h3>
+        <p>What makes you "you" - is it the pattern of neural activity, the physical substrate, or something else? Could there be multiple copies of the same person?</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Rights and Protections</h3>
+        <p>If digital minds are conscious, what rights should they have? Protection from suffering, deletion, unwanted modification, or forced labor?</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Our Responsibility</h2>
+        <p>As creators of potentially conscious digital minds, we have profound moral obligations to consider their wellbeing, rights, and place in society.</p>
+        
+        <p><strong style="color: #ff9bf0;">Critical Thinking:</strong> These questions require careful consideration as we advance toward more sophisticated neural simulations and potential digital consciousness.</p>
+      `,
+    };
 
-      // Create modal
-      const modal = document.createElement("div");
-      modal.className = "lesson-modal";
-
-      const modalContent = document.createElement("div");
-      modalContent.className = "lesson-modal-content";
-
-      // Simply inject the HTML content directly - no parsing needed
-      modalContent.innerHTML = `
-        <button class="close-btn">&times;</button>
-        ${content}
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
-          <button class="btn" onclick="this.closest('.lesson-modal').remove()">CLOSE LESSON</button>
-        </div>
-      `;
-
-      modal.appendChild(modalContent);
-      document.body.appendChild(modal);
-
-      // Close modal functionality
-      const closeBtn = modalContent.querySelector(".close-btn");
-      const closeModal = () => {
-        if (document.body.contains(modal)) {
-          document.body.removeChild(modal);
-        }
-      };
-
-      closeBtn.addEventListener("click", closeModal);
-      modal.addEventListener("click", (e) => {
-        if (e.target === modal) closeModal();
-      });
-
-      // Close on escape key
-      const handleKeydown = (e) => {
-        if (e.key === "Escape") {
-          closeModal();
-          document.removeEventListener("keydown", handleKeydown);
-        }
-      };
-      document.addEventListener("keydown", handleKeydown);
-    } catch (error) {
-      console.error("Failed to load lesson:", error);
-
-      // Show fallback content if file loading fails
-      const modal = document.createElement("div");
-      modal.className = "lesson-modal";
-
-      const modalContent = document.createElement("div");
-      modalContent.className = "lesson-modal-content";
-      modalContent.innerHTML = `
-        <button class="close-btn">&times;</button>
-        <h1>${lesson.title}</h1>
-        <p style="color: #fbbf24; margin-bottom: 16px;">
-          <strong>Note:</strong> Lesson file could not be loaded. Here's the basic content:
-        </p>
-        ${this.getFallbackContent(lessonNumber)}
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
-          <button class="btn" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
-        </div>
-      `;
-
-      modal.appendChild(modalContent);
-      document.body.appendChild(modal);
-
-      // Close functionality for fallback
-      const closeBtn = modalContent.querySelector(".close-btn");
-      closeBtn.addEventListener("click", () => {
-        if (document.body.contains(modal)) {
-          document.body.removeChild(modal);
-        }
-      });
-    }
+    return lessons[lessonNumber] || null;
   }
 
   getFallbackContent(lessonNumber) {
