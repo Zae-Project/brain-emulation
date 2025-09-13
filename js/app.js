@@ -23,9 +23,11 @@ class SNNVisualizer {
       refractoryMs: 80, // short refractory period after spike
       backgroundImpulse: 0.08, // base random input magnitude when background fires
       excRatio: 0.8, // fraction of excitatory neurons
-      interCoupling: 0.2, // 0..1: cross-cluster coupling strength
+      interProbScale: 0.2, // 0..1: cross-cluster probability scale
+      interWeightScale: 0.3, // 0..1: cross-cluster weight scale
       clusterCount: 4,
       clusterSize: 30,
+      fogStrength: 0.3,
     };
 
     this.CLUSTER_COLORS = [
@@ -250,10 +252,14 @@ class SNNVisualizer {
       clustersValueLabel: document.getElementById("clustersValue"),
       clusterSizeSlider: document.getElementById("clusterSize"),
       clusterSizeValueLabel: document.getElementById("clusterSizeValue"),
-      interCouplingSlider: document.getElementById("interCoupling"),
-      interCouplingValueLabel: document.getElementById("interValue"),
+      interProbSlider: document.getElementById("interProb"),
+      interProbValueLabel: document.getElementById("interProbValue"),
+      interWeightSlider: document.getElementById("interWeight"),
+      interWeightValueLabel: document.getElementById("interWeightValue"),
       excRatioSlider: document.getElementById("excRatio"),
       excRatioValueLabel: document.getElementById("excValue"),
+      fogSlider: document.getElementById("fogStrength"),
+      fogValueLabel: document.getElementById("fogValue"),
       connectionProbSlider: document.getElementById("connectionProb"),
       probValueLabel: document.getElementById("probValue"),
       firingRateSlider: document.getElementById("firingRate"),
@@ -687,6 +693,11 @@ class SNNVisualizer {
       })
       .sort((a, b) => b.depth - a.depth); // far first
 
+    // determine fog scale by depth
+    const maxDepth = Math.max(1, ...projNeurons.map((x) => x.p.depth));
+    const fogK = Math.min(1, Math.max(0, this.config.fogStrength || 0));
+    const fogFactor = (d) => 1 - fogK * (Math.min(1, d / maxDepth));
+
     for (const e of edges) {
       const bothFired = recentlyFired.has(e.conn.from.id) && recentlyFired.has(e.conn.to.id);
       const sameCluster =
@@ -694,10 +705,12 @@ class SNNVisualizer {
 
       if (bothFired && sameCluster) {
         const c = e.conn.from.colors.glow;
-        this.ctx.strokeStyle = `rgba(${Math.floor(c.r * 255)}, ${Math.floor(c.g * 255)}, ${Math.floor(c.b * 255)}, 0.8)`;
+        const alpha = 0.8 * fogFactor(e.depth);
+        this.ctx.strokeStyle = `rgba(${Math.floor(c.r * 255)}, ${Math.floor(c.g * 255)}, ${Math.floor(c.b * 255)}, ${alpha})`;
         this.ctx.lineWidth = 0.6;
       } else {
-        this.ctx.strokeStyle = `rgba(189, 189, 189, 0.15)`;
+        const alpha = 0.15 * fogFactor(e.depth);
+        this.ctx.strokeStyle = `rgba(189, 189, 189, ${alpha})`;
         this.ctx.lineWidth = 0.2;
       }
 
@@ -729,8 +742,9 @@ class SNNVisualizer {
         const glowRadius = radius * (1.8 + intensity * 2.0);
         const gradient = this.ctx.createRadialGradient(projected.x, projected.y, 0, projected.x, projected.y, glowRadius);
         const glowColor = neuron.colors.glow;
-        gradient.addColorStop(0, `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(glowColor.g * 255)}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.6})`);
-        gradient.addColorStop(0.5, `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(glowColor.g * 255)}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.3})`);
+        const f = fogFactor(projected.depth);
+        gradient.addColorStop(0, `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(glowColor.g * 255)}, ${Math.floor(glowColor.b * 255)}, ${f * intensity * 0.6})`);
+        gradient.addColorStop(0.5, `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(glowColor.g * 255)}, ${Math.floor(glowColor.b * 255)}, ${f * intensity * 0.3})`);
         gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
         this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
@@ -742,16 +756,19 @@ class SNNVisualizer {
       const squareSize = radius * 2;
       if (isActive) {
         const color = neuron.colors.primary;
-        this.ctx.fillStyle = `rgba(${Math.floor(color.r * 255 * depthFade)}, ${Math.floor(color.g * 255 * depthFade)}, ${Math.floor(color.b * 255 * depthFade)}, 0.85)`;
+        const f = fogFactor(projected.depth);
+        this.ctx.fillStyle = `rgba(${Math.floor(color.r * 255 * depthFade)}, ${Math.floor(color.g * 255 * depthFade)}, ${Math.floor(color.b * 255 * depthFade)}, ${0.85 * f})`;
       } else {
         const grey = Math.floor(150 * depthFade);
-        this.ctx.fillStyle = `rgba(${grey}, ${grey}, ${grey}, 0.5)`;
+        const f = fogFactor(projected.depth);
+        this.ctx.fillStyle = `rgba(${grey}, ${grey}, ${grey}, ${0.5 * f})`;
       }
       this.ctx.fillRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
 
+      const f2 = fogFactor(projected.depth);
       this.ctx.strokeStyle = isActive
-        ? `rgba(${Math.floor(neuron.colors.glow.r * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.g * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.b * 255 * depthFade)}, 0.9)`
-        : `rgba(200, 200, 200, 0.7)`;
+        ? `rgba(${Math.floor(neuron.colors.glow.r * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.g * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.b * 255 * depthFade)}, ${0.9 * f2})`
+        : `rgba(200, 200, 200, ${0.7 * f2})`;
       this.ctx.lineWidth = 1;
       this.ctx.setLineDash([]);
       this.ctx.strokeRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
@@ -1004,8 +1021,8 @@ class SNNVisualizer {
         if (fromCluster === toCluster) {
           connectionProb *= 1.8; // strong intra-cluster
         } else {
-          const interScale = 0.02 + 0.28 * (this.config.interCoupling ?? 0.2); // 0.02..0.30
-          connectionProb *= interScale;
+          const interP = 0.02 + 0.28 * (this.config.interProbScale ?? 0.2); // 0.02..0.30
+          connectionProb *= interP;
         }
 
         if (Math.random() < connectionProb) {
@@ -1015,12 +1032,12 @@ class SNNVisualizer {
           if (fromNeuron.type === 'E') {
             // Excitatory synapse (positive)
             const baseE = 0.45 + Math.random() * 0.55;
-            const interW = 0.15 + 0.85 * (this.config.interCoupling ?? 0.2);
+            const interW = 0.10 + 0.90 * (this.config.interWeightScale ?? 0.3);
             weight = same ? baseE : baseE * interW;
           } else {
             // Inhibitory synapse (negative)
             const baseI = 0.25 + Math.random() * 0.45;
-            const interWI = 0.15 + 0.85 * (this.config.interCoupling ?? 0.2);
+            const interWI = 0.10 + 0.90 * (this.config.interWeightScale ?? 0.3);
             weight = -(same ? baseI : baseI * interWI);
           }
           const connection = {
@@ -1228,14 +1245,24 @@ class SNNVisualizer {
       this.dom.clusterSizeSlider.addEventListener("change", () => this.createNetwork());
     }
 
-    // Inter-cluster coupling
-    if (this.dom.interCouplingSlider) {
-      this.dom.interCouplingSlider.addEventListener("input", (e) => {
-        this.config.interCoupling = parseFloat(e.target.value);
-        if (this.dom.interCouplingValueLabel)
-          this.dom.interCouplingValueLabel.textContent = this.config.interCoupling.toFixed(2);
+    // Inter-cluster probability
+    if (this.dom.interProbSlider) {
+      this.dom.interProbSlider.addEventListener("input", (e) => {
+        this.config.interProbScale = parseFloat(e.target.value);
+        if (this.dom.interProbValueLabel)
+          this.dom.interProbValueLabel.textContent = this.config.interProbScale.toFixed(2);
       });
-      this.dom.interCouplingSlider.addEventListener("change", () => this.createNetwork());
+      this.dom.interProbSlider.addEventListener("change", () => this.createNetwork());
+    }
+
+    // Inter-cluster weight
+    if (this.dom.interWeightSlider) {
+      this.dom.interWeightSlider.addEventListener("input", (e) => {
+        this.config.interWeightScale = parseFloat(e.target.value);
+        if (this.dom.interWeightValueLabel)
+          this.dom.interWeightValueLabel.textContent = this.config.interWeightScale.toFixed(2);
+      });
+      this.dom.interWeightSlider.addEventListener("change", () => this.createNetwork());
     }
 
     // E/I balance (excitatory ratio)
@@ -1246,6 +1273,15 @@ class SNNVisualizer {
           this.dom.excRatioValueLabel.textContent = this.config.excRatio.toFixed(2);
       });
       this.dom.excRatioSlider.addEventListener("change", () => this.createNetwork());
+    }
+
+    // Depth fog strength
+    if (this.dom.fogSlider) {
+      this.dom.fogSlider.addEventListener("input", (e) => {
+        this.config.fogStrength = parseFloat(e.target.value);
+        if (this.dom.fogValueLabel)
+          this.dom.fogValueLabel.textContent = this.config.fogStrength.toFixed(2);
+      });
     }
 
     if (this.dom.resetBtn) {
