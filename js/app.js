@@ -678,9 +678,9 @@ class SNNVisualizer {
 
       const bothFiredRecently =
         recentlyFired.has(conn.from.id) && recentlyFired.has(conn.to.id);
+      const clusterSize = Math.max(1, this.config.clusterSize || Math.floor(this.config.networkSize / (this.config.clusterCount || 1)));
       const sameCluster =
-        Math.floor(conn.from.id / (this.config.networkSize / 4)) ===
-        Math.floor(conn.to.id / (this.config.networkSize / 4));
+        Math.floor(conn.from.id / clusterSize) === Math.floor(conn.to.id / clusterSize);
       if (bothFiredRecently && sameCluster) {
         const activeColor = conn.from.colors.glow;
         this.ctx.strokeStyle = `rgba(${Math.floor(activeColor.r * 255)}, ${Math.floor(
