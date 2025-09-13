@@ -170,9 +170,15 @@ canvas {
   padding: 20px;
   backdrop-filter: blur(12px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  overflow: hidden; /* No scrollbars in the panel */
-  padding-bottom: 28px; /* keep bottom buttons fully visible */
+  max-height: calc(100vh - 170px);
+  overflow-y: auto; /* allow scroll when needed */
+  overflow-x: hidden;
+  scrollbar-width: none; /* Firefox hide */
+  -ms-overflow-style: none; /* IE/Edge */
+  padding-bottom: 12px;
 }
+
+#controls::-webkit-scrollbar { display: none; }
 
 .control-group {
   margin-bottom: 16px;
