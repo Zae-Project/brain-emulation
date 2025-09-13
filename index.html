@@ -217,15 +217,28 @@
 
       <div class="control-group">
         <label>
-          Inter‑cluster Coupling: <span id="interValue">0.20</span>
+          Inter‑cluster Prob.: <span id="interProbValue">0.20</span>
           <span class="param-info">i
             <div class="tooltip">
-              <span class="tooltip-title">Inter‑cluster Coupling</span>
-              Tunes the strength and density of connections between different clusters. Lower values reduce synchrony; higher values increase cross‑cluster interaction.
+              <span class="tooltip-title">Inter‑cluster Probability</span>
+              Scales the probability of connections across clusters. Lower means fewer cross‑cluster synapses.
             </div>
           </span>
         </label>
-        <input id="interCoupling" type="range" min="0" max="1" step="0.01" value="0.20" />
+        <input id="interProb" type="range" min="0" max="1" step="0.01" value="0.20" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          Inter‑cluster Weight: <span id="interWeightValue">0.30</span>
+          <span class="param-info">i
+            <div class="tooltip">
+              <span class="tooltip-title">Inter‑cluster Weight</span>
+              Scales synaptic weights across clusters only. Lower values reduce cross‑cluster influence.
+            </div>
+          </span>
+        </label>
+        <input id="interWeight" type="range" min="0" max="1" step="0.01" value="0.30" />
       </div>
 
       <div class="control-group">
@@ -239,6 +252,19 @@
           </span>
         </label>
         <input id="excRatio" type="range" min="0.5" max="0.95" step="0.01" value="0.80" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          Depth Fog: <span id="fogValue">0.30</span>
+          <span class="param-info">i
+            <div class="tooltip">
+              <span class="tooltip-title">Depth Fog</span>
+              Makes distant objects dimmer to improve 3D readability. 0 = off, 1 = strong.
+            </div>
+          </span>
+        </label>
+        <input id="fogStrength" type="range" min="0" max="1" step="0.01" value="0.30" />
       </div>
 
       <div class="control-group">
