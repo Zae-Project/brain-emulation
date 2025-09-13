@@ -216,6 +216,32 @@
       </div>
 
       <div class="control-group">
+        <label>
+          Inter‑cluster Coupling: <span id="interValue">0.20</span>
+          <span class="param-info">i
+            <div class="tooltip">
+              <span class="tooltip-title">Inter‑cluster Coupling</span>
+              Tunes the strength and density of connections between different clusters. Lower values reduce synchrony; higher values increase cross‑cluster interaction.
+            </div>
+          </span>
+        </label>
+        <input id="interCoupling" type="range" min="0" max="1" step="0.01" value="0.20" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          E/I Balance (E frac): <span id="excValue">0.80</span>
+          <span class="param-info">i
+            <div class="tooltip">
+              <span class="tooltip-title">Excitatory Fraction</span>
+              Fraction of neurons that are excitatory; remaining are inhibitory. Adjusts network stability and burstiness.
+            </div>
+          </span>
+        </label>
+        <input id="excRatio" type="range" min="0.5" max="0.95" step="0.01" value="0.80" />
+      </div>
+
+      <div class="control-group">
         <label
           >Firing Rate: <span id="firingValue">0.75</span>
           <span class="param-info"

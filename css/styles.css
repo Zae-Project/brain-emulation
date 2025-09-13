@@ -171,6 +171,7 @@ canvas {
   backdrop-filter: blur(12px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   overflow: hidden; /* No scrollbars in the panel */
+  padding-bottom: 28px; /* keep bottom buttons fully visible */
 }
 
 .control-group {
@@ -213,6 +214,13 @@ canvas {
   background: var(--accent-primary);
   color: var(--bg);
   border-color: var(--accent-primary);
+}
+
+/* Consistent button spacing inside the controls panel */
+#controls .btn {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
 }
 
 #info {
