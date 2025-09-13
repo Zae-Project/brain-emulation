@@ -23,6 +23,7 @@ class SNNVisualizer {
       refractoryMs: 80, // short refractory period after spike
       backgroundImpulse: 0.08, // base random input magnitude when background fires
       excRatio: 0.8, // fraction of excitatory neurons
+      interCoupling: 0.2, // 0..1: cross-cluster coupling strength
       clusterCount: 4,
       clusterSize: 30,
     };
@@ -249,6 +250,10 @@ class SNNVisualizer {
       clustersValueLabel: document.getElementById("clustersValue"),
       clusterSizeSlider: document.getElementById("clusterSize"),
       clusterSizeValueLabel: document.getElementById("clusterSizeValue"),
+      interCouplingSlider: document.getElementById("interCoupling"),
+      interCouplingValueLabel: document.getElementById("interValue"),
+      excRatioSlider: document.getElementById("excRatio"),
+      excRatioValueLabel: document.getElementById("excValue"),
       connectionProbSlider: document.getElementById("connectionProb"),
       probValueLabel: document.getElementById("probValue"),
       firingRateSlider: document.getElementById("firingRate"),
@@ -650,42 +655,46 @@ class SNNVisualizer {
     // First check if neurons exist
     if (!this.neurons || this.neurons.length === 0) {
       console.error("No neurons available for rendering!");
-      // Force recreation of the network
       this.createNetwork();
       return;
     }
 
-    // Clear canvas with pure black background
+    // Clear canvas
     this.ctx.fillStyle = "#000000";
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
-    // Debug message removed to avoid console spam during animation
-
-    // Track which neurons have fired recently (short window) for visualization
     const now = Date.now();
+    const recentWindow = 180;
+
+    // Precompute projections and recency
+    const projById = new Map();
+    const projNeurons = [];
     const recentlyFired = new Set();
-    const recentWindow = 180; // ms
-    this.neurons.forEach((neuron) => {
-      if (now - (neuron.lastFire || 0) < recentWindow) {
-        recentlyFired.add(neuron.id);
-      }
-    });
+    for (const n of this.neurons) {
+      const p = this.project3D(n.position);
+      projById.set(n.id, p);
+      projNeurons.push({ n, p });
+      if (now - (n.lastFire || 0) < recentWindow) recentlyFired.add(n.id);
+    }
 
-    // Render connections: faint grey; highlight only when both endpoints fired recently within SAME cluster
-    this.connections.forEach((conn) => {
-      const startProj = this.project3D(conn.from.position);
-      const endProj = this.project3D(conn.to.position);
+    // Sort and render connections back-to-front using average depth
+    const clusterSize = Math.max(1, this.config.clusterSize || Math.floor(this.config.networkSize / (this.config.clusterCount || 1)));
+    const edges = this.connections
+      .map((conn) => {
+        const sp = projById.get(conn.from.id);
+        const ep = projById.get(conn.to.id);
+        return { conn, sp, ep, depth: (sp.depth + ep.depth) / 2 };
+      })
+      .sort((a, b) => b.depth - a.depth); // far first
 
-      const bothFiredRecently =
-        recentlyFired.has(conn.from.id) && recentlyFired.has(conn.to.id);
-      const clusterSize = Math.max(1, this.config.clusterSize || Math.floor(this.config.networkSize / (this.config.clusterCount || 1)));
+    for (const e of edges) {
+      const bothFired = recentlyFired.has(e.conn.from.id) && recentlyFired.has(e.conn.to.id);
       const sameCluster =
-        Math.floor(conn.from.id / clusterSize) === Math.floor(conn.to.id / clusterSize);
-      if (bothFiredRecently && sameCluster) {
-        const activeColor = conn.from.colors.glow;
-        this.ctx.strokeStyle = `rgba(${Math.floor(activeColor.r * 255)}, ${Math.floor(
-          activeColor.g * 255
-        )}, ${Math.floor(activeColor.b * 255)}, 0.8)`;
+        Math.floor(e.conn.from.id / clusterSize) === Math.floor(e.conn.to.id / clusterSize);
+
+      if (bothFired && sameCluster) {
+        const c = e.conn.from.colors.glow;
+        this.ctx.strokeStyle = `rgba(${Math.floor(c.r * 255)}, ${Math.floor(c.g * 255)}, ${Math.floor(c.b * 255)}, 0.8)`;
         this.ctx.lineWidth = 0.6;
       } else {
         this.ctx.strokeStyle = `rgba(189, 189, 189, 0.15)`;
@@ -693,141 +702,78 @@ class SNNVisualizer {
       }
 
       this.ctx.beginPath();
-      this.ctx.moveTo(startProj.x, startProj.y);
-      this.ctx.lineTo(endProj.x, endProj.y);
+      this.ctx.moveTo(e.sp.x, e.sp.y);
+      this.ctx.lineTo(e.ep.x, e.ep.y);
       this.ctx.stroke();
-    });
+    }
 
-    // Render neurons with zoom-responsive scaling
-    this.neurons.forEach((neuron) => {
-      const projected = this.project3D(neuron.position);
+    // Sort and render neurons back-to-front
+    projNeurons.sort((a, b) => b.p.depth - a.p.depth);
+    for (const item of projNeurons) {
+      const neuron = item.n;
+      const projected = item.p;
 
-      // Skip if way off screen (but allow negative depth for now)
       if (
         projected.x < -200 ||
         projected.x > this.dom.canvas.width + 200 ||
         projected.y < -200 ||
         projected.y > this.dom.canvas.height + 200
-      ) {
-        return;
-      }
+      ) continue;
 
-      // Zoom-responsive neuron size
       const baseRadius = 8;
-      const radius = Math.max(
-        1.5,
-        baseRadius *
-          projected.scale *
-          (projected.zoomFactor || 1) *
-          this.config.neuronSize
-      );
+      const radius = Math.max(1.5, baseRadius * projected.scale * (projected.zoomFactor || 1) * this.config.neuronSize);
       const intensity = neuron.pulse / this.config.pulseIntensity;
-
-      // Per-neuron activation only (no cluster-wide coloring)
       const isActive = intensity > 0.10;
 
-      // Draw glow effect when firing - scales with zoom
       if (isActive) {
         const glowRadius = radius * (1.8 + intensity * 2.0);
-        const gradient = this.ctx.createRadialGradient(
-          projected.x,
-          projected.y,
-          0,
-          projected.x,
-          projected.y,
-          glowRadius
-        );
-
+        const gradient = this.ctx.createRadialGradient(projected.x, projected.y, 0, projected.x, projected.y, glowRadius);
         const glowColor = neuron.colors.glow;
-        gradient.addColorStop(
-          0,
-          `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
-            glowColor.g * 255
-          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.6})`
-        );
-        gradient.addColorStop(
-          0.5,
-          `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
-            glowColor.g * 255
-          )}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.3})`
-        );
+        gradient.addColorStop(0, `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(glowColor.g * 255)}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.6})`);
+        gradient.addColorStop(0.5, `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(glowColor.g * 255)}, ${Math.floor(glowColor.b * 255)}, ${intensity * 0.3})`);
         gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-
         this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
         this.ctx.arc(projected.x, projected.y, glowRadius, 0, Math.PI * 2);
         this.ctx.fill();
       }
 
-      // Draw neuron body as square - grey when inactive; colored when this neuron is active
       const depthFade = Math.min(1, 800 / Math.max(20, projected.depth));
-      const squareSize = radius * 2; // Convert radius to square size
+      const squareSize = radius * 2;
       if (isActive) {
         const color = neuron.colors.primary;
-        const brightness = 1.0 * depthFade;
-        this.ctx.fillStyle = `rgba(${Math.floor(
-          color.r * 255 * brightness
-        )}, ${Math.floor(color.g * 255 * brightness)}, ${Math.floor(
-          color.b * 255 * brightness
-        )}, 0.85)`;
+        this.ctx.fillStyle = `rgba(${Math.floor(color.r * 255 * depthFade)}, ${Math.floor(color.g * 255 * depthFade)}, ${Math.floor(color.b * 255 * depthFade)}, 0.85)`;
       } else {
-        const greyLevel = Math.floor(150 * depthFade);
-        this.ctx.fillStyle = `rgba(${greyLevel}, ${greyLevel}, ${greyLevel}, 0.5)`;
+        const grey = Math.floor(150 * depthFade);
+        this.ctx.fillStyle = `rgba(${grey}, ${grey}, ${grey}, 0.5)`;
       }
+      this.ctx.fillRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
 
-      // Draw square neuron
-      this.ctx.fillRect(
-        projected.x - squareSize / 2,
-        projected.y - squareSize / 2,
-        squareSize,
-        squareSize
-      );
-
-      // Draw thin solid border
       this.ctx.strokeStyle = isActive
         ? `rgba(${Math.floor(neuron.colors.glow.r * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.g * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.b * 255 * depthFade)}, 0.9)`
         : `rgba(200, 200, 200, 0.7)`;
       this.ctx.lineWidth = 1;
-      this.ctx.setLineDash([]); // Ensure solid line
-      this.ctx.strokeRect(
-        projected.x - squareSize / 2,
-        projected.y - squareSize / 2,
-        squareSize,
-        squareSize
-      ); // Draw neuron ID number inside the square
+      this.ctx.setLineDash([]);
+      this.ctx.strokeRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
+
       if (squareSize > 12) {
-        // Only show numbers when square is large enough
-        this.ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * depthFade})`; // White text with fade
-        this.ctx.font = `${Math.max(
-          8,
-          Math.min(12, squareSize * 0.4)
-        )}px Inter, monospace`;
+        this.ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * depthFade})`;
+        this.ctx.font = `${Math.max(8, Math.min(12, squareSize * 0.4))}px Inter, monospace`;
         this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
         this.ctx.fillText(neuron.id.toString(), projected.x, projected.y);
       }
 
-      // Highlight selected neuron with premium neural accent color
       if (neuron === this.state.selectedNeuron) {
-        this.ctx.strokeStyle = "#374E84"; // Use accent-neural
+        this.ctx.strokeStyle = "#374E84";
         this.ctx.lineWidth = Math.max(2, squareSize * 0.1);
-        this.ctx.strokeRect(
-          projected.x - squareSize / 2,
-          projected.y - squareSize / 2,
-          squareSize,
-          squareSize
-        );
+        this.ctx.strokeRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
       }
 
-      // Show weight information panels if enabled
-      if (
-        this.state.showWeights &&
-        neuron.connections.length > 0 &&
-        radius > 8
-      ) {
+      if (this.state.showWeights && neuron.connections.length > 0 && radius > 8) {
         this.renderWeightPanel(neuron, projected);
       }
-    });
+    }
 
     // Debug info - top center and always visible
     this.ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
@@ -1042,13 +988,13 @@ class SNNVisualizer {
     // Create connections between neurons with probability based on cluster membership
     for (let i = 0; i < networkSize; i++) {
       const fromNeuron = this.neurons[i];
-      const fromCluster = Math.floor(i / (networkSize / 4));
+      const fromCluster = Math.floor(i / this.config.clusterSize);
 
       for (let j = 0; j < networkSize; j++) {
         if (i === j) continue; // Skip self-connections
 
         const toNeuron = this.neurons[j];
-        const toCluster = Math.floor(j / (networkSize / 4));
+        const toCluster = Math.floor(j / this.config.clusterSize);
 
         // Higher connection probability within same cluster
         const baseProbability = this.config.connectionProb;
@@ -1058,7 +1004,8 @@ class SNNVisualizer {
         if (fromCluster === toCluster) {
           connectionProb *= 1.8; // strong intra-cluster
         } else {
-          connectionProb *= 0.08; // very weak inter-cluster to avoid synchronization
+          const interScale = 0.02 + 0.28 * (this.config.interCoupling ?? 0.2); // 0.02..0.30
+          connectionProb *= interScale;
         }
 
         if (Math.random() < connectionProb) {
@@ -1067,10 +1014,14 @@ class SNNVisualizer {
           const same = fromCluster === toCluster;
           if (fromNeuron.type === 'E') {
             // Excitatory synapse (positive)
-            weight = same ? (0.45 + Math.random() * 0.55) : (0.05 + Math.random() * 0.25);
+            const baseE = 0.45 + Math.random() * 0.55;
+            const interW = 0.15 + 0.85 * (this.config.interCoupling ?? 0.2);
+            weight = same ? baseE : baseE * interW;
           } else {
             // Inhibitory synapse (negative)
-            weight = -(same ? (0.25 + Math.random() * 0.45) : (0.05 + Math.random() * 0.15));
+            const baseI = 0.25 + Math.random() * 0.45;
+            const interWI = 0.15 + 0.85 * (this.config.interCoupling ?? 0.2);
+            weight = -(same ? baseI : baseI * interWI);
           }
           const connection = {
             from: fromNeuron,
@@ -1275,6 +1226,26 @@ class SNNVisualizer {
         if (this.dom.sizeValueLabel) this.dom.sizeValueLabel.textContent = this.config.networkSize;
       });
       this.dom.clusterSizeSlider.addEventListener("change", () => this.createNetwork());
+    }
+
+    // Inter-cluster coupling
+    if (this.dom.interCouplingSlider) {
+      this.dom.interCouplingSlider.addEventListener("input", (e) => {
+        this.config.interCoupling = parseFloat(e.target.value);
+        if (this.dom.interCouplingValueLabel)
+          this.dom.interCouplingValueLabel.textContent = this.config.interCoupling.toFixed(2);
+      });
+      this.dom.interCouplingSlider.addEventListener("change", () => this.createNetwork());
+    }
+
+    // E/I balance (excitatory ratio)
+    if (this.dom.excRatioSlider) {
+      this.dom.excRatioSlider.addEventListener("input", (e) => {
+        this.config.excRatio = parseFloat(e.target.value);
+        if (this.dom.excRatioValueLabel)
+          this.dom.excRatioValueLabel.textContent = this.config.excRatio.toFixed(2);
+      });
+      this.dom.excRatioSlider.addEventListener("change", () => this.createNetwork());
     }
 
     if (this.dom.resetBtn) {
