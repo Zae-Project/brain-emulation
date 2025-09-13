@@ -165,6 +165,32 @@
       </div>
 
       <div class="control-group">
+        <label>
+          Clusters: <span id="clustersValue">4</span>
+          <span class="param-info">i
+            <div class="tooltip">
+              <span class="tooltip-title">Cluster Count</span>
+              Number of distinct neuron groups. Connections are denser within a cluster and sparse across clusters.
+            </div>
+          </span>
+        </label>
+        <input id="clusterCount" type="range" min="1" max="8" step="1" value="4" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          Neurons / Cluster: <span id="clusterSizeValue">30</span>
+          <span class="param-info">i
+            <div class="tooltip">
+              <span class="tooltip-title">Cluster Size</span>
+              Number of neurons in each cluster. Total neurons equals clusters × neurons/cluster.
+            </div>
+          </span>
+        </label>
+        <input id="clusterSize" type="range" min="10" max="100" step="5" value="30" />
+      </div>
+
+      <div class="control-group">
         <label
           >Connection Probability: <span id="probValue">0.30</span>
           <span class="param-info"
@@ -191,7 +217,7 @@
 
       <div class="control-group">
         <label
-          >Firing Rate: <span id="firingValue">0.0010</span>
+          >Firing Rate: <span id="firingValue">0.75</span>
           <span class="param-info"
             >i
             <div class="tooltip">
@@ -204,14 +230,7 @@
             </div>
           </span>
         </label>
-        <input
-          id="firingRate"
-          type="range"
-          min="0.0001"
-          max="0.01"
-          step="0.0001"
-          value="0.001"
-        />
+        <input id="firingRate" type="range" min="0" max="1" step="0.01" value="0.75" />
       </div>
 
       <div class="control-group">
