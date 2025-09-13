@@ -8,9 +8,16 @@ if (-not (Test-Path $envPath)) {
   exit 1
 }
 
-# Load env
+# Load env (simple KEY=VALUE pairs, ignore comments/blank lines)
 Get-Content $envPath | ForEach-Object {
-  if ($_ -match '^(\w+)=(.*)$') { $name=$matches[1]; $value=$matches[2]; if($value -ne ''){ $env:$name=$value } }
+  $line = $_.Trim()
+  if ([string]::IsNullOrWhiteSpace($line)) { return }
+  if ($line.StartsWith('#')) { return }
+  if ($line -match '^(?<k>[A-Za-z_][A-Za-z0-9_]*)=(?<v>.*)$') {
+    $name = $Matches['k']
+    $value = $Matches['v']
+    [System.Environment]::SetEnvironmentVariable($name, $value, 'Process') | Out-Null
+  }
 }
 
 if (-not $env:GITHUB_TOKEN) { Write-Error "GITHUB_TOKEN not set in .env.local"; exit 1 }
