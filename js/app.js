@@ -1097,6 +1097,14 @@ class SNNVisualizer {
       selection.forEach((n) => this.fireNeuron(n));
     }
 
+    // Sync UI labels to derived sizes
+    if (this.dom.sizeValueLabel) this.dom.sizeValueLabel.textContent = this.config.networkSize;
+    if (this.dom.networkSizeSlider) this.dom.networkSizeSlider.value = String(this.config.networkSize);
+    if (this.dom.clustersValueLabel) this.dom.clustersValueLabel.textContent = this.config.clusterCount;
+    if (this.dom.clusterCountSlider) this.dom.clusterCountSlider.value = String(this.config.clusterCount);
+    if (this.dom.clusterSizeValueLabel) this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
+    if (this.dom.clusterSizeSlider) this.dom.clusterSizeSlider.value = String(this.config.clusterSize);
+
     // Clear trace if a neuron was selected
     this.clearTrace();
 
@@ -1295,8 +1303,7 @@ class SNNVisualizer {
       this.dom.firingRateSlider.addEventListener("input", (e) => {
         this.state.firingRate = parseFloat(e.target.value);
         if (this.dom.firingValueLabel) {
-          this.dom.firingValueLabel.textContent =
-            this.state.firingRate.toFixed(4);
+          this.dom.firingValueLabel.textContent = this.state.firingRate.toFixed(2);
         }
       });
     }
