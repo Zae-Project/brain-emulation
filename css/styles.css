@@ -163,15 +163,14 @@ canvas {
 #controls {
   position: fixed;
   left: 16px;
-  bottom: 16px;
+  top: 150px;
   width: 320px;
   background: var(--surface-1);
   border: 1px solid var(--border);
   padding: 20px;
   backdrop-filter: blur(12px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
+  overflow: hidden; /* No scrollbars in the panel */
 }
 
 .control-group {
