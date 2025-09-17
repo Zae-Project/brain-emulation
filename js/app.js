@@ -246,6 +246,7 @@ class SNNVisualizer {
       canvas: document.getElementById("three-canvas"),
       playBtn: document.getElementById("play"),
       speedSlider: document.getElementById("speed"),
+      presetSelect: document.getElementById("presetSelect"),
       networkSizeSlider: document.getElementById("networkSize"),
       sizeValueLabel: document.getElementById("sizeValue"),
       clusterCountSlider: document.getElementById("clusterCount"),
@@ -1347,6 +1348,37 @@ class SNNVisualizer {
     }
   }
 
+  // Step 1 preset applicator: update clusterCount, clusterSize, and excRatio using registry.
+  applyPreset(presetId) {
+    if (!window.SNN_REGISTRY) return;
+    const preset = window.SNN_REGISTRY.RegionPresets[presetId];
+    if (!preset || presetId === 'None') {
+      // Keep current sliders; only rebuild
+      this.createNetwork();
+      return;
+    }
+
+    const counts = window.SNN_REGISTRY.deriveCounts(preset);
+    const ei = window.SNN_REGISTRY.estimateEI(preset);
+    if (counts) {
+      this.config.clusterCount = counts.clusters;
+      this.config.clusterSize = counts.clusterSize;
+      this.config.networkSize = this.config.clusterCount * this.config.clusterSize;
+      if (this.dom.clustersValueLabel) this.dom.clustersValueLabel.textContent = this.config.clusterCount;
+      if (this.dom.clusterCountSlider) this.dom.clusterCountSlider.value = String(this.config.clusterCount);
+      if (this.dom.clusterSizeValueLabel) this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
+      if (this.dom.clusterSizeSlider) this.dom.clusterSizeSlider.value = String(this.config.clusterSize);
+      if (this.dom.sizeValueLabel) this.dom.sizeValueLabel.textContent = this.config.networkSize;
+      if (this.dom.networkSizeSlider) this.dom.networkSizeSlider.value = String(this.config.networkSize);
+    }
+    if (typeof ei === 'number' && !Number.isNaN(ei)) {
+      this.config.excRatio = ei;
+      if (this.dom.excRatioSlider) this.dom.excRatioSlider.value = ei.toFixed(2);
+      if (this.dom.excRatioValueLabel) this.dom.excRatioValueLabel.textContent = ei.toFixed(2);
+    }
+    this.createNetwork();
+  }
+
   initLessons() {
     if (this.dom.lessonSelect) {
       this.dom.lessonSelect.addEventListener("change", (e) => {
@@ -1792,6 +1824,13 @@ class SNNVisualizer {
   }
 
   animate() {
+    // Preset selection (step 1: only adjusts counts and E/I)
+    if (this.dom.presetSelect) {
+      this.dom.presetSelect.addEventListener("change", (e) => {
+        const id = e.target.value;
+        this.applyPreset(id);
+      });
+    }
     requestAnimationFrame(() => this.animate());
 
     this.updateCameraPosition();
