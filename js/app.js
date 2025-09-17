@@ -947,17 +947,42 @@ class SNNVisualizer {
     this.state.selectedNeuron = null;
 
     // Create neurons with random positions in 3D space
-    // Derive network size from cluster controls
+    // Derive network size from cluster controls (updated for presets)
     this.config.networkSize = this.config.clusterCount * this.config.clusterSize;
     const networkSize = this.config.networkSize;
     const radius = 260; // Closer grouping
 
     // Precompute cluster layout grid
-    const clusters = Math.max(1, this.config.clusterCount);
-    const cols = Math.ceil(Math.sqrt(clusters));
-    const rows = Math.ceil(clusters / cols);
+    const clusterCount = Math.max(1, this.config.clusterCount);
+    const cols = Math.ceil(Math.sqrt(clusterCount));
+    const rows = Math.ceil(clusterCount / cols);
     const spacingX = 240;
     const spacingY = 240;
+
+    // From preset: per-cluster archetype list
+    let clusterTypeList = new Array(clusterCount).fill(null);
+    if (this.config.presetId && this.config.presetId !== 'None' && window.SNN_REGISTRY) {
+      const preset = window.SNN_REGISTRY.RegionPresets[this.config.presetId];
+      if (preset && Array.isArray(preset.clusters) && preset.clusters.length > 0) {
+        const list = [];
+        preset.clusters.forEach((c) => {
+          for (let k = 0; k < (c.count || 1); k++) list.push(c.typeId);
+        });
+        for (let idx = 0; idx < clusterCount; idx++) {
+          clusterTypeList[idx] = list[idx % list.length] || null;
+        }
+      }
+    }
+
+    const sampleTypeId = (mix) => {
+      if (!mix || mix.length === 0) return null;
+      let r = Math.random(), acc = 0;
+      for (const m of mix) {
+        acc += m.fraction || 0;
+        if (r <= acc) return m.typeId;
+      }
+      return mix[mix.length - 1].typeId;
+    };
 
     for (let i = 0; i < networkSize; i++) {
       // Determine which cluster this neuron belongs to (4 clusters total)
@@ -986,7 +1011,15 @@ class SNNVisualizer {
       // Assign cluster color
       const colors = this.CLUSTER_COLORS[clusterId % this.CLUSTER_COLORS.length];
 
-      const isExcitatory = i < Math.floor(this.config.excRatio * networkSize);
+      // Determine neuron type (from preset mix if available)
+      let nType = null;
+      if (clusterTypeList[clusterId] && window.SNN_REGISTRY) {
+        const arche = window.SNN_REGISTRY.ClusterTypes[clusterTypeList[clusterId]];
+        const typeId = sampleTypeId(arche?.mix);
+        const def = window.SNN_REGISTRY.NeuronTypes[typeId];
+        if (def) nType = def;
+      }
+      const isExcitatory = nType ? (nType.type !== 'inhibitory') : (i < Math.floor(this.config.excRatio * networkSize));
 
       this.neurons.push({
         id: i,
@@ -1000,6 +1033,12 @@ class SNNVisualizer {
         inputAccum: 0,
         refractoryUntil: 0,
         type: isExcitatory ? 'E' : 'I',
+        // per-neuron overrides if provided by preset
+        threshold: nType?.threshold,
+        leak: nType?.leak,
+        refractoryMs: nType?.refractoryMs,
+        bgImpulse: nType?.bgImpulse,
+        spikeGain: nType?.spikeGain,
       });
     }
 
@@ -1354,6 +1393,7 @@ class SNNVisualizer {
     const preset = window.SNN_REGISTRY.RegionPresets[presetId];
     if (!preset || presetId === 'None') {
       // Keep current sliders; only rebuild
+      this.config.presetId = 'None';
       this.createNetwork();
       return;
     }
@@ -1376,6 +1416,7 @@ class SNNVisualizer {
       if (this.dom.excRatioSlider) this.dom.excRatioSlider.value = ei.toFixed(2);
       if (this.dom.excRatioValueLabel) this.dom.excRatioValueLabel.textContent = ei.toFixed(2);
     }
+    this.config.presetId = presetId;
     this.createNetwork();
   }
 

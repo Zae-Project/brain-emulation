@@ -5,10 +5,38 @@
 
 (function () {
   const NeuronTypes = {
-    pyramidal: { type: 'excitatory' },
-    basket: { type: 'inhibitory' },
-    chandelier: { type: 'inhibitory' },
-    relay: { type: 'excitatory' },
+    pyramidal: {
+      type: 'excitatory',
+      threshold: 1.0,
+      leak: 0.985,
+      refractoryMs: 80,
+      bgImpulse: 0.06,
+      spikeGain: 1.0,
+    },
+    basket: {
+      type: 'inhibitory',
+      threshold: 0.95,
+      leak: 0.98,
+      refractoryMs: 60,
+      bgImpulse: 0.04,
+      spikeGain: 1.0,
+    },
+    chandelier: {
+      type: 'inhibitory',
+      threshold: 0.95,
+      leak: 0.98,
+      refractoryMs: 55,
+      bgImpulse: 0.04,
+      spikeGain: 1.1,
+    },
+    relay: {
+      type: 'excitatory',
+      threshold: 1.05,
+      leak: 0.988,
+      refractoryMs: 90,
+      bgImpulse: 0.05,
+      spikeGain: 1.2,
+    },
   };
 
   const ClusterTypes = {
@@ -95,4 +123,3 @@
     deriveCounts,
   };
 })();
-
