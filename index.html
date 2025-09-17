@@ -116,9 +116,7 @@
 
     <!-- LESSONS BAR -->
     <div id="lessonPanel">
-      <label for="lessonSelect" style="color: #94a3b8; font-weight: 500"
-        >Lesson:</label
-      >
+      <label for="lessonSelect" style="color: #94a3b8; font-weight: 500">Lesson:</label>
       <select id="lessonSelect">
         <option value="1">Lesson 1: Basic Spike Dynamics</option>
         <option value="2">Lesson 2: Synaptic Transmission</option>
@@ -132,6 +130,13 @@
         <option value="10">Lesson 10: Neural Oscillations</option>
         <option value="11">Lesson 11: Brain Emulation Theory</option>
         <option value="12">Lesson 12: Ethics & Future</option>
+      </select>
+      <label for="presetSelect" style="color: #94a3b8; font-weight: 500; margin-left:12px">Preset:</label>
+      <select id="presetSelect">
+        <option value="None">None</option>
+        <option value="Frontal_Cortex">Frontal Cortex</option>
+        <option value="Amygdala">Amygdala</option>
+        <option value="Thalamocortical_Loop">Thalamocortical Loop</option>
       </select>
     </div>
 
@@ -421,6 +426,7 @@
 
     <div id="err"></div>
 
+    <script src="js/templates/registry.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>
