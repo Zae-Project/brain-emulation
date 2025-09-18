@@ -247,6 +247,7 @@ class SNNVisualizer {
       playBtn: document.getElementById("play"),
       speedSlider: document.getElementById("speed"),
       presetSelect: document.getElementById("presetSelect"),
+      presetSummary: document.getElementById("presetSummary"),
       networkSizeSlider: document.getElementById("networkSize"),
       sizeValueLabel: document.getElementById("sizeValue"),
       clusterCountSlider: document.getElementById("clusterCount"),
@@ -1251,6 +1252,16 @@ class SNNVisualizer {
         this.applyPreset(id);
       });
     }
+
+    if (this.dom.presetSelect) {
+      this.dom.presetSelect.addEventListener("change", (e) => {
+        const id = e.target.value;
+        this.applyPreset(id);
+      });
+    }
+
+    // Initialize lock state
+    this.updatePresetLockUI();
 
     if (this.dom.networkSizeSlider) {
       this.dom.networkSizeSlider.addEventListener("input", (e) => {
