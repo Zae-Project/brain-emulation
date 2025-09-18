@@ -47,6 +47,8 @@
         { typeId: 'pyramidal', fraction: 0.8 },
         { typeId: 'basket', fraction: 0.2 },
       ],
+      intra: { prob: 0.35, weight: { E: [0.5, 1.0], I: [0.3, 0.7] } },
+      inter: { prob: 0.08, weight: { E: [0.1, 0.4], I: [0.1, 0.3] } },
     },
     Amygdala_CeA: {
       label: 'Amygdala (CeA)',
@@ -55,6 +57,8 @@
         { typeId: 'basket', fraction: 0.6 },
         { typeId: 'pyramidal', fraction: 0.4 },
       ],
+      intra: { prob: 0.30, weight: { E: [0.45, 0.9], I: [0.35, 0.75] } },
+      inter: { prob: 0.05, weight: { E: [0.05, 0.25], I: [0.05, 0.25] } },
     },
     Thalamus_Relay: {
       label: 'Thalamus Relay',
@@ -63,6 +67,8 @@
         { typeId: 'relay', fraction: 0.85 },
         { typeId: 'basket', fraction: 0.15 },
       ],
+      intra: { prob: 0.28, weight: { E: [0.45, 0.95], I: [0.25, 0.55] } },
+      inter: { prob: 0.10, weight: { E: [0.10, 0.35], I: [0.10, 0.30] } },
     },
   };
 

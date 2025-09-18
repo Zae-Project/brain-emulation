@@ -1053,33 +1053,48 @@ class SNNVisualizer {
         const toNeuron = this.neurons[j];
         const toCluster = Math.floor(j / this.config.clusterSize);
 
-        // Higher connection probability within same cluster
-        const baseProbability = this.config.connectionProb;
-        let connectionProb = baseProbability;
+        // Probability and weights: if preset + archetypes available, use them; else fallback
+        const same = fromCluster === toCluster;
 
-        // Same cluster = higher connection probability, different cluster = lower
-        if (fromCluster === toCluster) {
-          connectionProb *= 1.8; // strong intra-cluster
-        } else {
-          const interP = 0.02 + 0.28 * (this.config.interProbScale ?? 0.2); // 0.02..0.30
-          connectionProb *= interP;
+        let connectionProb;
+        let weight;
+
+        const usingPreset = this.config.presetId && this.config.presetId !== 'None' && window.SNN_REGISTRY;
+        if (usingPreset) {
+          const fromArcheId = clusterTypeList[fromCluster];
+          const fromArche = window.SNN_REGISTRY.ClusterTypes[fromArcheId] || null;
+          if (fromArche && fromArche.intra && fromArche.inter) {
+            const p = same ? (fromArche.intra.prob ?? 0.2) : (fromArche.inter.prob ?? 0.05);
+            // Base slider is a global multiplier, interProbScale further reduces cross-cluster
+            connectionProb = this.config.connectionProb * (same ? p : p * ((this.config.interProbScale ?? 0.2) || 0.2));
+
+            const key = fromNeuron.type === 'E' ? 'E' : 'I';
+            const range = same ? (fromArche.intra.weight?.[key]) : (fromArche.inter.weight?.[key]);
+            const minW = Array.isArray(range) ? range[0] : 0.2;
+            const maxW = Array.isArray(range) ? range[1] : 0.6;
+            const baseW = minW + Math.random() * (maxW - minW);
+            const interScale = same ? 1 : ((this.config.interWeightScale ?? 0.3) || 0.3);
+            weight = baseW * interScale * (fromNeuron.type === 'E' ? 1 : -1);
+          }
         }
 
-        if (Math.random() < connectionProb) {
-          // Create the connection with a random weight
-          let weight;
-          const same = fromCluster === toCluster;
+        if (connectionProb === undefined) {
+          // Fallback to legacy global model
+          const baseProbability = this.config.connectionProb;
+          connectionProb = baseProbability * (same ? 1.8 : (0.02 + 0.28 * (this.config.interProbScale ?? 0.2)));
           if (fromNeuron.type === 'E') {
-            // Excitatory synapse (positive)
             const baseE = 0.45 + Math.random() * 0.55;
             const interW = 0.10 + 0.90 * (this.config.interWeightScale ?? 0.3);
             weight = same ? baseE : baseE * interW;
           } else {
-            // Inhibitory synapse (negative)
             const baseI = 0.25 + Math.random() * 0.45;
             const interWI = 0.10 + 0.90 * (this.config.interWeightScale ?? 0.3);
             weight = -(same ? baseI : baseI * interWI);
           }
+        }
+
+        if (Math.random() < connectionProb) {
+          // Create the connection
           const connection = {
             from: fromNeuron,
             to: toNeuron,
