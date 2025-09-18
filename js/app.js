@@ -1229,6 +1229,14 @@ class SNNVisualizer {
       });
     }
 
+    // Preset selection
+    if (this.dom.presetSelect) {
+      this.dom.presetSelect.addEventListener("change", (e) => {
+        const id = e.target.value;
+        this.applyPreset(id);
+      });
+    }
+
     if (this.dom.networkSizeSlider) {
       this.dom.networkSizeSlider.addEventListener("input", (e) => {
         this.config.networkSize = parseInt(e.target.value);
