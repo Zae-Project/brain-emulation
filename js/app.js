@@ -1141,7 +1141,7 @@ class SNNVisualizer {
       neuron.spikeHistory.push(now);
       if (neuron.spikeHistory.length > 100) neuron.spikeHistory.shift();
     }
-    const refr = neuron.refractoryMs ?? this.config.refractoryMs || 0;
+    const refr = (neuron.refractoryMs ?? this.config.refractoryMs) ?? 0;
     neuron.refractoryUntil = now + refr;
 
     // Propagate to connected neurons
@@ -1868,13 +1868,7 @@ class SNNVisualizer {
   }
 
   animate() {
-    // Preset selection (step 1: only adjusts counts and E/I)
-    if (this.dom.presetSelect) {
-      this.dom.presetSelect.addEventListener("change", (e) => {
-        const id = e.target.value;
-        this.applyPreset(id);
-      });
-    }
+    // Animation loop only; all event bindings belong in bindUI()
     requestAnimationFrame(() => this.animate());
 
     this.updateCameraPosition();
