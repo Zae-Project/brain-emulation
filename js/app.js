@@ -1141,11 +1141,13 @@ class SNNVisualizer {
       neuron.spikeHistory.push(now);
       if (neuron.spikeHistory.length > 100) neuron.spikeHistory.shift();
     }
-    neuron.refractoryUntil = now + (this.config.refractoryMs || 0);
+    const refr = neuron.refractoryMs ?? this.config.refractoryMs || 0;
+    neuron.refractoryUntil = now + refr;
 
     // Propagate to connected neurons
+    const gain = neuron.spikeGain ?? 1.0;
     neuron.connections.forEach((conn) => {
-      conn.to.inputAccum = (conn.to.inputAccum || 0) + conn.weight;
+      conn.to.inputAccum = (conn.to.inputAccum || 0) + conn.weight * gain;
     });
   }
 
@@ -1172,20 +1174,21 @@ class SNNVisualizer {
           return;
         }
 
-        // Leaky integration + queued input
-        const leak = this.config.leak ?? 0.985;
+        // Leaky integration + queued input (per-neuron override if present)
+        const leak = neuron.leak ?? this.config.leak ?? 0.985;
         neuron.voltage = neuron.voltage * leak + (neuron.inputAccum || 0);
         neuron.inputAccum = 0;
 
         // Background random input
         if (Math.random() < this.state.firingRate) {
-          const base = this.config.backgroundImpulse ?? 0.08;
+          const base = (neuron.bgImpulse ?? this.config.backgroundImpulse) ?? 0.08;
           const amp = base * (0.25 + 0.75 * (1 - Math.min(1, Math.max(0, this.state.firingRate))));
           neuron.voltage += amp;
         }
 
         // Threshold test after integration
-        if (neuron.voltage >= this.state.threshold) toFire.push(neuron);
+        const thr = neuron.threshold ?? this.state.threshold;
+        if (neuron.voltage >= thr) toFire.push(neuron);
       });
 
       // Second pass: fire spikes (apply to next step via inputAccum)
