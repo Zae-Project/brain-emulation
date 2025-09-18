@@ -229,6 +229,15 @@ canvas {
   margin: 8px 0;
 }
 
+/* Disabled control state when locked by preset */
+#controls input[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+#controls label.locked {
+  color: var(--text-muted);
+}
+
 #info {
   position: fixed;
   right: 16px;
