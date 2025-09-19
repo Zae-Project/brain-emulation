@@ -131,7 +131,11 @@
         <option value="11">Lesson 11: Brain Emulation Theory</option>
         <option value="12">Lesson 12: Ethics & Future</option>
       </select>
-      <label for="presetSelect" style="color: #94a3b8; font-weight: 500; margin-left:12px">Preset:</label>
+    </div>
+
+    <!-- PRESET BAR (center top) -->
+    <div id="presetBar">
+      <label for="presetSelect" style="color: #94a3b8; font-weight: 500">Preset:</label>
       <select id="presetSelect">
         <option value="None">None</option>
         <option value="Frontal_Cortex">Frontal Cortex</option>
@@ -424,6 +428,24 @@
 
     <div id="info">
       <div id="lessonContent"></div>
+    </div>
+
+    <!-- STATUS BAR (center bottom) -->
+    <div id="statusBar">
+      <span id="statusText">CAM: -- | ZOOM: -- | NEURONS: --</span>
+      <span id="navHover" class="nav-emoji" title="Keyboard & Mouse Controls">🎮</span>
+    </div>
+
+    <!-- NAV controls popover shown on hover -->
+    <div id="navControls" class="nav-pop">
+      <h5>🎮 3D Navigation</h5>
+      <div class="nav-tip"><strong>Left Click + Drag:</strong> FPS Look</div>
+      <div class="nav-tip"><strong>Right Click + Drag:</strong> Pan</div>
+      <div class="nav-tip"><strong>WASD:</strong> Fly Around</div>
+      <div class="nav-tip"><strong>Q/E:</strong> Up/Down</div>
+      <div class="nav-tip"><strong>Mouse Wheel:</strong> Fly Forward/Back</div>
+      <div class="nav-tip"><strong>Space:</strong> Reset Position</div>
+      <div style="margin-top: 8px; font-style: italic; color: #808080">Hover the 🎮 to show this panel</div>
     </div>
 
     <div id="err"></div>
