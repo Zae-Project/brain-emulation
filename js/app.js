@@ -1968,6 +1968,12 @@ class SNNVisualizer {
 
     this.updateCameraPosition();
 
+    // Update bottom status text
+    if (this.dom.statusText) {
+      const zoom = (1800 / this.camera.distance).toFixed(2);
+      this.dom.statusText.textContent = `CAM: ${Math.round(this.camera.distance)} | ZOOM: ${zoom}x | NEURONS: ${this.neurons.length}`;
+    }
+
     if (this.state.isRunning) {
       this.updateNetwork();
     }
