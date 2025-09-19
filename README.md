@@ -50,6 +50,8 @@ An open, educational, and research-focused project for learning spiking neural n
 
 ## Project Mission
 
+https://github.com/user-attachments/assets/6de78696-e13a-4489-b89f-9522f9215f70
+
 Based on current research in whole brain emulation (WBE), this project aims to:
 
 1. **Educate**: Build public understanding of neural computation and brain emulation
