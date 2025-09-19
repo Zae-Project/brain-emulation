@@ -1454,7 +1454,34 @@ class SNNVisualizer {
       if (this.dom.excRatioValueLabel) this.dom.excRatioValueLabel.textContent = ei.toFixed(2);
     }
     this.config.presetId = presetId;
+    // Step 4: update lock UI + summary
+    if (typeof this.updatePresetLockUI === 'function') this.updatePresetLockUI();
+    if (typeof this.renderPresetSummary === 'function') this.renderPresetSummary(presetId);
     this.createNetwork();
+  }
+
+  // Step 4: Disable/enable controls that are governed by a preset
+  updatePresetLockUI() {
+    const locked = !!(this.config.presetId && this.config.presetId !== 'None');
+    const setDisabled = (el) => { if (el) el.disabled = locked; };
+    setDisabled(this.dom.clusterCountSlider);
+    setDisabled(this.dom.clusterSizeSlider);
+    setDisabled(this.dom.excRatioSlider);
+  }
+
+  // Step 4: Show a compact summary of the active preset
+  renderPresetSummary(presetId) {
+    if (!this.dom.presetSummary) return;
+    if (!presetId || presetId === 'None' || !window.SNN_REGISTRY) { this.dom.presetSummary.textContent = ''; return; }
+    const preset = window.SNN_REGISTRY.RegionPresets[presetId];
+    if (!preset) { this.dom.presetSummary.textContent = ''; return; }
+    const parts = [];
+    (preset.clusters || []).forEach((c) => {
+      const label = window.SNN_REGISTRY.ClusterTypes[c.typeId]?.label || c.typeId;
+      parts.push(`${c.count || 1}×${label}`);
+    });
+    const ei = window.SNN_REGISTRY.estimateEI(preset);
+    this.dom.presetSummary.textContent = `${parts.join('  ·  ')}  |  E frac ≈ ${ei.toFixed(2)}`;
   }
 
   initLessons() {
