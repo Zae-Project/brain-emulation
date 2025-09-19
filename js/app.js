@@ -656,6 +656,12 @@ class SNNVisualizer {
       this.camera.distance
     )} | ZOOM: ${zoom}x | NEURONS: ${this.neurons.length}`;
     this.ctx.fillText(debugText, this.dom.canvas.width / 2, 30);
+    // Step 5 HUD: preset snapshot
+    const presetId = this.config.presetId || "None";
+    const clusterInfo = `${this.config.clusterCount}×${this.config.clusterSize}`;
+    const efrac = (this.config.excRatio ?? 0).toFixed(2);
+    const hud2 = `PRESET: ${presetId} | ${clusterInfo} | E frac ${efrac}`;
+    this.ctx.fillText(hud2, this.dom.canvas.width / 2, 46);
     this.ctx.textAlign = "left"; // Reset alignment
   }
 
@@ -766,6 +772,20 @@ class SNNVisualizer {
         this.ctx.fillStyle = `rgba(${grey}, ${grey}, ${grey}, ${0.5 * f})`;
       }
       this.ctx.fillRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
+      // Step 5: subtle inhibitory cue (small cyan dot at top-left)
+      if (neuron.type === 'I') {
+        const dotR = Math.max(1.2, squareSize * 0.06);
+        this.ctx.fillStyle = `rgba(120, 180, 255, ${0.7 * depthFade})`;
+        this.ctx.beginPath();
+        this.ctx.arc(
+          projected.x - squareSize / 2 + dotR + 1,
+          projected.y - squareSize / 2 + dotR + 1,
+          dotR,
+          0,
+          Math.PI * 2
+        );
+        this.ctx.fill();
+      }
 
       const f2 = fogFactor(projected.depth);
       this.ctx.strokeStyle = isActive
