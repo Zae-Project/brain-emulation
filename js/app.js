@@ -248,6 +248,7 @@ class SNNVisualizer {
       speedSlider: document.getElementById("speed"),
       presetSelect: document.getElementById("presetSelect"),
       presetSummary: document.getElementById("presetSummary"),
+      neuronMeta: document.getElementById("neuronMeta"),
       networkSizeSlider: document.getElementById("networkSize"),
       sizeValueLabel: document.getElementById("sizeValue"),
       clusterCountSlider: document.getElementById("clusterCount"),
@@ -416,6 +417,16 @@ class SNNVisualizer {
         const last = this.state.selectedNeuron.lastFire || 0;
         const ago = last ? `${((Date.now() - last) / 1000).toFixed(1)}s ago` : "no spike yet";
         this.dom.voltageValue.textContent = `${v.toFixed(3)} (${ago})`;
+      }
+
+      // Update right panel neuron metadata
+      if (this.dom.neuronMeta) {
+        const n = this.state.selectedNeuron;
+        const typeStr = n.type === 'I' ? 'Inhibitory' : 'Excitatory';
+        const preset = this.config.presetId || 'None';
+        const clusterInfo = typeof n.clusterId === 'number' ? `#${n.clusterId}` : '—';
+        const arche = n.archetypeLabel || n.archetypeId || '—';
+        this.dom.neuronMeta.textContent = `Type: ${typeStr}  |  Cluster: ${clusterInfo} (${arche})  |  Preset: ${preset}`;
       }
     }
   }
@@ -1060,6 +1071,9 @@ class SNNVisualizer {
         refractoryMs: nType?.refractoryMs,
         bgImpulse: nType?.bgImpulse,
         spikeGain: nType?.spikeGain,
+        clusterId,
+        archetypeId: clusterTypeList[clusterId] || null,
+        archetypeLabel: (clusterTypeList[clusterId] && window.SNN_REGISTRY && window.SNN_REGISTRY.ClusterTypes[clusterTypeList[clusterId]]?.label) || null,
       });
     }
 
