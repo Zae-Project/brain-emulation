@@ -658,15 +658,7 @@ class SNNVisualizer {
       this.ctx.stroke();
     });
 
-    // Debug info - top center and always visible
-    this.ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-    this.ctx.font = "12px Inter, monospace";
-    this.ctx.textAlign = "center";
-    const zoom = (1800 / this.camera.distance).toFixed(2);
-    const debugText = `CAM DIST: ${Math.round(
-      this.camera.distance
-    )} | ZOOM: ${zoom}x | NEURONS: ${this.neurons.length}`;
-    this.ctx.fillText(debugText, this.dom.canvas.width / 2, 30);
+    // (removed old canvas debug overlay; bottom status bar shows this info)
     // Step 5 HUD: preset snapshot
     const presetId = this.config.presetId || "None";
     const clusterInfo = `${this.config.clusterCount}×${this.config.clusterSize}`;
