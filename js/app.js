@@ -241,6 +241,38 @@ class SNNVisualizer {
     const navControls = document.getElementById("navControls");
     if (navControls) {
       navControls.style.zIndex = "10";
+      const statusBar = document.getElementById("statusBar");
+      if (statusBar && !navControls.dataset.hoverBound) {
+        navControls.dataset.hoverBound = "true";
+        let hideTimeout = null;
+        const showPopover = () => {
+          navControls.classList.add("is-visible");
+        };
+        const clearHide = () => {
+          if (hideTimeout) {
+            clearTimeout(hideTimeout);
+            hideTimeout = null;
+          }
+        };
+        const scheduleHide = () => {
+          clearHide();
+          hideTimeout = setTimeout(() => {
+            if (!statusBar.matches(":hover") && !navControls.matches(":hover")) {
+              navControls.classList.remove("is-visible");
+            }
+          }, 160);
+        };
+
+        const handleEnter = () => {
+          clearHide();
+          showPopover();
+        };
+
+        statusBar.addEventListener("mouseenter", handleEnter);
+        statusBar.addEventListener("mouseleave", scheduleHide);
+        navControls.addEventListener("mouseenter", handleEnter);
+        navControls.addEventListener("mouseleave", scheduleHide);
+      }
     }
   }
 
