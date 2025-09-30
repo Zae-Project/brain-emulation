@@ -58,6 +58,9 @@ class SNNVisualizer {
     this.voltageHistory = [];
     this._simAccumulator = 0; // supports fractional speeds
 
+    this.lessonConfig = this.createLessonConfig();
+    this.lessonCache = new Map();
+
     // Make this instance globally accessible for lesson buttons
     window.snnVisualizer = this;
 
@@ -1510,18 +1513,8 @@ class SNNVisualizer {
     this.dom.presetSummary.textContent = `${parts.join('  ·  ')}  |  E frac ≈ ${ei.toFixed(2)}`;
   }
 
-  initLessons() {
-    if (this.dom.lessonSelect) {
-      this.dom.lessonSelect.addEventListener("change", (e) => {
-        this.updateLesson(parseInt(e.target.value));
-      });
-    }
-
-    this.updateLesson(1);
-  }
-
-  updateLesson(lessonNumber) {
-    const lessons = {
+  createLessonConfig() {
+    return {
       1: {
         title: "Lesson 1: Basic Spikes",
         content:
@@ -1595,8 +1588,21 @@ class SNNVisualizer {
         file: "lessons/lesson12.html",
       },
     };
+  }
 
-    const lesson = lessons[lessonNumber];
+  initLessons() {
+    if (this.dom.lessonSelect) {
+      this.dom.lessonSelect.addEventListener("change", (e) => {
+        this.updateLesson(parseInt(e.target.value));
+      });
+    }
+
+    this.updateLesson(1);
+  }
+
+  updateLesson(lessonNumber) {
+    const lesson = this.lessonConfig[lessonNumber];
+
     if (lesson && this.dom.lessonContent) {
       this.dom.lessonContent.innerHTML = `
       <div class="lesson">
@@ -1623,36 +1629,58 @@ class SNNVisualizer {
     }
   }
 
-  showFullLesson(lessonNumber) {
-    // Direct lesson content - no file fetching needed
-    const lessonContent = this.getFullLessonContent(lessonNumber);
 
-    if (!lessonContent) {
+  async showFullLesson(lessonNumber) {
+    const lesson = this.lessonConfig[lessonNumber];
+
+    if (!lesson) {
       console.error(`No content found for lesson ${lessonNumber}`);
       return;
     }
 
-    // Create modal
+    const lessonHtml = await this.getLessonHtml(lessonNumber);
+    if (!lessonHtml) {
+      console.error(`Unable to load lesson ${lessonNumber}`);
+      return;
+    }
+
     const modal = document.createElement("div");
     modal.className = "lesson-modal";
-    modal.style.zIndex = "1000"; // Ensure it's on top
+    modal.style.zIndex = "1000";
 
     const modalContent = document.createElement("div");
     modalContent.className = "lesson-modal-content";
 
-    // Inject the lesson content directly
-    modalContent.innerHTML = `
-      <button class="close-btn">&times;</button>
-      ${lessonContent}
-      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1e293b;">
-        <button class="btn" onclick="this.closest('.lesson-modal').remove()">CLOSE LESSON</button>
-      </div>
-    `;
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "close-btn";
+    closeBtn.innerHTML = "&times;";
+    modalContent.appendChild(closeBtn);
+
+    const iframe = document.createElement("iframe");
+    iframe.className = "lesson-frame";
+    iframe.setAttribute("title", lesson.title);
+    iframe.setAttribute("loading", "lazy");
+    iframe.style.width = "100%";
+    iframe.style.minHeight = "60vh";
+    iframe.style.border = "none";
+    iframe.style.background = "transparent";
+    iframe.srcdoc = lessonHtml;
+    modalContent.appendChild(iframe);
+
+    const footer = document.createElement("div");
+    footer.style.marginTop = "24px";
+    footer.style.paddingTop = "16px";
+    footer.style.borderTop = "1px solid #1e293b";
+
+    const footerButton = document.createElement("button");
+    footerButton.className = "btn";
+    footerButton.textContent = "CLOSE LESSON";
+    footer.appendChild(footerButton);
+    modalContent.appendChild(footer);
 
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
 
-    // Add modal styles if they're missing
     if (!document.querySelector("style#modal-styles")) {
       const style = document.createElement("style");
       style.id = "modal-styles";
@@ -1677,10 +1705,19 @@ class SNNVisualizer {
           padding: 32px;
           max-width: 800px;
           max-height: 85vh;
-          overflow-y: auto;
+          overflow: hidden;
           color: #ffffff;
           position: relative;
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+          display: flex;
+          flex-direction: column;
+        }
+        .lesson-modal-content iframe {
+          flex: 1 1 auto;
+          width: 100%;
+          min-height: 60vh;
+          border: none;
+          background: transparent;
         }
         .close-btn {
           position: absolute;
@@ -1702,25 +1739,147 @@ class SNNVisualizer {
       document.head.appendChild(style);
     }
 
-    // Close modal functionality
-    const closeBtn = modalContent.querySelector(".close-btn");
     const closeModal = () => {
       if (document.body.contains(modal)) {
         document.body.removeChild(modal);
+        document.removeEventListener("keydown", onKeyDown);
+      }
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        closeModal();
       }
     };
 
     closeBtn.addEventListener("click", closeModal);
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeModal();
+    footerButton.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) closeModal();
     });
-
-    // Close on escape key
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeModal();
-    });
+    document.addEventListener("keydown", onKeyDown);
   }
 
+  async getLessonHtml(lessonNumber) {
+    const cached = this.lessonCache.get(lessonNumber);
+    if (cached) {
+      return cached;
+    }
+
+    const lesson = this.lessonConfig[lessonNumber];
+    if (!lesson) {
+      return null;
+    }
+
+    if (lesson.file) {
+      const fileHtml = await this.fetchLessonFile(lesson);
+      if (fileHtml) {
+        this.lessonCache.set(lessonNumber, fileHtml);
+        return fileHtml;
+      }
+    }
+
+    const fallback = this.getFullLessonContent(lessonNumber);
+    if (fallback) {
+      return this.wrapLessonContent(lesson.title, fallback);
+    }
+
+    return this.wrapLessonContent(
+      lesson.title || `Lesson ${lessonNumber}`,
+      '<p style="font-size: 16px;">Lesson content is currently unavailable.</p>'
+    );
+  }
+
+  async fetchLessonFile(lesson) {
+    if (!lesson || !lesson.file) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(lesson.file, { cache: "no-store" });
+      if (!response.ok) {
+        console.warn(`Lesson file not found: ${lesson.file} (status ${response.status})`);
+        return null;
+      }
+      const htmlText = await response.text();
+      return this.normalizeLessonHtml(htmlText, lesson);
+    } catch (error) {
+      console.error(`Failed to load lesson file ${lesson.file}:`, error);
+      return null;
+    }
+  }
+
+  normalizeLessonHtml(htmlText, lesson) {
+    if (!htmlText) {
+      return null;
+    }
+
+    const trimmed = htmlText.trim();
+    const hasHtmlTag = /<html[\s>]/i.test(trimmed);
+    const baseHref = lesson && lesson.file ? new URL(lesson.file, window.location.href).href : window.location.href;
+
+    if (hasHtmlTag) {
+      if (/<head[\s>]/i.test(trimmed)) {
+        if (!/<base/i.test(trimmed)) {
+          return trimmed.replace(/<head([^>]*)>/i, `<head$1><base href="${baseHref}">`);
+        }
+        return trimmed;
+      }
+      return trimmed.replace(/<html([^>]*)>/i, `<html$1><head><base href="${baseHref}"></head>`);
+    }
+
+    return this.wrapLessonContent(lesson ? lesson.title : "Lesson", trimmed);
+  }
+
+  wrapLessonContent(title, bodyContent) {
+    const safeTitle = title || "Lesson";
+    const safeBody = bodyContent || '<p style="font-size: 16px;">Lesson content is currently unavailable.</p>';
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>${safeTitle}</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #0a0c12;
+      color: #e2e8f0;
+    }
+    h1, h2 {
+      color: #374E84;
+      border-bottom: 2px solid #374E84;
+      padding-bottom: 10px;
+    }
+    h3 {
+      color: #60a5fa;
+      margin-top: 24px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin: 8px 0;
+    }
+    strong {
+      color: #94a3b8;
+    }
+    code {
+      background: #1e293b;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #cbd5f5;
+    }
+  </style>
+</head>
+<body>
+${safeBody}
+</body>
+</html>`;
+  }
   getFullLessonContent(lessonNumber) {
     const lessons = {
       1: `
