@@ -90,28 +90,41 @@ canvas {
   background: var(--surface-2);
   color: var(--text);
   cursor: pointer;
-  padding: 10px 16px;
+  padding: 10px 18px;
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   text-transform: uppercase;
   white-space: nowrap;
+  border-radius: 10px;
 }
 
 .btn:hover {
   background: var(--surface-1);
+  border-color: var(--accent-subtle);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
 }
 
 .btn.on {
-  background: var(--accent-primary);
-  color: var(--bg);
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #3c4b78 0%, #4e6bc9 100%);
+  color: #f0f6ff;
+  border-color: #4e6bc9;
+  box-shadow: 0 10px 24px rgba(78, 107, 201, 0.4);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
+}
+
+.btn.on:hover {
+  background: linear-gradient(135deg, #4761a0 0%, #5d7ee3 100%);
+  box-shadow: 0 12px 28px rgba(93, 126, 227, 0.45);
+}
+
+.btn.on:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 18px rgba(62, 86, 170, 0.45);
 }
 
 .range {
@@ -433,21 +446,35 @@ canvas {
 /* Popover nav controls near bottom center; hidden by default */
 #navControls.nav-pop {
   position: fixed;
-  bottom: 64px;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
-  width: 280px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
   background: var(--surface-1);
   border: 1px solid var(--border);
-  padding: 12px 16px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 20px rgba(0,0,0,.4);
-  display: none;
+  border-radius: 12px;
+  padding: 16px 20px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  width: auto;
+  min-width: 240px;
+  max-width: min(340px, calc(100% - 48px));
   z-index: 20;
 }
 
-/* Show nav popover when hovering the status bar */
-#statusBar:hover + #navControls.nav-pop { display: block; }
+#navControls.nav-pop.is-visible {
+  display: flex;
+}
+
+#statusBar:hover + #navControls.nav-pop {
+  display: flex;
+}
+
+#navControls.nav-pop:hover {
+  display: flex;
+}
 
 #lessonPanel select {
   background: var(--surface-2);
@@ -493,16 +520,16 @@ canvas {
 }
 
 #navControls h5 {
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   color: var(--text);
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
 }
 
 .nav-tip {
-  margin: 6px 0;
+  margin: 4px 0;
   color: var(--text-2);
   font-size: 11px;
 }
