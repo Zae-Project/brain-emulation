@@ -476,21 +476,46 @@ canvas {
   display: flex;
 }
 
-#lessonPanel select {
+#lessonPanel select,
+#presetSelect {
   background: var(--surface-2);
   color: var(--text);
   border: 1px solid var(--border);
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
+  border-radius: 10px;
   cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #5d7ee3 50%),
+    linear-gradient(135deg, #5d7ee3 50%, transparent 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+  background-position: calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 14px) calc(50% - 2px),
+    0 0;
+  background-size: 6px 6px, 6px 6px, 100%;
+  background-repeat: no-repeat;
 }
 
-#lessonPanel select option {
+#lessonPanel select option,
+#presetSelect option {
   background: var(--surface-1);
   color: var(--text);
   padding: 8px;
+}
+
+#lessonPanel select:focus,
+#presetSelect:focus {
+  outline: none;
+  border-color: #4e6bc9;
+  box-shadow: 0 0 0 2px rgba(78, 107, 201, 0.25);
+}
+
+#lessonPanel select:hover,
+#presetSelect:hover {
+  border-color: #4e6bc9;
 }
 
 #lessonPanel label {
