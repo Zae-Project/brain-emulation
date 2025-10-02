@@ -60,6 +60,7 @@ class SNNVisualizer {
 
     this.lessonConfig = this.createLessonConfig();
     this.lessonCache = new Map();
+    this.activeTemplate = null;
 
     // Make this instance globally accessible for lesson buttons
     window.snnVisualizer = this;
@@ -696,7 +697,7 @@ class SNNVisualizer {
     // (removed old canvas debug overlay; bottom status bar shows this info)
     // Step 5 HUD: preset snapshot
     const presetId = this.config.presetId || "None";
-    const clusterInfo = `${this.config.clusterCount}×${this.config.clusterSize}`;
+    const clusterInfo = `${this.config.clusterCount}x${this.config.clusterSize}`;
     const efrac = (this.config.excRatio ?? 0).toFixed(2);
     const hud2 = `PRESET: ${presetId} | ${clusterInfo} | E frac ${efrac}`;
     this.ctx.fillText(hud2, this.dom.canvas.width / 2, 46);
@@ -1005,6 +1006,11 @@ class SNNVisualizer {
     this.voltageHistory = [];
     this.state.selectedNeuron = null;
 
+    if (this.config.presetId && this.config.presetId !== 'None' && this.activeTemplate) {
+      this.createNetworkFromTemplate(this.activeTemplate);
+      return;
+    }
+
     // Create neurons with random positions in 3D space
     // Derive network size from cluster controls (updated for presets)
     this.config.networkSize = this.config.clusterCount * this.config.clusterSize;
@@ -1200,6 +1206,191 @@ class SNNVisualizer {
     console.log(
       `Network created with ${this.neurons.length} neurons and ${this.connections.length} connections`
     );
+  }
+
+  createNetworkFromTemplate(template) {
+    const neuronTypes = window.SNN_REGISTRY?.NeuronTypes || {};
+    const clusters = Array.isArray(template?.clusters) ? template.clusters : [];
+
+    if (!clusters.length) {
+      console.warn('Template preset has no clusters', template);
+      return;
+    }
+
+    const clusterCount = clusters.length;
+    const cols = Math.ceil(Math.sqrt(clusterCount));
+    const rows = Math.ceil(clusterCount / Math.max(cols, 1));
+    const spacingX = 240;
+    const spacingY = 240;
+    const radius = 240;
+
+    const baseProbScale = this.config.connectionProb ? this.config.connectionProb / 0.3 : 0;
+    const crossProbScale = this.config.interProbScale !== undefined
+      ? this.config.interProbScale / 0.2
+      : 1;
+    const crossWeightScale = this.config.interWeightScale !== undefined
+      ? this.config.interWeightScale / 0.3
+      : 1;
+
+    const clustersMeta = [];
+    const clusterLookup = new Map();
+
+    const addConnection = (fromNeuron, toNeuron, weight) => {
+      if (!fromNeuron || !toNeuron || fromNeuron === toNeuron) return;
+      const connection = { from: fromNeuron, to: toNeuron, weight };
+      this.connections.push(connection);
+      fromNeuron.connections.push(connection);
+    };
+
+    const scaleProbability = (prob, isInter) => {
+      const base = typeof prob === 'number' ? prob : (isInter ? 0.05 : 0.2);
+      if (base <= 0) return 0;
+      if (isInter) {
+        if (!this.config.interProbScale) return 0;
+        return Math.max(0, Math.min(base * crossProbScale, 0.95));
+      }
+      if (!this.config.connectionProb) return 0;
+      return Math.max(0, Math.min(base * baseProbScale, 0.95));
+    };
+
+    const deriveWeight = (rule, isInter) => {
+      const presetDef = neuronTypes[rule.from] || {};
+      const base = typeof rule.weight === 'number' ? rule.weight : (presetDef.weight ?? 0.6);
+      const scale = isInter ? crossWeightScale : 1;
+      const magnitude = base * scale * (0.9 + Math.random() * 0.2);
+      return rule.type === 'inhibitory' ? -Math.abs(magnitude) : Math.abs(magnitude);
+    };
+
+    clusters.forEach((clusterCfg, idx) => {
+      const clusterMeta = {
+        id: clusterCfg.id || `cluster_${idx}`,
+        label: clusterCfg.name || `Cluster ${idx + 1}`,
+        index: idx,
+        neurons: [],
+        groups: {},
+      };
+      clustersMeta.push(clusterMeta);
+      clusterLookup.set(clusterMeta.id, clusterMeta);
+
+      const row = Math.floor(idx / Math.max(cols, 1));
+      const col = idx % Math.max(cols, 1);
+      const clusterOffset = {
+        x: (col - (cols - 1) / 2) * spacingX,
+        y: (row - (rows - 1) / 2) * spacingY,
+        z: 0,
+      };
+
+      (clusterCfg.neuronGroups || []).forEach((group) => {
+        const presetId = group.preset;
+        const count = Math.max(0, group.count | 0);
+        const typeDef = neuronTypes[presetId] || {};
+        for (let n = 0; n < count; n++) {
+          const r = radius * (0.4 + Math.random() * 0.6);
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.random() * Math.PI - Math.PI / 2;
+          const position = {
+            x: clusterOffset.x + r * Math.cos(theta) * Math.cos(phi) * 0.5,
+            y: clusterOffset.y + r * Math.sin(phi) * 0.5,
+            z: r * Math.sin(theta) * Math.cos(phi) * 0.5,
+          };
+
+          const neuron = {
+            id: this.neurons.length,
+            position,
+            voltage: Math.random() * 0.2,
+            pulse: 0,
+            colors: this.CLUSTER_COLORS[idx % this.CLUSTER_COLORS.length],
+            connections: [],
+            lastFire: 0,
+            spikeHistory: [],
+            inputAccum: 0,
+            refractoryUntil: 0,
+            type: typeDef.type === 'inhibitory' ? 'I' : 'E',
+            threshold: typeDef.threshold,
+            leak: typeDef.leak,
+            refractoryMs: typeDef.refractoryMs,
+            bgImpulse: typeDef.bgImpulse,
+            spikeGain: typeDef.spikeGain,
+            groupPreset: presetId,
+            clusterId: clusterMeta.id,
+            clusterLabel: clusterMeta.label,
+            clusterIndex: idx,
+          };
+
+          this.neurons.push(neuron);
+          clusterMeta.neurons.push(neuron);
+          if (!clusterMeta.groups[presetId]) clusterMeta.groups[presetId] = [];
+          clusterMeta.groups[presetId].push(neuron);
+        }
+      });
+    });
+
+    // Internal cluster wiring
+    clusters.forEach((clusterCfg, idx) => {
+      const clusterMeta = clustersMeta[idx];
+      (clusterCfg.internalConnectivity || []).forEach((rule) => {
+        const sources = clusterMeta.groups[rule.from] || [];
+        const targets = clusterMeta.groups[rule.to] || [];
+        const probability = scaleProbability(rule.probability, false);
+        if (!sources.length || !targets.length || probability <= 0) return;
+        sources.forEach((src) => {
+          targets.forEach((tgt) => {
+            if (src === tgt) return;
+            if (Math.random() <= probability) {
+              const weight = deriveWeight(rule, false);
+              addConnection(src, tgt, weight);
+            }
+          });
+        });
+      });
+    });
+
+    // Inter-cluster wiring
+    (template.connections || []).forEach((edge) => {
+      const fromMeta = clusterLookup.get(edge.fromCluster);
+      const toMeta = clusterLookup.get(edge.toCluster);
+      if (!fromMeta || !toMeta) return;
+      (edge.connectivity || []).forEach((rule) => {
+        const sources = fromMeta.groups[rule.from] || [];
+        const targets = toMeta.groups[rule.to] || [];
+        const probability = scaleProbability(rule.probability, true);
+        if (!sources.length || !targets.length || probability <= 0) return;
+        sources.forEach((src) => {
+          targets.forEach((tgt) => {
+            if (Math.random() <= probability) {
+              const weight = deriveWeight(rule, true);
+              addConnection(src, tgt, weight);
+            }
+          });
+        });
+      });
+    });
+
+    // Store summary stats
+    this.config.networkSize = this.neurons.length;
+    this.config.clusterCount = clusterCount;
+    const derivedClusterSizes = clustersMeta.map((meta) => meta.neurons.length);
+    if (derivedClusterSizes.length) {
+      const avg = Math.round(derivedClusterSizes.reduce((a, b) => a + b, 0) / derivedClusterSizes.length);
+      this.config.clusterSize = avg;
+    }
+
+
+    // Seed a couple of neurons per cluster so the network is immediately active
+    clustersMeta.forEach((meta) => {
+      const pool = meta.neurons;
+      if (!pool.length) return;
+      const seeds = Math.min(2, pool.length);
+      for (let i = 0; i < seeds; i++) {
+        const neuron = pool[Math.floor(Math.random() * pool.length)];
+        this.fireNeuron(neuron);
+      }
+    });
+
+    this.clearTrace();
+    if (this.dom.voltageValue) this.dom.voltageValue.textContent = '--';
+
+    console.log(`Template network built: ${template.regionName || this.config.presetId} (${this.neurons.length} neurons, ${this.connections.length} connections)`);
   }
 
   fireNeuron(neuron) {
@@ -1489,19 +1680,26 @@ class SNNVisualizer {
   applyPreset(presetId) {
     if (!window.SNN_REGISTRY) return;
     const preset = window.SNN_REGISTRY.RegionPresets[presetId];
+
     if (!preset || presetId === 'None') {
-      // Keep current sliders; only rebuild
       this.config.presetId = 'None';
+      this.activeTemplate = null;
+      if (typeof this.updatePresetLockUI === 'function') this.updatePresetLockUI();
+      if (typeof this.renderPresetSummary === 'function') this.renderPresetSummary(presetId);
       this.createNetwork();
       return;
     }
 
+    this.config.presetId = presetId;
+    this.activeTemplate = window.SNN_REGISTRY.getTemplateForPreset(preset);
+
     const counts = window.SNN_REGISTRY.deriveCounts(preset);
     const ei = window.SNN_REGISTRY.estimateEI(preset);
+
     if (counts) {
       this.config.clusterCount = counts.clusters;
       this.config.clusterSize = counts.clusterSize;
-      this.config.networkSize = this.config.clusterCount * this.config.clusterSize;
+      this.config.networkSize = counts.totalNeurons ?? (counts.clusters * counts.clusterSize);
       if (this.dom.clustersValueLabel) this.dom.clustersValueLabel.textContent = this.config.clusterCount;
       if (this.dom.clusterCountSlider) this.dom.clusterCountSlider.value = String(this.config.clusterCount);
       if (this.dom.clusterSizeValueLabel) this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
@@ -1509,17 +1707,18 @@ class SNNVisualizer {
       if (this.dom.sizeValueLabel) this.dom.sizeValueLabel.textContent = this.config.networkSize;
       if (this.dom.networkSizeSlider) this.dom.networkSizeSlider.value = String(this.config.networkSize);
     }
+
     if (typeof ei === 'number' && !Number.isNaN(ei)) {
       this.config.excRatio = ei;
       if (this.dom.excRatioSlider) this.dom.excRatioSlider.value = ei.toFixed(2);
       if (this.dom.excRatioValueLabel) this.dom.excRatioValueLabel.textContent = ei.toFixed(2);
     }
-    this.config.presetId = presetId;
-    // Step 4: update lock UI + summary
+
     if (typeof this.updatePresetLockUI === 'function') this.updatePresetLockUI();
     if (typeof this.renderPresetSummary === 'function') this.renderPresetSummary(presetId);
     this.createNetwork();
   }
+
 
   // Step 4: Disable/enable controls that are governed by a preset
   updatePresetLockUI() {
@@ -1533,16 +1732,36 @@ class SNNVisualizer {
   // Step 4: Show a compact summary of the active preset
   renderPresetSummary(presetId) {
     if (!this.dom.presetSummary) return;
-    if (!presetId || presetId === 'None' || !window.SNN_REGISTRY) { this.dom.presetSummary.textContent = ''; return; }
+    if (!presetId || presetId === 'None' || !window.SNN_REGISTRY) {
+      this.dom.presetSummary.textContent = '';
+      return;
+    }
+
     const preset = window.SNN_REGISTRY.RegionPresets[presetId];
-    if (!preset) { this.dom.presetSummary.textContent = ''; return; }
+    if (!preset) {
+      this.dom.presetSummary.textContent = '';
+      return;
+    }
+
+    const template = window.SNN_REGISTRY.getTemplateForPreset(preset);
+    if (template && Array.isArray(template.clusters) && template.clusters.length) {
+      const segments = template.clusters.map((cluster) => {
+        const groups = (cluster.neuronGroups || []).map((group) => `${group.count}x${group.preset}`);
+        return `${cluster.name || cluster.id}: ${groups.join(', ')}`;
+      });
+      const ei = window.SNN_REGISTRY.estimateEI(preset);
+      const ratioText = Number.isFinite(ei) ? `  |  E frac ≈ ${ei.toFixed(2)}` : '';
+      this.dom.presetSummary.textContent = `${segments.join('  |  ')}${ratioText}`;
+      return;
+    }
+
     const parts = [];
     (preset.clusters || []).forEach((c) => {
       const label = window.SNN_REGISTRY.ClusterTypes[c.typeId]?.label || c.typeId;
-      parts.push(`${c.count || 1}×${label}`);
+      parts.push(`${c.count || 1}x${label}`);
     });
     const ei = window.SNN_REGISTRY.estimateEI(preset);
-    this.dom.presetSummary.textContent = `${parts.join('  ·  ')}  |  E frac ≈ ${ei.toFixed(2)}`;
+    this.dom.presetSummary.textContent = `${parts.join('  |  ')}  |  E frac ≈ ${ei.toFixed(2)}`;
   }
 
   createLessonConfig() {
