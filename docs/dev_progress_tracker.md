@@ -3,6 +3,7 @@
 ## Session Summary (latest)
 - Styled the preset selector to match the dark HUD palette and hover accents.
 - Added hippocampus to the preset list and introduced template-driven network construction (PFC, Hippocampus, Thalamus) via `js/templates/registry.js` and `js/app.js`.
+- Introduced `js/templates/schema.js` to centralise biologically grounded neuron presets and region templates, and wired `registry.js` to consume it (with anatomical metadata).
 - `applyPreset` now locks sliders, loads the appropriate template, and the network builder instantiates neurons/edges directly from template connectivity rules.
 
 ## Technical Notes
