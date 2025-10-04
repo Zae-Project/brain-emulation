@@ -1,8 +1,10 @@
 // SNN registry: neuron types, reusable cluster archetypes, and region templates
-// Updated to support template-driven brain regions (prefrontal, hippocampus, thalamus).
+// Pulls from SNN_TEMPLATE_SCHEMA when available so presets stay aligned with biological data.
 
 (function () {
-  const NeuronTypes = {
+  const schema = window.SNN_TEMPLATE_SCHEMA || {};
+
+  const defaultNeuronTypes = {
     pyramidal: {
       type: 'excitatory',
       threshold: 1.0,
@@ -10,15 +12,6 @@
       refractoryMs: 80,
       bgImpulse: 0.06,
       spikeGain: 1.0,
-      restingPotential: -70,
-      spikeThreshold: -55,
-      resetPotential: -65,
-      membraneTimeConstant: 20,
-      synapseType: 'AMPA',
-      EPSP_rise: 1.5,
-      EPSP_decay: 15,
-      synapticDelay: 1.0,
-      weight: 1.0,
     },
     basket: {
       type: 'inhibitory',
@@ -27,15 +20,6 @@
       refractoryMs: 60,
       bgImpulse: 0.04,
       spikeGain: 1.0,
-      restingPotential: -70,
-      spikeThreshold: -50,
-      resetPotential: -70,
-      membraneTimeConstant: 10,
-      synapseType: 'GABA_A',
-      IPSP_rise: 1.0,
-      IPSP_decay: 8,
-      synapticDelay: 0.5,
-      weight: 1.1,
     },
     chandelier: {
       type: 'inhibitory',
@@ -44,15 +28,6 @@
       refractoryMs: 55,
       bgImpulse: 0.04,
       spikeGain: 1.1,
-      restingPotential: -70,
-      spikeThreshold: -50,
-      resetPotential: -70,
-      membraneTimeConstant: 10,
-      synapseType: 'GABA_A',
-      IPSP_rise: 1.0,
-      IPSP_decay: 8,
-      synapticDelay: 0.5,
-      weight: 1.2,
     },
     relay: {
       type: 'excitatory',
@@ -61,15 +36,6 @@
       refractoryMs: 90,
       bgImpulse: 0.05,
       spikeGain: 1.2,
-      restingPotential: -70,
-      spikeThreshold: -55,
-      resetPotential: -65,
-      membraneTimeConstant: 22,
-      synapseType: 'AMPA',
-      EPSP_rise: 2.0,
-      EPSP_decay: 20,
-      synapticDelay: 1.2,
-      weight: 1.1,
     },
     inhibitory: {
       type: 'inhibitory',
@@ -78,19 +44,13 @@
       refractoryMs: 55,
       bgImpulse: 0.04,
       spikeGain: 1.0,
-      restingPotential: -70,
-      spikeThreshold: -52,
-      resetPotential: -70,
-      membraneTimeConstant: 10,
-      synapseType: 'GABA_A',
-      IPSP_rise: 1.0,
-      IPSP_decay: 8,
-      synapticDelay: 0.5,
-      weight: 1.0,
     },
   };
 
-  // Legacy archetypes are retained for presets that still rely on probabilistic mixes.
+  const NeuronTypes = schema.NeuronTypePresets
+    ? Object.fromEntries(Object.entries(schema.NeuronTypePresets).map(([key, def]) => [key, { ...def }]))
+    : defaultNeuronTypes;
+
   const ClusterTypes = {
     Cortex_L2_3: {
       label: 'Cortex L2/3',
@@ -124,8 +84,7 @@
     },
   };
 
-  // Region templates capture explicit cluster compositions and connectivity.
-  const TemplatePFC = {
+  const TemplatePFC = schema.RegionTemplates?.Frontal_Cortex || {
     regionName: 'Prefrontal Cortex',
     clusters: [
       {
@@ -149,7 +108,7 @@
     connections: [],
   };
 
-  const TemplateHippocampus = {
+  const TemplateHippocampus = schema.RegionTemplates?.Hippocampus || {
     regionName: 'Hippocampus',
     clusters: [
       {
@@ -193,7 +152,7 @@
     ],
   };
 
-  const TemplateThalamus = {
+  const TemplateThalamus = schema.RegionTemplates?.Thalamocortical_Loop || {
     regionName: 'Thalamus',
     clusters: [
       {
@@ -220,12 +179,22 @@
     Thalamocortical_Loop: TemplateThalamus,
   };
 
+  const RegionMetadata = {
+    Frontal_Cortex: schema.RegionTemplates?.Frontal_Cortex?.metadata || null,
+    Hippocampus: schema.RegionTemplates?.Hippocampus?.metadata || null,
+    Thalamocortical_Loop: schema.RegionTemplates?.Thalamocortical_Loop?.metadata || null,
+    Amygdala: {
+      anatomicalNotes: ['Central nucleus emphasising inhibitory gating of outputs.'],
+      references: ['LeDoux (2000) Emotion circuits in the brain.'],
+    },
+  };
+
   const RegionPresets = {
     None: { label: 'None', clusters: [] },
-    Frontal_Cortex: { label: 'Frontal Cortex', templateKey: 'Frontal_Cortex', template: TemplatePFC },
-    Hippocampus: { label: 'Hippocampus', templateKey: 'Hippocampus', template: TemplateHippocampus },
-    Amygdala: { label: 'Amygdala', clusters: [{ typeId: 'Amygdala_CeA', count: 4 }] },
-    Thalamocortical_Loop: { label: 'Thalamocortical Loop', templateKey: 'Thalamocortical_Loop', template: TemplateThalamus },
+    Frontal_Cortex: { label: 'Frontal Cortex', templateKey: 'Frontal_Cortex', template: TemplatePFC, metadata: RegionMetadata.Frontal_Cortex },
+    Hippocampus: { label: 'Hippocampus', templateKey: 'Hippocampus', template: TemplateHippocampus, metadata: RegionMetadata.Hippocampus },
+    Amygdala: { label: 'Amygdala', clusters: [{ typeId: 'Amygdala_CeA', count: 4 }], metadata: RegionMetadata.Amygdala },
+    Thalamocortical_Loop: { label: 'Thalamocortical Loop', templateKey: 'Thalamocortical_Loop', template: TemplateThalamus, metadata: RegionMetadata.Thalamocortical_Loop },
   };
 
   function resolvePreset(presetOrId) {
@@ -302,6 +271,7 @@
     ClusterTypes,
     RegionTemplates,
     RegionPresets,
+    RegionMetadata,
     getTemplateForPreset,
     estimateEI,
     deriveCounts,
