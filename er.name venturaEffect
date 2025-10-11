@@ -1,0 +1,10 @@
+ddc1488 venturaEffect <zaethan@pm.me> Sat Oct 4 17:39:23 2025 +0200 feat: centralize neuron presets and region templates; enhance schema definitions for biological accuracy
+89a522f venturaEffect <zaesarius@zaesarius.com> Sat Oct 4 17:25:52 2025 +0200 feat: add schema definitions for SNN templates including neuron types, presets, and region templates
+03c382f venturaEffect <zaesarius@zaesarius.com> Thu Oct 2 19:50:32 2025 +0200 feat: add hippocampus preset and implement template-driven network construction; enhance UI for preset selection
+6dfc767 venturaEffect <zaesarius@zaesarius.com> Wed Oct 1 01:48:36 2025 +0200 feat: enhance navigation controls visibility and styling; improve button aesthetics
+40c94e4 venturaEffect <zaesarius@zaesarius.com> Tue Sep 30 18:06:51 2025 +0200 feat: implement lesson configuration and caching for improved lesson loading
+70263c9 venturaEffect <zaesarius@zaesarius.com> Sat Sep 27 21:03:24 2025 +0200 fix: remove extraneous period in project context section of development guide
+e88cf76 venturaEffect <zaesarius@zaesarius.com> Sat Sep 27 21:03:10 2025 +0200 fix: correct typo in project context section of development guide
+c2c2fbc venturaEffect <zaesarius@zaesarius.com> Sun Sep 21 16:25:12 2025 +0200 feat: remove old canvas debug overlay; status bar now displays relevant info
+ee34e7a venturaEffect <zaesarius@zaesarius.com> Fri Sep 19 22:35:22 2025 +0200 feat: add preset and status bars with navigation controls to enhance UI
+c3d191d venturaEffect <zaesarius@zaesarius.com> Fri Sep 19 20:24:27 2025 +0200 feat: add neuron metadata display in the right panel
