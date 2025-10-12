@@ -1,6 +1,6 @@
 # brain_emulation
 
-An open, educational, and research-focused project for learning spiking neural networks (SNNs) through interactive lessons and visualization—progressing toward abstract brain emulation concepts and long-term exploration of digital brain emulation.
+An open, educational, and research-focused project for learning spiking neural networks (SNNs) through interactive lessons and visualization. Progressing toward abstract brain emulation concepts and long-term exploration of digital brain emulation.
 
 - **Audience**: researchers, neuroengineers, cognitive scientists, students, and hobbyists
 - **Focus**: educational clarity, scientific plausibility, robustness, and open collaboration
