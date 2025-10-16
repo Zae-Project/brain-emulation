@@ -5,7 +5,7 @@ An open, educational, and research-focused project for learning spiking neural n
 - **Audience**: researchers, neuroengineers, cognitive scientists, students, and hobbyists.
 - **Focus**: educational clarity, scientific plausibility, robustness, and open collaboration.
 - **Vision**: a progressive 12-lesson system from beginner to advanced brain emulation concepts.
-- **Tech stack**: Python (Brian2) + JavaScript (Three.js) with WebSockets
+- **Tech stack**: Python (Brian2) + JavaScript (Three.js) with WebSockets.
 
 ## Educational Journey
 
