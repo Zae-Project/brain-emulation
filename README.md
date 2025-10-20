@@ -12,7 +12,7 @@ An open, educational, and research-focused project for learning spiking neural n
 ### Phase 1: Neural Fundamentals (Lessons 1-4)
 
 - Basic spike dynamics and neural computation.
-- Synaptic transmission and network connectivity
+- Synaptic transmission and network connectivity.
 - Plasticity mechanisms and learning
 - Temporal pattern recognition
 
