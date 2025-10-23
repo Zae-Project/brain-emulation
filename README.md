@@ -14,7 +14,7 @@ An open, educational, and research-focused project for learning spiking neural n
 - Basic spike dynamics and neural computation.
 - Synaptic transmission and network connectivity.
 - Plasticity mechanisms and learning.
-- Temporal pattern recognition
+- Temporal pattern recognition.
 
 ### Phase 2: Complex Networks (Lessons 5-8)
 
