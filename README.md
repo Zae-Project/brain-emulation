@@ -18,7 +18,7 @@ An open, educational, and research-focused project for learning spiking neural n
 
 ### Phase 2: Complex Networks (Lessons 5-8)
 
-- Network topology and clustering principles
+- Network topology and clustering principles.
 - Inhibition and competitive dynamics
 - Multi-layer hierarchical processing
 - Memory systems and information storage
