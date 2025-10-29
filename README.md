@@ -20,7 +20,7 @@ An open, educational, and research-focused project for learning spiking neural n
 
 - Network topology and clustering principles.
 - Inhibition and competitive dynamics.
-- Multi-layer hierarchical processing
+- Multi-layer hierarchical processing.
 - Memory systems and information storage
 
 ### Phase 3: Brain-Scale Networks (Lessons 9-10)
