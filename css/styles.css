@@ -1,20 +1,20 @@
 :root {
   /* Sophisticated Minimalist Dark Palette */
-  --bg: #000000; /* Pure black background */
-  --surface-1: #0b0705; /* Subtle warm surface */
-  --surface-2: #16100c; /* Slightly lighter surface */
-  --surface-3: #20160f; /* Card backgrounds */
-  --border: #3a2717; /* Minimal borders */
+  --bg: #020201; /* Night black */
+  --surface-1: #1c130b; /* Dark chocolate surface */
+  --surface-2: #271b10; /* Rich walnut surface */
+  --surface-3: #342416; /* Ember card background */
+  --border: #4b311d; /* Burnt umber border */
 
-  --text: #ffffff; /* Pure white text */
-  --text-2: #e1c9aa; /* Secondary text */
-  --text-muted: #b89371; /* Muted text */
-  --text-accent: #f0c27b; /* Accent text */
+  --text: #f4eadc; /* Warm parchment text */
+  --text-2: #e0c4a3; /* Secondary text */
+  --text-muted: #b8926a; /* Muted text */
+  --text-accent: #f6c274; /* Accent text */
 
-  --accent-primary: #d9a05b; /* Warm accent highlights */
-  --accent-subtle: #8a5c36; /* Subtle accents */
-  --accent-glow: #f6b261; /* Glow effects */
-  --accent-danger: #d96a4a; /* Minimal red for errors */
+  --accent-primary: #d89b5a; /* Warm accent highlights */
+  --accent-subtle: #8f6339; /* Subtle accents */
+  --accent-glow: #ffcf80; /* Glow effects */
+  --accent-danger: #d5744a; /* Minimal red for errors */
 
   /* Typography */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -61,13 +61,13 @@ canvas {
   inset: 0;
   background: radial-gradient(
       1400px 900px at 30% 0%,
-      rgba(231, 170, 90, 0.04),
-      transparent 70%
+      rgba(243, 188, 110, 0.16),
+      transparent 68%
     ),
     radial-gradient(
       1000px 600px at 80% 100%,
-      rgba(186, 128, 64, 0.03),
-      transparent 60%
+      rgba(186, 118, 60, 0.12),
+      transparent 58%
     );
 }
 
@@ -110,21 +110,21 @@ canvas {
 }
 
 .btn.on {
-  background: linear-gradient(135deg, #634123 0%, #ba8643 100%);
-  color: #ffe8c7;
-  border-color: #ba8643;
-  box-shadow: 0 10px 24px rgba(186, 134, 67, 0.4);
+  background: linear-gradient(135deg, #7a4a20 0%, #f0b15d 100%);
+  color: #fff0dc;
+  border-color: #f0b15d;
+  box-shadow: 0 10px 24px rgba(240, 177, 93, 0.45);
   text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
 }
 
 .btn.on:hover {
-  background: linear-gradient(135deg, #6f4b2a 0%, #d09b55 100%);
-  box-shadow: 0 12px 28px rgba(208, 155, 85, 0.45);
+  background: linear-gradient(135deg, #875328 0%, #fecb82 100%);
+  box-shadow: 0 12px 28px rgba(254, 203, 130, 0.5);
 }
 
 .btn.on:active {
   transform: translateY(0);
-  box-shadow: 0 6px 18px rgba(126, 86, 45, 0.45);
+  box-shadow: 0 6px 18px rgba(126, 86, 45, 0.5);
 }
 
 .range {
@@ -489,8 +489,8 @@ canvas {
   cursor: pointer;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, #d09b55 50%),
-    linear-gradient(135deg, #d09b55 50%, transparent 50%),
+  background-image: linear-gradient(45deg, transparent 50%, #f0b15d 50%),
+    linear-gradient(135deg, #f0b15d 50%, transparent 50%),
     linear-gradient(to right, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
   background-position: calc(100% - 18px) calc(50% - 2px),
     calc(100% - 14px) calc(50% - 2px),
@@ -509,13 +509,13 @@ canvas {
 #lessonPanel select:focus,
 #presetSelect:focus {
   outline: none;
-  border-color: #d09b55;
-  box-shadow: 0 0 0 2px rgba(208, 155, 85, 0.25);
+  border-color: #f0b15d;
+  box-shadow: 0 0 0 2px rgba(240, 177, 93, 0.25);
 }
 
 #lessonPanel select:hover,
 #presetSelect:hover {
-  border-color: #d09b55;
+  border-color: #f0b15d;
 }
 
 #lessonPanel label {
