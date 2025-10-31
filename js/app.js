@@ -32,24 +32,24 @@ class SNNVisualizer {
 
     this.CLUSTER_COLORS = [
       {
-        primary: { r: 0.678, g: 0.427, b: 0.231 }, // Dune bronze
-        glow: { r: 0.949, g: 0.733, b: 0.486 },
-        name: "Dune Bronze",
+        primary: { r: 0.800, g: 0.467, b: 0.133 }, // Ochre blaze (#CC7722)
+        glow: { r: 0.965, g: 0.804, b: 0.522 }, // sunlit ochre
+        name: "Ochre Blaze",
       },
       {
-        primary: { r: 0.847, g: 0.69, b: 0.486 }, // Desert sandstone
-        glow: { r: 0.976, g: 0.855, b: 0.635 },
-        name: "Desert Sandstone",
+        primary: { r: 0.757, g: 0.604, b: 0.420 }, // Camel dune (#C19A6B)
+        glow: { r: 0.910, g: 0.796, b: 0.620 }, // lifted camel
+        name: "Camel Dune",
       },
       {
-        primary: { r: 0.549, g: 0.353, b: 0.196 }, // Walnut ember
-        glow: { r: 0.78, g: 0.525, b: 0.314 },
-        name: "Walnut Ember",
+        primary: { r: 0.651, g: 0.482, b: 0.357 }, // Tan mesa (#A67B5B)
+        glow: { r: 0.839, g: 0.667, b: 0.494 }, // warm mesa
+        name: "Mesa Ember",
       },
       {
-        primary: { r: 0.945, g: 0.764, b: 0.427 }, // Ochre flare
-        glow: { r: 1.0, g: 0.866, b: 0.569 },
-        name: "Ochre Flare",
+        primary: { r: 0.902, g: 0.843, b: 0.725 }, // Desert veil (#E6D7B9)
+        glow: { r: 0.992, g: 0.929, b: 0.812 }, // pale highlight
+        name: "Desert Veil",
       },
     ];
 
