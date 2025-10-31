@@ -1,31 +1,31 @@
 # brain_emulation
 
-An open, educational, and research-focused project for learning spiking neural networks (SNNs) through interactive lessons and visualization—progressing toward abstract brain emulation concepts and long-term exploration of digital brain emulation.
+An open, educational, and research-focused project for learning spiking neural networks (SNNs) through interactive lessons and visualization. Progressing toward abstract brain emulation concepts and long-term exploration of digital brain emulation.
 
-- **Audience**: researchers, neuroengineers, cognitive scientists, students, and hobbyists
-- **Focus**: educational clarity, scientific plausibility, robustness, and open collaboration
-- **Vision**: a progressive 12-lesson system from beginner to advanced brain emulation concepts
-- **Tech stack**: Python (Brian2) + JavaScript (Three.js) with WebSockets
+- **Audience**: researchers, neuroengineers, cognitive scientists, students, and hobbyists.
+- **Focus**: educational clarity, scientific plausibility, robustness, and open collaboration.
+- **Vision**: a progressive 12-lesson system from beginner to advanced brain emulation concepts.
+- **Tech stack**: Python (Brian2) + JavaScript (Three.js) with WebSockets.
 
 ## Educational Journey
 
 ### Phase 1: Neural Fundamentals (Lessons 1-4)
 
-- Basic spike dynamics and neural computation
-- Synaptic transmission and network connectivity
-- Plasticity mechanisms and learning
-- Temporal pattern recognition
+- Basic spike dynamics and neural computation.
+- Synaptic transmission and network connectivity.
+- Plasticity mechanisms and learning.
+- Temporal pattern recognition.
 
 ### Phase 2: Complex Networks (Lessons 5-8)
 
-- Network topology and clustering principles
-- Inhibition and competitive dynamics
-- Multi-layer hierarchical processing
-- Memory systems and information storage
+- Network topology and clustering principles.
+- Inhibition and competitive dynamics.
+- Multi-layer hierarchical processing.
+- Memory systems and information storage.
 
 ### Phase 3: Brain-Scale Networks (Lessons 9-10)
 
-- Large-scale integration and global workspace
+- Large-scale integration and global workspace.
 - Neural oscillations and temporal coordination
 
 ### Phase 4: Brain Emulation Concepts (Lessons 11-12)
