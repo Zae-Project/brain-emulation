@@ -25,7 +25,7 @@ An open, educational, and research-focused project for learning spiking neural n
 
 ### Phase 3: Brain-Scale Networks (Lessons 9-10)
 
-- Large-scale integration and global workspace
+- Large-scale integration and global workspace.
 - Neural oscillations and temporal coordination
 
 ### Phase 4: Brain Emulation Concepts (Lessons 11-12)
