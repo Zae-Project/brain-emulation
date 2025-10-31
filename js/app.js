@@ -69,8 +69,8 @@ class SNNVisualizer {
   }
 
   init() {
-    this.initDOM();
     this.theme = this.readThemeVariables();
+    this.initDOM();
     this.initCanvas();
     this.createNetwork();
     this.bindUI();
