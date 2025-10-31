@@ -301,15 +301,15 @@ canvas {
 }
 
 .lesson-modal-content {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
+  background: linear-gradient(170deg, rgba(32, 21, 12, 0.96), rgba(216, 155, 90, 0.18));
+  border: 1px solid rgba(216, 155, 90, 0.3);
   padding: 32px;
   max-width: 800px;
   max-height: 85vh;
   overflow-y: auto;
   color: var(--text);
   position: relative;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 24px 48px rgba(8, 3, 1, 0.55);
   font-family: var(--font-sans);
 }
 
