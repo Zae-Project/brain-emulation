@@ -32,23 +32,23 @@ class SNNVisualizer {
 
     this.CLUSTER_COLORS = [
       {
-        primary: { r: 0.553, g: 0.353, b: 0.176 }, // Dune bronze
-        glow: { r: 0.941, g: 0.761, b: 0.482 },
+        primary: { r: 0.678, g: 0.427, b: 0.231 }, // Dune bronze
+        glow: { r: 0.949, g: 0.733, b: 0.486 },
         name: "Dune Bronze",
       },
       {
-        primary: { r: 0.769, g: 0.624, b: 0.424 }, // Desert sandstone
-        glow: { r: 0.961, g: 0.843, b: 0.639 },
+        primary: { r: 0.847, g: 0.69, b: 0.486 }, // Desert sandstone
+        glow: { r: 0.976, g: 0.855, b: 0.635 },
         name: "Desert Sandstone",
       },
       {
-        primary: { r: 0.435, g: 0.267, b: 0.153 }, // Walnut ember
-        glow: { r: 0.702, g: 0.478, b: 0.314 },
+        primary: { r: 0.549, g: 0.353, b: 0.196 }, // Walnut ember
+        glow: { r: 0.78, g: 0.525, b: 0.314 },
         name: "Walnut Ember",
       },
       {
-        primary: { r: 0.627, g: 0.4, b: 0.173 }, // Ochre flare
-        glow: { r: 1.0, g: 0.816, b: 0.537 },
+        primary: { r: 0.945, g: 0.764, b: 0.427 }, // Ochre flare
+        glow: { r: 1.0, g: 0.866, b: 0.569 },
         name: "Ochre Flare",
       },
     ];
@@ -181,19 +181,19 @@ class SNNVisualizer {
     };
 
     return {
-      bg: read("--bg", "#000000"),
-      surface1: read("--surface-1", "#0b0705"),
-      surface2: read("--surface-2", "#16100c"),
-      surface3: read("--surface-3", "#20160f"),
-      border: read("--border", "#3a2717"),
-      text: read("--text", "#ffffff"),
-      text2: read("--text-2", "#e1c9aa"),
-      textMuted: read("--text-muted", "#b89371"),
-      textAccent: read("--text-accent", "#f0c27b"),
-      accentPrimary: read("--accent-primary", "#d9a05b"),
-      accentSubtle: read("--accent-subtle", "#8a5c36"),
-      accentGlow: read("--accent-glow", "#f6b261"),
-      accentDanger: read("--accent-danger", "#d96a4a"),
+      bg: read("--bg", "#020201"),
+      surface1: read("--surface-1", "#1c130b"),
+      surface2: read("--surface-2", "#271b10"),
+      surface3: read("--surface-3", "#342416"),
+      border: read("--border", "#4b311d"),
+      text: read("--text", "#f4eadc"),
+      text2: read("--text-2", "#e0c4a3"),
+      textMuted: read("--text-muted", "#b8926a"),
+      textAccent: read("--text-accent", "#f6c274"),
+      accentPrimary: read("--accent-primary", "#d89b5a"),
+      accentSubtle: read("--accent-subtle", "#8f6339"),
+      accentGlow: read("--accent-glow", "#ffcf80"),
+      accentDanger: read("--accent-danger", "#d5744a"),
     };
   }
 
@@ -804,7 +804,7 @@ class SNNVisualizer {
       this.ctx.fill();
 
       // Add rim
-      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+      this.ctx.strokeStyle = this.hexWithAlpha(this.theme.text, 0.5);
       this.ctx.lineWidth = 1;
       this.ctx.stroke();
     });
@@ -951,7 +951,7 @@ class SNNVisualizer {
       this.ctx.strokeRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
 
       if (squareSize > 12) {
-        this.ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * depthFade})`;
+        this.ctx.fillStyle = this.hexWithAlpha(this.theme.text, 0.9 * depthFade);
         this.ctx.font = `${Math.max(8, Math.min(12, squareSize * 0.4))}px Inter, monospace`;
         this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
@@ -970,7 +970,7 @@ class SNNVisualizer {
     }
 
     // Debug info - top center and always visible
-    this.ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    this.ctx.fillStyle = this.hexWithAlpha(this.theme.text, 0.7);
     this.ctx.font = "12px Inter, monospace";
     this.ctx.textAlign = "center";
     const zoom = (1800 / this.camera.distance).toFixed(2);
