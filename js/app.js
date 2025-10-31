@@ -32,24 +32,24 @@ class SNNVisualizer {
 
     this.CLUSTER_COLORS = [
       {
-        primary: { r: 0.22, g: 0.31, b: 0.52 }, // Neural blue
-        glow: { r: 0.4, g: 0.5, b: 0.7 },
-        name: "Neural",
+        primary: { r: 0.553, g: 0.353, b: 0.176 }, // Dune bronze
+        glow: { r: 0.941, g: 0.761, b: 0.482 },
+        name: "Dune Bronze",
       },
       {
-        primary: { r: 0.53, g: 0.47, b: 0.56 }, // Pulse purple
-        glow: { r: 0.7, g: 0.6, b: 0.75 },
-        name: "Pulse",
+        primary: { r: 0.769, g: 0.624, b: 0.424 }, // Desert sandstone
+        glow: { r: 0.961, g: 0.843, b: 0.639 },
+        name: "Desert Sandstone",
       },
       {
-        primary: { r: 0.54, g: 0.35, b: 0.45 }, // Highlight rose
-        glow: { r: 0.75, g: 0.5, b: 0.65 },
-        name: "Highlight",
+        primary: { r: 0.435, g: 0.267, b: 0.153 }, // Walnut ember
+        glow: { r: 0.702, g: 0.478, b: 0.314 },
+        name: "Walnut Ember",
       },
       {
-        primary: { r: 0.29, g: 0.21, b: 0.32 }, // Deep purple
-        glow: { r: 0.5, g: 0.4, b: 0.55 },
-        name: "Deep",
+        primary: { r: 0.627, g: 0.4, b: 0.173 }, // Ochre flare
+        glow: { r: 1.0, g: 0.816, b: 0.537 },
+        name: "Ochre Flare",
       },
     ];
 
@@ -70,6 +70,7 @@ class SNNVisualizer {
 
   init() {
     this.initDOM();
+    this.theme = this.readThemeVariables();
     this.initCanvas();
     this.createNetwork();
     this.bindUI();
@@ -136,11 +137,12 @@ class SNNVisualizer {
           tip.style.top = `${y}px`;
           tip.style.zIndex = "10000";
           // Ensure appearance when detached from panel CSS
-          tip.style.background = tip.style.background || '#1a1d29';
-          tip.style.color = tip.style.color || '#ffffff';
+          tip.style.background = tip.style.background || this.theme.surface3;
+          tip.style.color = tip.style.color || this.theme.text;
           tip.style.padding = tip.style.padding || '12px';
           tip.style.borderRadius = tip.style.borderRadius || '8px';
-          tip.style.border = tip.style.border || '1px solid #374E84';
+          tip.style.border =
+            tip.style.border || `1px solid ${this.theme.accentSubtle}`;
           tip.style.boxShadow = tip.style.boxShadow || '0 4px 20px rgba(0,0,0,0.3)';
           tip.style.maxWidth = tip.style.maxWidth || '320px';
         };
@@ -171,6 +173,79 @@ class SNNVisualizer {
     }
   }
 
+  readThemeVariables() {
+    const styles = getComputedStyle(document.documentElement);
+    const read = (name, fallback) => {
+      const value = styles.getPropertyValue(name);
+      return value ? value.trim() : fallback;
+    };
+
+    return {
+      bg: read("--bg", "#000000"),
+      surface1: read("--surface-1", "#0b0705"),
+      surface2: read("--surface-2", "#16100c"),
+      surface3: read("--surface-3", "#20160f"),
+      border: read("--border", "#3a2717"),
+      text: read("--text", "#ffffff"),
+      text2: read("--text-2", "#e1c9aa"),
+      textMuted: read("--text-muted", "#b89371"),
+      textAccent: read("--text-accent", "#f0c27b"),
+      accentPrimary: read("--accent-primary", "#d9a05b"),
+      accentSubtle: read("--accent-subtle", "#8a5c36"),
+      accentGlow: read("--accent-glow", "#f6b261"),
+      accentDanger: read("--accent-danger", "#d96a4a"),
+    };
+  }
+
+  hexWithAlpha(hex, alpha) {
+    const sanitized = hex.replace("#", "").trim();
+    if (sanitized.length !== 6) {
+      return hex;
+    }
+    const r = parseInt(sanitized.slice(0, 2), 16);
+    const g = parseInt(sanitized.slice(2, 4), 16);
+    const b = parseInt(sanitized.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  hexToRgb(hex) {
+    const sanitized = hex.replace("#", "").trim();
+    if (sanitized.length !== 6) {
+      return { r: 255, g: 255, b: 255 };
+    }
+    return {
+      r: parseInt(sanitized.slice(0, 2), 16),
+      g: parseInt(sanitized.slice(2, 4), 16),
+      b: parseInt(sanitized.slice(4, 6), 16),
+    };
+  }
+
+  applyThemeColorsToMarkup(html) {
+    if (!html || typeof html !== "string") return html;
+    const replacements = [
+      { pattern: /#ff9bf0/gi, value: this.theme.textAccent },
+      { pattern: /#374e84/gi, value: this.theme.accentPrimary },
+      { pattern: /#60a5fa/gi, value: this.theme.accentGlow },
+      { pattern: /#94a3b8/gi, value: this.theme.textMuted },
+      { pattern: /#9aa5b1/gi, value: this.theme.textMuted },
+      { pattern: /#9ca3af/gi, value: this.theme.textMuted },
+      { pattern: /#f1f5f9/gi, value: this.theme.text },
+      { pattern: /#cbd5f5/gi, value: this.theme.text2 },
+      { pattern: /#e2e8f0/gi, value: this.theme.text2 },
+      { pattern: /#1e293b/gi, value: this.theme.surface2 },
+      { pattern: /#0a0c12/gi, value: this.theme.surface2 },
+      { pattern: /#1a1d29/gi, value: this.theme.surface3 },
+      { pattern: /#808080/gi, value: this.theme.textMuted },
+      { pattern: /#181b22/gi, value: this.theme.surface1 },
+    ];
+
+    let themed = html;
+    for (const { pattern, value } of replacements) {
+      themed = themed.replace(pattern, value);
+    }
+    return themed;
+  }
+
   fixUIStyles() {
     // Fix controls panel position
     const controlsElement = document.getElementById("controls");
@@ -189,20 +264,50 @@ class SNNVisualizer {
       input[type="range"] {
         -webkit-appearance: none;
         height: 6px;
-        background: #2a3245;
+        background: var(--surface-2);
         border-radius: 3px;
         width: 100%;
       }
-      
+
       input[type="range"]::-webkit-slider-thumb {
         -webkit-appearance: none;
         height: 16px;
         width: 16px;
-        border-radius: 8px;
-        background: #374E84;
+        border-radius: 50%;
+        background: var(--accent-primary);
+        border: 2px solid var(--surface-1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
         cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
       }
-      
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
+      }
+
+      input[type="range"]::-moz-range-track {
+        height: 6px;
+        background: var(--surface-2);
+        border-radius: 3px;
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: var(--accent-primary);
+        border: 2px solid var(--surface-1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+      }
+
+      input[type="range"]::-moz-range-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
+      }
+
       .lesson-modal {
         position: fixed;
         top: 0;
@@ -217,17 +322,27 @@ class SNNVisualizer {
         padding: 20px;
         backdrop-filter: blur(8px);
       }
-      
+
       .lesson-modal-content {
-        background: #0a0a0a;
-        border: 1px solid #2a2a2a;
+        background: var(--surface-1);
+        border: 1px solid var(--border);
         padding: 32px;
         max-width: 800px;
         max-height: 85vh;
         overflow-y: auto;
-        color: #ffffff;
+        color: var(--text);
         position: relative;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      }
+
+      .lesson-modal-content h1,
+      .lesson-modal-content h2,
+      .lesson-modal-content h3 {
+        color: var(--text-accent);
+      }
+
+      .lesson-modal-content strong {
+        color: var(--accent-primary);
       }
     `;
     document.head.appendChild(styleElement);
@@ -577,18 +692,18 @@ class SNNVisualizer {
   // Test function to force render visible neurons
   testRender() {
     // Clear canvas
-    this.ctx.fillStyle = "#0a0c12";
+    this.ctx.fillStyle = this.theme.surface2;
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
     // Draw test circle to verify canvas works
-    this.ctx.fillStyle = "#ff0000";
+    this.ctx.fillStyle = this.theme.accentDanger;
     this.ctx.beginPath();
     this.ctx.arc(100, 100, 30, 0, Math.PI * 2);
     this.ctx.fill();
 
     // Check if neurons exist
     if (!this.neurons || this.neurons.length === 0) {
-      this.ctx.fillStyle = "#ffffff";
+      this.ctx.fillStyle = this.theme.text;
       this.ctx.font = "24px Arial";
       this.ctx.fillText("No neurons created!", 200, 200);
       return;
@@ -610,13 +725,13 @@ class SNNVisualizer {
       this.ctx.fill();
 
       // Draw neuron ID
-      this.ctx.fillStyle = "#ffffff";
+      this.ctx.fillStyle = this.theme.text;
       this.ctx.font = "12px Arial";
       this.ctx.fillText(i.toString(), x - 5, y + 3);
     });
 
     // Draw debug info
-    this.ctx.fillStyle = "#ffffff";
+    this.ctx.fillStyle = this.theme.text;
     this.ctx.font = "16px Arial";
     this.ctx.fillText(`Neurons: ${this.neurons.length}`, 20, 50);
     this.ctx.fillText(`Connections: ${this.connections.length}`, 20, 70);
@@ -648,11 +763,11 @@ class SNNVisualizer {
   // Working render function
   workingRender() {
     // Clear canvas
-    this.ctx.fillStyle = "#0a0c12";
+    this.ctx.fillStyle = this.theme.surface2;
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
     if (!this.neurons || this.neurons.length === 0) {
-      this.ctx.fillStyle = "#ff0000";
+      this.ctx.fillStyle = this.theme.accentDanger;
       this.ctx.font = "20px Arial";
       this.ctx.fillText("Network not created!", 100, 100);
       return;
@@ -713,7 +828,7 @@ class SNNVisualizer {
     }
 
     // Clear canvas
-    this.ctx.fillStyle = "#000000";
+    this.ctx.fillStyle = this.theme.bg;
     this.ctx.fillRect(0, 0, this.dom.canvas.width, this.dom.canvas.height);
 
     const now = Date.now();
@@ -757,7 +872,7 @@ class SNNVisualizer {
         this.ctx.lineWidth = 0.6;
       } else {
         const alpha = 0.15 * fogFactor(e.depth);
-        this.ctx.strokeStyle = `rgba(189, 189, 189, ${alpha})`;
+        this.ctx.strokeStyle = this.hexWithAlpha(this.theme.accentSubtle, alpha);
         this.ctx.lineWidth = 0.2;
       }
 
@@ -806,15 +921,16 @@ class SNNVisualizer {
         const f = fogFactor(projected.depth);
         this.ctx.fillStyle = `rgba(${Math.floor(color.r * 255 * depthFade)}, ${Math.floor(color.g * 255 * depthFade)}, ${Math.floor(color.b * 255 * depthFade)}, ${0.85 * f})`;
       } else {
-        const grey = Math.floor(150 * depthFade);
+        const accent = this.hexToRgb(this.theme.accentSubtle);
         const f = fogFactor(projected.depth);
-        this.ctx.fillStyle = `rgba(${grey}, ${grey}, ${grey}, ${0.5 * f})`;
+        this.ctx.fillStyle = `rgba(${Math.floor(accent.r * depthFade)}, ${Math.floor(accent.g * depthFade)}, ${Math.floor(accent.b * depthFade)}, ${0.45 * f})`;
       }
       this.ctx.fillRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
       // Step 5: subtle inhibitory cue (small cyan dot at top-left)
       if (neuron.type === 'I') {
         const dotR = Math.max(1.2, squareSize * 0.06);
-        this.ctx.fillStyle = `rgba(120, 180, 255, ${0.7 * depthFade})`;
+        const glowAccent = this.hexToRgb(this.theme.accentGlow);
+        this.ctx.fillStyle = `rgba(${glowAccent.r}, ${glowAccent.g}, ${glowAccent.b}, ${0.7 * depthFade})`;
         this.ctx.beginPath();
         this.ctx.arc(
           projected.x - squareSize / 2 + dotR + 1,
@@ -829,7 +945,7 @@ class SNNVisualizer {
       const f2 = fogFactor(projected.depth);
       this.ctx.strokeStyle = isActive
         ? `rgba(${Math.floor(neuron.colors.glow.r * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.g * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.b * 255 * depthFade)}, ${0.9 * f2})`
-        : `rgba(200, 200, 200, ${0.7 * f2})`;
+        : this.hexWithAlpha(this.theme.border, 0.7 * f2);
       this.ctx.lineWidth = 1;
       this.ctx.setLineDash([]);
       this.ctx.strokeRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
@@ -843,7 +959,7 @@ class SNNVisualizer {
       }
 
       if (neuron === this.state.selectedNeuron) {
-        this.ctx.strokeStyle = "#374E84";
+        this.ctx.strokeStyle = this.theme.accentPrimary;
         this.ctx.lineWidth = Math.max(2, squareSize * 0.1);
         this.ctx.strokeRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
       }
@@ -895,23 +1011,23 @@ class SNNVisualizer {
     y = Math.max(4, Math.min(y, this.dom.canvas.height - height - 4));
 
     // Panel background
-    this.ctx.fillStyle = "rgba(24, 27, 34, 0.92)"; // matches UI surface tone
+    this.ctx.fillStyle = this.hexWithAlpha(this.theme.surface3, 0.92); // matches UI surface tone
     this.ctx.fillRect(x, y, width, height);
 
     // Border
-    this.ctx.strokeStyle = "#374E84"; // edge accent
+    this.ctx.strokeStyle = this.theme.accentSubtle; // edge accent
     this.ctx.lineWidth = 1;
     this.ctx.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
 
     // Header
-    this.ctx.fillStyle = "#ffffff";
+    this.ctx.fillStyle = this.theme.text;
     this.ctx.font = "11px Inter, monospace";
     this.ctx.textAlign = "left";
     this.ctx.textBaseline = "top";
     this.ctx.fillText(`→ ${neuron.id}`, x + padX, y + padY);
 
     // Rows
-    this.ctx.fillStyle = "#c9d1d9";
+    this.ctx.fillStyle = this.theme.text2;
     rows.forEach((r, i) => {
       const yy = y + padY + headerH + i * lineH - 2;
       this.ctx.fillText(`${r.id.toString().padStart(2, " ")}: ${r.w.toFixed(2)}`,
@@ -929,11 +1045,11 @@ class SNNVisualizer {
     const w = this.dom.trace.width;
     const h = this.dom.trace.height;
 
-    this.traceCtx.fillStyle = "#101218"; // Dark background for trace
+    this.traceCtx.fillStyle = this.theme.surface3; // Dark background for trace
     this.traceCtx.fillRect(0, 0, w, h);
 
     // Axes and grid (0.0, 0.5, 1.0)
-    this.traceCtx.strokeStyle = "#2a2a2a";
+    this.traceCtx.strokeStyle = this.theme.border;
     this.traceCtx.lineWidth = 1;
     const ticks = [0, 0.5, 1.0];
     ticks.forEach((t) => {
@@ -942,13 +1058,13 @@ class SNNVisualizer {
       this.traceCtx.moveTo(0, y);
       this.traceCtx.lineTo(w, y);
       this.traceCtx.stroke();
-      this.traceCtx.fillStyle = "#9ca3af";
+      this.traceCtx.fillStyle = this.theme.textMuted;
       this.traceCtx.font = "10px Inter, monospace";
       this.traceCtx.fillText(t.toFixed(1), 4, Math.max(10, y - 2));
     });
 
     // Threshold dashed line at current threshold
-    this.traceCtx.strokeStyle = "rgba(255, 100, 100, 0.4)";
+    this.traceCtx.strokeStyle = this.hexWithAlpha(this.theme.accentDanger, 0.4);
     this.traceCtx.setLineDash([3, 3]);
     const thresholdY = h - (this.state.threshold / 1.5) * h;
     this.traceCtx.beginPath();
@@ -963,7 +1079,7 @@ class SNNVisualizer {
 
     this.clearTrace();
 
-    this.traceCtx.strokeStyle = "#60a5fa"; // A bright blue for the trace line
+    this.traceCtx.strokeStyle = this.theme.accentPrimary; // Trace line accent
     this.traceCtx.lineWidth = 2;
     this.traceCtx.beginPath();
 
@@ -1855,13 +1971,14 @@ class SNNVisualizer {
     const lesson = this.lessonConfig[lessonNumber];
 
     if (lesson && this.dom.lessonContent) {
-      this.dom.lessonContent.innerHTML = `
+      const snippet = `
       <div class="lesson">
         <strong>${lesson.title}</strong><br />
         ${lesson.content}
         <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">View Full Lesson</button>
       </div>
     `;
+      this.dom.lessonContent.innerHTML = this.applyThemeColorsToMarkup(snippet);
       // Make sure the info container is visible with correct styling
       const infoElement = document.getElementById("info");
       if (infoElement) {
@@ -1871,8 +1988,8 @@ class SNNVisualizer {
         infoElement.style.bottom = "16px";
         infoElement.style.maxWidth = "400px";
         infoElement.style.zIndex = "100";
-        infoElement.style.background = "#181b22";
-        infoElement.style.border = "1px solid #374E84";
+        infoElement.style.background = this.theme.surface1;
+        infoElement.style.border = `1px solid ${this.theme.border}`;
         infoElement.style.backdropFilter = "blur(12px)";
         infoElement.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.4)";
         infoElement.style.padding = "20px";
@@ -1921,7 +2038,7 @@ class SNNVisualizer {
     const footer = document.createElement("div");
     footer.style.marginTop = "24px";
     footer.style.paddingTop = "16px";
-    footer.style.borderTop = "1px solid #1e293b";
+    footer.style.borderTop = `1px solid ${this.theme.border}`;
 
     const footerButton = document.createElement("button");
     footerButton.className = "btn";
@@ -1951,13 +2068,13 @@ class SNNVisualizer {
           backdrop-filter: blur(8px);
         }
         .lesson-modal-content {
-          background: #0a0a0a;
-          border: 1px solid #2a2a2a;
+          background: var(--surface-1);
+          border: 1px solid var(--border);
           padding: 32px;
           max-width: 800px;
           max-height: 85vh;
           overflow: hidden;
-          color: #ffffff;
+          color: var(--text);
           position: relative;
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
           display: flex;
@@ -1974,9 +2091,9 @@ class SNNVisualizer {
           position: absolute;
           top: 20px;
           right: 20px;
-          background: #151515;
-          border: 1px solid #2a2a2a;
-          color: #808080;
+          background: var(--surface-2);
+          border: 1px solid var(--border);
+          color: var(--text-muted);
           font-size: 18px;
           width: 36px;
           height: 36px;
@@ -2025,8 +2142,9 @@ class SNNVisualizer {
     if (lesson.file) {
       const fileHtml = await this.fetchLessonFile(lesson);
       if (fileHtml) {
-        this.lessonCache.set(lessonNumber, fileHtml);
-        return fileHtml;
+        const themed = this.applyThemeColorsToMarkup(fileHtml);
+        this.lessonCache.set(lessonNumber, themed);
+        return themed;
       }
     }
 
@@ -2072,11 +2190,13 @@ class SNNVisualizer {
     if (hasHtmlTag) {
       if (/<head[\s>]/i.test(trimmed)) {
         if (!/<base/i.test(trimmed)) {
-          return trimmed.replace(/<head([^>]*)>/i, `<head$1><base href="${baseHref}">`);
+          const withBase = trimmed.replace(/<head([^>]*)>/i, `<head$1><base href="${baseHref}">`);
+          return this.applyThemeColorsToMarkup(withBase);
         }
-        return trimmed;
+        return this.applyThemeColorsToMarkup(trimmed);
       }
-      return trimmed.replace(/<html([^>]*)>/i, `<html$1><head><base href="${baseHref}"></head>`);
+      const injected = trimmed.replace(/<html([^>]*)>/i, `<html$1><head><base href="${baseHref}"></head>`);
+      return this.applyThemeColorsToMarkup(injected);
     }
 
     return this.wrapLessonContent(lesson ? lesson.title : "Lesson", trimmed);
@@ -2085,7 +2205,7 @@ class SNNVisualizer {
   wrapLessonContent(title, bodyContent) {
     const safeTitle = title || "Lesson";
     const safeBody = bodyContent || '<p style="font-size: 16px;">Lesson content is currently unavailable.</p>';
-    return `<!DOCTYPE html>
+    const themedHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
@@ -2097,16 +2217,16 @@ class SNNVisualizer {
       max-width: 900px;
       margin: 0 auto;
       padding: 24px;
-      background: #0a0c12;
-      color: #e2e8f0;
+      background: ${this.theme.surface2};
+      color: ${this.theme.text};
     }
     h1, h2 {
-      color: #374E84;
-      border-bottom: 2px solid #374E84;
+      color: ${this.theme.accentPrimary};
+      border-bottom: 2px solid ${this.theme.accentSubtle};
       padding-bottom: 10px;
     }
     h3 {
-      color: #60a5fa;
+      color: ${this.theme.accentGlow};
       margin-top: 24px;
     }
     ul {
@@ -2116,13 +2236,13 @@ class SNNVisualizer {
       margin: 8px 0;
     }
     strong {
-      color: #94a3b8;
+      color: ${this.theme.textAccent};
     }
     code {
-      background: #1e293b;
+      background: ${this.theme.surface3};
       padding: 2px 6px;
       border-radius: 3px;
-      color: #cbd5f5;
+      color: ${this.theme.text2};
     }
   </style>
 </head>
@@ -2130,6 +2250,7 @@ class SNNVisualizer {
 ${safeBody}
 </body>
 </html>`;
+    return this.applyThemeColorsToMarkup(themedHtml);
   }
   getFullLessonContent(lessonNumber) {
     const lessons = {
