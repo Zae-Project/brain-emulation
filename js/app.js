@@ -404,6 +404,7 @@ class SNNVisualizer {
       exportTemplateBtn: document.getElementById("exportTemplate"),
       importTemplateBtn: document.getElementById("importTemplate"),
       importTemplateInput: document.getElementById("templateImport"),
+      importHelpBtn: document.getElementById("importHelp"),
       neuronMeta: document.getElementById("neuronMeta"),
       networkSizeSlider: document.getElementById("networkSize"),
       sizeValueLabel: document.getElementById("sizeValue"),
@@ -900,8 +901,8 @@ class SNNVisualizer {
         projected.y > this.dom.canvas.height + 200
       ) continue;
 
-      const baseRadius = 8;
-      const radius = Math.max(1.5, baseRadius * projected.scale * (projected.zoomFactor || 1) * this.config.neuronSize);
+      const baseRadius = 4;
+      const radius = Math.max(0.75, baseRadius * projected.scale * (projected.zoomFactor || 1) * this.config.neuronSize);
       const intensity = neuron.pulse / this.config.pulseIntensity;
       const isActive = intensity > 0.10;
 
@@ -1629,6 +1630,10 @@ class SNNVisualizer {
       });
     }
 
+    if (this.dom.importHelpBtn) {
+      this.dom.importHelpBtn.addEventListener("click", () => this.showTemplateImportDocs());
+    }
+
     // Preset selection
     if (this.dom.presetSelect) {
       this.dom.presetSelect.addEventListener("change", (e) => {
@@ -1990,6 +1995,207 @@ class SNNVisualizer {
         this.dom.importTemplateInput.value = '';
       }
     }
+  }
+
+  showTemplateImportDocs() {
+    const escapeHtml = (value) =>
+      value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    const accentColor = this.theme?.textAccent || "#f6c274";
+    const textColor = this.theme?.text || "#f4eadc";
+    const secondaryText = this.theme?.textMuted || "#b8926a";
+    const surfaceTwo = this.theme?.surface2 || "#271b10";
+    const borderColor = this.theme?.border || "#4b311d";
+
+    const exampleTemplate = escapeHtml(
+      JSON.stringify(
+        {
+          id: "Custom_Hub",
+          regionName: "Custom Hub",
+          clusters: [
+            {
+              id: "Hub_A",
+              name: "Hub A",
+              neuronGroups: [
+                { preset: "pyramidal", count: 80 },
+                { preset: "basket", count: 20 },
+              ],
+              internalConnectivity: [
+                { from: "pyramidal", to: "pyramidal", probability: 0.3, type: "excitatory" },
+                { from: "basket", to: "pyramidal", probability: 0.8, type: "inhibitory" },
+              ],
+            },
+            {
+              id: "Hub_B",
+              name: "Hub B",
+              neuronGroups: [
+                { preset: "pyramidal", count: 60 },
+                { preset: "basket", count: 15 },
+              ],
+              internalConnectivity: [
+                { from: "pyramidal", to: "pyramidal", probability: 0.2, type: "excitatory" },
+                { from: "basket", to: "pyramidal", probability: 0.75, type: "inhibitory" },
+              ],
+            },
+          ],
+          connections: [
+            {
+              fromCluster: "Hub_A",
+              toCluster: "Hub_B",
+              connectivity: [
+                {
+                  from: "pyramidal",
+                  to: "pyramidal",
+                  probability: 0.25,
+                  type: "excitatory",
+                  weight: 1.1,
+                  delay: 4.5,
+                },
+              ],
+            },
+          ],
+          metadata: {
+            notes: ["Weights and delays override defaults when provided."],
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    const bodyHtml = `
+      <h1 style="margin-top:0; color:${accentColor};">Template Import Guide</h1>
+      <p style="color:${textColor};">This import loads a JSON configuration that describes neuron clusters and the synaptic map between them. Each template becomes a selectable preset in the visualizer.</p>
+      <h2 style="color:${accentColor};">Top-level fields</h2>
+      <ul>
+        <li style="color:${secondaryText};"><code>id</code> (string, optional): Unique key used internally. If omitted, a key is derived from <code>regionName</code>.</li>
+        <li style="color:${secondaryText};"><code>regionName</code> (string): Friendly label shown in the preset menu.</li>
+        <li style="color:${secondaryText};"><code>clusters</code> (array, required): Each cluster defines neuron groups and local wiring.</li>
+        <li style="color:${secondaryText};"><code>connections</code> (array, optional): Long-range projections between clusters.</li>
+        <li style="color:${secondaryText};"><code>metadata</code> (object, optional): Free-form notes, references, etc.</li>
+      </ul>
+      <h2 style="color:${accentColor};">Cluster objects</h2>
+      <ul>
+        <li style="color:${secondaryText};"><code>id</code>, <code>name</code>: Identifiers used for cross references.</li>
+        <li style="color:${secondaryText};"><code>neuronGroups</code>: Array of { <code>preset</code>, <code>count</code> } entries referencing presets such as <em>pyramidal</em>, <em>basket</em>, <em>relay</em>.</li>
+        <li style="color:${secondaryText};"><code>internalConnectivity</code>: Array of rules { <code>from</code>, <code>to</code>, <code>probability</code>, <code>type</code>, optional <code>weight</code>, <code>delay</code> } describing within-cluster synapses.</li>
+      </ul>
+      <h2 style="color:${accentColor};">Connection edges</h2>
+      <p style="color:${textColor};">Each entry links two clusters with a <code>connectivity</code> list using the same rule format. Probabilities are scaled by the global sliders at runtime.</p>
+      <h2 style="color:${accentColor};">Example JSON</h2>
+      <pre style="background:${surfaceTwo}; border:1px solid ${borderColor}; padding:12px; border-radius:8px; color:${textColor}; overflow-x:auto;"><code>${exampleTemplate}</code></pre>
+      <p style="color:${textColor};">Upload saved files via the <strong>Import</strong> button. Valid templates appear in the Preset dropdown instantly.</p>
+    `;
+
+    const modal = document.createElement("div");
+    modal.className = "lesson-modal";
+    modal.style.zIndex = "1000";
+
+    const modalContent = document.createElement("div");
+    modalContent.className = "lesson-modal-content";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "close-btn";
+    closeBtn.innerHTML = "&times;";
+    modalContent.appendChild(closeBtn);
+
+    const scrollRegion = document.createElement("div");
+    scrollRegion.className = "import-docs";
+    scrollRegion.style.overflowY = "auto";
+    scrollRegion.style.maxHeight = "70vh";
+    scrollRegion.innerHTML = bodyHtml;
+    modalContent.appendChild(scrollRegion);
+
+    const footer = document.createElement("div");
+    footer.style.marginTop = "24px";
+    footer.style.paddingTop = "16px";
+    footer.style.borderTop = `1px solid ${this.theme.border}`;
+
+    const footerButton = document.createElement("button");
+    footerButton.className = "btn";
+    footerButton.textContent = "CLOSE";
+    footer.appendChild(footerButton);
+    modalContent.appendChild(footer);
+
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    if (!document.querySelector("style#modal-styles")) {
+      const style = document.createElement("style");
+      style.id = "modal-styles";
+      style.textContent = `
+        .lesson-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.85);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          backdrop-filter: blur(8px);
+        }
+        .lesson-modal-content {
+          background: var(--surface-1);
+          border: 1px solid var(--border);
+          padding: 32px;
+          max-width: 800px;
+          max-height: 85vh;
+          overflow: hidden;
+          color: var(--text);
+          position: relative;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+          display: flex;
+          flex-direction: column;
+        }
+        .lesson-modal-content h1,
+        .lesson-modal-content h2 {
+          color: var(--text-accent);
+        }
+        .lesson-modal-content pre {
+          background: var(--surface-2);
+          border: 1px solid var(--border);
+          padding: 12px;
+          border-radius: 8px;
+          color: var(--text);
+          overflow-x: auto;
+        }
+        .close-btn {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background: var(--surface-2);
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          font-size: 18px;
+          width: 36px;
+          height: 36px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const closeModal = () => {
+      if (document.body.contains(modal)) {
+        document.body.removeChild(modal);
+      }
+    };
+
+    closeBtn.addEventListener("click", closeModal);
+    footerButton.addEventListener("click", closeModal);
+    modal.addEventListener("click", (evt) => {
+      if (evt.target === modal) closeModal();
+    });
   }
 
   showBanner(message, tone = 'info', duration = 3500) {
@@ -2647,3 +2853,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Remove emergency fallback - it causes the wrong style flash
+
