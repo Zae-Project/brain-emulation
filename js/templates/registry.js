@@ -334,5 +334,9 @@
     getTemplateForPreset,
     estimateEI,
     deriveCounts,
+    registerTemplate,
+    unregisterTemplate,
+    listTemplates,
+    exportTemplateConfig,
   };
 })();
