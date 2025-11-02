@@ -139,6 +139,14 @@ canvas {
   color: var(--text);
 }
 
+.btn.btn-icon {
+  padding: 8px 12px;
+  font-size: 16px;
+  line-height: 1;
+  min-width: 36px;
+  text-align: center;
+}
+
 .range {
   accent-color: var(--accent-primary);
 }
