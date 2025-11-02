@@ -3,6 +3,7 @@
 
 (function () {
   const schema = window.SNN_TEMPLATE_SCHEMA || {};
+  const ConfigIO = window.SNN_CONFIG_IO || null;
 
   const defaultNeuronTypes = {
     pyramidal: {
@@ -178,6 +179,7 @@
     Hippocampus: TemplateHippocampus,
     Thalamocortical_Loop: TemplateThalamus,
   };
+  const ExternalTemplates = {};
 
   const RegionMetadata = {
     Frontal_Cortex: schema.RegionTemplates?.Frontal_Cortex?.metadata || null,
@@ -196,6 +198,63 @@
     Amygdala: { label: 'Amygdala', clusters: [{ typeId: 'Amygdala_CeA', count: 4 }], metadata: RegionMetadata.Amygdala },
     Thalamocortical_Loop: { label: 'Thalamocortical Loop', templateKey: 'Thalamocortical_Loop', template: TemplateThalamus, metadata: RegionMetadata.Thalamocortical_Loop },
   };
+
+  function assignTemplate(key, template, source = 'external') {
+    const finalTemplate = ConfigIO ? ConfigIO.normalizeTemplate(template) : template;
+    RegionTemplates[key] = finalTemplate;
+    ExternalTemplates[key] = finalTemplate;
+    RegionMetadata[key] = finalTemplate.metadata || null;
+    RegionPresets[key] = {
+      label: finalTemplate.regionName || key,
+      templateKey: key,
+      template: finalTemplate,
+      metadata: finalTemplate.metadata || null,
+      source,
+    };
+    return finalTemplate;
+  }
+
+  function registerTemplate(key, template) {
+    if (!key || typeof key !== 'string') {
+      throw new Error('registerTemplate requires a string key');
+    }
+    if (!template || typeof template !== 'object') {
+      throw new Error('registerTemplate requires a template object');
+    }
+    return assignTemplate(key, template);
+  }
+
+  function unregisterTemplate(key) {
+    if (!ExternalTemplates[key]) return false;
+    delete ExternalTemplates[key];
+    delete RegionTemplates[key];
+    delete RegionPresets[key];
+    delete RegionMetadata[key];
+    return true;
+  }
+
+  function listTemplates() {
+    return Object.keys(RegionPresets).map((key) => {
+      const preset = RegionPresets[key];
+      return {
+        id: key,
+        label: preset.label,
+        hasTemplate: Boolean(getTemplateForPreset(key)),
+        source: preset.source || 'builtin',
+      };
+    });
+  }
+
+  function exportTemplateConfig(presetOrId, spacing = 2) {
+    const template = getTemplateForPreset(presetOrId);
+    if (!template) {
+      throw new Error(`Preset "${presetOrId}" does not resolve to a template`);
+    }
+    if (ConfigIO && typeof ConfigIO.serializeTemplate === 'function') {
+      return ConfigIO.serializeTemplate(template, spacing);
+    }
+    return JSON.stringify(template, null, spacing);
+  }
 
   function resolvePreset(presetOrId) {
     if (!presetOrId) return null;
