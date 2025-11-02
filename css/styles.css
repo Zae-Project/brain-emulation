@@ -127,6 +127,18 @@ canvas {
   box-shadow: 0 6px 18px rgba(126, 86, 45, 0.5);
 }
 
+.btn.btn-ghost {
+  background: transparent;
+  border-color: rgba(240, 177, 93, 0.35);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+.btn.btn-ghost:hover {
+  background: rgba(216, 155, 90, 0.12);
+  color: var(--text);
+}
+
 .range {
   accent-color: var(--accent-primary);
 }
@@ -444,6 +456,12 @@ input[type="range"]::-moz-range-thumb {
   backdrop-filter: blur(12px);
   box-shadow: 0 14px 30px rgba(7, 3, 2, 0.55);
   z-index: 12;
+}
+
+#templateActions {
+  display: flex;
+  gap: 8px;
+  margin-left: 16px;
 }
 
 /* Bottom center status bar */
