@@ -144,6 +144,11 @@
         <option value="Thalamocortical_Loop">Thalamocortical Loop</option>
       </select>
       <span id="presetSummary" style="margin-left:12px; color:var(--text-muted); font-size:12px"></span>
+      <div id="templateActions">
+        <button class="btn btn-ghost" id="exportTemplate" title="Download the active template configuration">Export</button>
+        <button class="btn" id="importTemplate" title="Load a template configuration from JSON">Import</button>
+        <input type="file" id="templateImport" accept="application/json,.json" hidden />
+      </div>
     </div>
 
     <!-- LEFT CONTROLS -->

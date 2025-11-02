@@ -30,6 +30,8 @@ class SNNVisualizer {
       fogStrength: 0.3,
     };
 
+    this._bannerTimer = null;
+
     this.CLUSTER_COLORS = [
       {
         primary: { r: 0.800, g: 0.467, b: 0.133 }, // Ochre blaze (#CC7722)
@@ -399,6 +401,9 @@ class SNNVisualizer {
       speedSlider: document.getElementById("speed"),
       presetSelect: document.getElementById("presetSelect"),
       presetSummary: document.getElementById("presetSummary"),
+      exportTemplateBtn: document.getElementById("exportTemplate"),
+      importTemplateBtn: document.getElementById("importTemplate"),
+      importTemplateInput: document.getElementById("templateImport"),
       neuronMeta: document.getElementById("neuronMeta"),
       networkSizeSlider: document.getElementById("networkSize"),
       sizeValueLabel: document.getElementById("sizeValue"),
@@ -1613,6 +1618,17 @@ class SNNVisualizer {
       });
     }
 
+    if (this.dom.exportTemplateBtn) {
+      this.dom.exportTemplateBtn.addEventListener("click", () => this.exportCurrentTemplate());
+    }
+
+    if (this.dom.importTemplateBtn && this.dom.importTemplateInput) {
+      this.dom.importTemplateBtn.addEventListener("click", () => this.dom.importTemplateInput.click());
+      this.dom.importTemplateInput.addEventListener("change", (e) => {
+        this.handleTemplateFileList(e.target.files);
+      });
+    }
+
     // Preset selection
     if (this.dom.presetSelect) {
       this.dom.presetSelect.addEventListener("change", (e) => {
@@ -1621,12 +1637,7 @@ class SNNVisualizer {
       });
     }
 
-    if (this.dom.presetSelect) {
-      this.dom.presetSelect.addEventListener("change", (e) => {
-        const id = e.target.value;
-        this.applyPreset(id);
-      });
-    }
+    this.refreshPresetOptions(this.config.presetId || 'None');
 
     // Initialize lock state
     this.updatePresetLockUI();
@@ -1878,6 +1889,118 @@ class SNNVisualizer {
     });
     const ei = window.SNN_REGISTRY.estimateEI(preset);
     this.dom.presetSummary.textContent = `${parts.join('  |  ')}  |  E frac ≈ ${ei.toFixed(2)}`;
+  }
+
+  refreshPresetOptions(selectedId) {
+    if (!this.dom.presetSelect || !window.SNN_REGISTRY) return;
+    const registry = window.SNN_REGISTRY;
+    const entries = typeof registry.listTemplates === 'function'
+      ? registry.listTemplates()
+      : Object.keys(registry.RegionPresets || {}).map((key) => ({
+          id: key,
+          label: registry.RegionPresets[key]?.label || key,
+        }));
+
+    const sorted = entries
+      .filter((entry, idx, arr) => arr.findIndex((e) => e.id === entry.id) === idx)
+      .sort((a, b) => {
+        if (a.id === 'None') return -1;
+        if (b.id === 'None') return 1;
+        return a.label.localeCompare(b.label);
+      });
+
+    const currentSelection = selectedId || this.dom.presetSelect.value || 'None';
+    this.dom.presetSelect.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    sorted.forEach(({ id, label }) => {
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = label;
+      frag.appendChild(option);
+    });
+    this.dom.presetSelect.appendChild(frag);
+    if (registry.RegionPresets[currentSelection]) {
+      this.dom.presetSelect.value = currentSelection;
+    }
+  }
+
+  exportCurrentTemplate() {
+    if (!window.SNN_REGISTRY) return;
+    const presetId =
+      (this.config.presetId && this.config.presetId !== 'None')
+        ? this.config.presetId
+        : this.dom.presetSelect?.value;
+
+    if (!presetId || presetId === 'None') {
+      this.showBanner('Select a template preset before exporting.');
+      return;
+    }
+
+    try {
+      const json = window.SNN_REGISTRY.exportTemplateConfig(presetId, 2);
+      const preset = window.SNN_REGISTRY.RegionPresets[presetId];
+      const label = preset?.label || presetId;
+      const slug = (label || 'template').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${slug || 'template'}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      this.showBanner(`Exported template "${label}".`);
+    } catch (error) {
+      console.error('Template export failed', error);
+      this.showBanner(`Template export failed: ${error.message || error}`, 'error', 5000);
+    }
+  }
+
+  async handleTemplateFileList(fileList) {
+    if (!fileList || !fileList.length || !window.SNN_REGISTRY) return;
+    const file = fileList[0];
+    try {
+      const text = await file.text();
+      const template = window.SNN_CONFIG_IO
+        ? window.SNN_CONFIG_IO.deserializeTemplate(text)
+        : JSON.parse(text);
+      const desiredKey = (template.id || template.regionName || file.name || 'Imported_Template')
+        .toString()
+        .replace(/[^a-z0-9_]+/gi, '_')
+        .replace(/^_+|_+$/g, '');
+      let key = desiredKey || `Template_${Date.now()}`;
+      let suffix = 1;
+      const presets = window.SNN_REGISTRY.RegionPresets || {};
+      while (presets[key]) {
+        key = `${desiredKey}_${suffix++}`;
+      }
+      const registered = window.SNN_REGISTRY.registerTemplate(key, template);
+      this.refreshPresetOptions(key);
+      if (this.dom.presetSelect) {
+        this.dom.presetSelect.value = key;
+      }
+      this.applyPreset(key);
+      this.showBanner(`Imported template "${registered.regionName || key}".`);
+    } catch (error) {
+      console.error('Template import failed', error);
+      this.showBanner(`Template import failed: ${error.message || error}`, 'error', 6000);
+    } finally {
+      if (this.dom.importTemplateInput) {
+        this.dom.importTemplateInput.value = '';
+      }
+    }
+  }
+
+  showBanner(message, tone = 'info', duration = 3500) {
+    if (!this.dom.errEl) return;
+    this.dom.errEl.textContent = message;
+    this.dom.errEl.dataset.tone = tone;
+    this.dom.errEl.style.display = 'block';
+    if (this._bannerTimer) clearTimeout(this._bannerTimer);
+    this._bannerTimer = setTimeout(() => {
+      this.dom.errEl.style.display = 'none';
+    }, duration);
   }
 
   createLessonConfig() {
