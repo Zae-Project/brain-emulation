@@ -707,7 +707,7 @@ class SNNVisualizer {
       region.name || region.presetLabel || this.formatLabel(this.config.presetId);
     const groupLabel = neuron.groupLabel || this.formatLabel(neuron.groupPreset);
     const excitStr = neuron.type === "I" ? "Inhibitory" : "Excitatory";
-    const synapseType = bio.synapseType ? ` • Synapse: ${bio.synapseType}` : "";
+    const synapseType = bio.synapseType ? ` &bull; Synapse: ${bio.synapseType}` : "";
     const peerGroup =
       cluster.groups && neuron.groupPreset ? cluster.groups[neuron.groupPreset] : null;
 
@@ -755,16 +755,20 @@ class SNNVisualizer {
     const bioRows = bioRowsRaw
       .map((row) => {
         if (row.value === undefined || row.value === null) return null;
+        const numeric = Number(row.value);
+        if (!Number.isFinite(numeric)) {
+          return { label: row.label, value: row.value };
+        }
         const suffix =
-          row.label.includes("Vm") || row.label === "Weight"
-            ? row.label === "Weight"
-              ? ""
-              : " mV"
+          row.label.includes("Vm")
+            ? " mV"
+            : row.label === "Weight"
+            ? ""
             : " ms";
         const digits = row.label === "Weight" ? 2 : 1;
         return {
           label: row.label,
-          value: `${Number(row.value).toFixed(digits)}${suffix}`,
+          value: `${numeric.toFixed(digits)}${suffix}`,
         };
       })
       .filter(Boolean);
@@ -777,7 +781,6 @@ class SNNVisualizer {
     ]);
 
     const intrinsicGrid = this.buildMetaGrid([...intrinsicRows, ...bioRows]);
-
     const groupLine = groupSummary.length
       ? `<div class="meta-note">${groupSummary.join(" • ")}</div>`
       : "";
@@ -3142,6 +3145,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Remove emergency fallback - it causes the wrong style flash
+
+
+
+
 
 
 
