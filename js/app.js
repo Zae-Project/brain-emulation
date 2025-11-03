@@ -1350,8 +1350,8 @@ class SNNVisualizer {
 
     // From preset: per-cluster archetype list
     let clusterTypeList = new Array(clusterCount).fill(null);
-    if (this.config.presetId && this.config.presetId !== 'None' && window.SNN_REGISTRY) {
-      const preset = window.SNN_REGISTRY.RegionPresets[this.config.presetId];
+    if (this.config.presetId && this.config.presetId !== 'None' && registry) {
+      const preset = registry?.RegionPresets?.[this.config.presetId];
       if (preset && Array.isArray(preset.clusters) && preset.clusters.length > 0) {
         const list = [];
         preset.clusters.forEach((c) => {
@@ -1420,11 +1420,11 @@ class SNNVisualizer {
       // Determine neuron type (from preset mix if available)
       let nType = null;
       let groupPresetId = null;
-      if (clusterTypeList[clusterId] && window.SNN_REGISTRY) {
-        const arche = window.SNN_REGISTRY.ClusterTypes[clusterTypeList[clusterId]];
+      if (clusterTypeList[clusterId] && registry) {
+        const arche = registry.ClusterTypes?.[clusterTypeList[clusterId]];
         const typeId = sampleTypeId(arche?.mix);
         groupPresetId = typeId;
-        const def = window.SNN_REGISTRY.NeuronTypes[typeId];
+        const def = registry.NeuronTypes?.[typeId];
         if (def) nType = def;
       }
       const isExcitatory = nType ? (nType.type !== 'inhibitory') : (i < Math.floor(this.config.excRatio * networkSize));
@@ -1457,8 +1457,8 @@ class SNNVisualizer {
         archetypeId: clusterTypeList[clusterId] || null,
         archetypeLabel:
           (clusterTypeList[clusterId] &&
-            window.SNN_REGISTRY &&
-            window.SNN_REGISTRY.ClusterTypes[clusterTypeList[clusterId]]?.label) ||
+            registry &&
+            registry?.ClusterTypes[clusterTypeList[clusterId]]?.label) ||
           null,
         regionId: this.regionInfo.id,
         regionName: this.regionInfo.name,
@@ -1492,10 +1492,10 @@ class SNNVisualizer {
         let connectionProb;
         let weight;
 
-        const usingPreset = this.config.presetId && this.config.presetId !== 'None' && window.SNN_REGISTRY;
+        const usingPreset = this.config.presetId && this.config.presetId !== 'None' && registry;
         if (usingPreset) {
           const fromArcheId = clusterTypeList[fromCluster];
-          const fromArche = window.SNN_REGISTRY.ClusterTypes[fromArcheId] || null;
+          const fromArche = registry.ClusterTypes?.[fromArcheId] || null;
           if (fromArche && fromArche.intra && fromArche.inter) {
             const p = same ? (fromArche.intra.prob ?? 0.2) : (fromArche.inter.prob ?? 0.05);
             // Base slider is a global multiplier, interProbScale further reduces cross-cluster
@@ -1797,9 +1797,6 @@ class SNNVisualizer {
         this.fireNeuron(neuron);
       }
     });
-
-    this.clearTrace();
-    if (this.dom.voltageValue) this.dom.voltageValue.textContent = "--";
 
     console.log(`Template network built: ${template.regionName || this.config.presetId} (${this.neurons.length} neurons, ${this.connections.length} connections)`);
     this.clearTrace();
@@ -2181,7 +2178,7 @@ class SNNVisualizer {
 
     const parts = [];
     (preset.clusters || []).forEach((c) => {
-      const label = window.SNN_REGISTRY.ClusterTypes[c.typeId]?.label || c.typeId;
+      const label = registry?.ClusterTypes[c.typeId]?.label || c.typeId;
       parts.push(`${c.count || 1}x${label}`);
     });
     const ei = window.SNN_REGISTRY.estimateEI(preset);
@@ -3145,6 +3142,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Remove emergency fallback - it causes the wrong style flash
+
+
 
 
 
