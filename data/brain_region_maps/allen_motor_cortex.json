@@ -1,0 +1,112 @@
+{
+  "id": "Allen_Motor_Cortex",
+  "regionName": "Primary Motor Cortex (M1)",
+  "metadata": {
+    "atlas": "Allen Human Brain Atlas",
+    "release": "2023-10",
+    "references": [
+      "Gao et al., 2022, Cell Reports 41(9): Corticospinal neuron transcriptomics",
+      "Allen Brain Atlas, Human M1 structure graph"
+    ],
+    "notes": [
+      "Layer composition reflects human BA4 hand area transcriptomic clusters.",
+      "Counts scaled to a 1 mm^2 cortical column with 85k neurons."
+    ]
+  },
+  "clusters": [
+    {
+      "id": "M1_L2_3",
+      "name": "M1 Layers 2/3",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 120 },
+        { "preset": "basket", "count": 28 },
+        { "preset": "chandelier", "count": 6 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.22, "type": "excitatory", "weight": 0.82 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.58, "type": "excitatory", "weight": 0.76 },
+        { "from": "pyramidal", "to": "chandelier", "probability": 0.42, "type": "excitatory", "weight": 0.72 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.78, "type": "inhibitory", "weight": 0.68 },
+        { "from": "basket", "to": "basket", "probability": 0.24, "type": "inhibitory", "weight": 0.55 },
+        { "from": "chandelier", "to": "pyramidal", "probability": 0.86, "type": "inhibitory", "weight": 0.81 }
+      ],
+      "metadata": {
+        "lamina": "Supragranular (II/III)",
+        "dominantTypes": ["IT pyramidal", "basket interneurons"]
+      }
+    },
+    {
+      "id": "M1_L5B",
+      "name": "M1 Layer 5B",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 140 },
+        { "preset": "basket", "count": 24 },
+        { "preset": "chandelier", "count": 8 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.27, "type": "excitatory", "weight": 0.94 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.62, "type": "excitatory", "weight": 0.88 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.81, "type": "inhibitory", "weight": 0.74 },
+        { "from": "basket", "to": "basket", "probability": 0.35, "type": "inhibitory", "weight": 0.61 },
+        { "from": "chandelier", "to": "pyramidal", "probability": 0.72, "type": "inhibitory", "weight": 0.86 }
+      ],
+      "metadata": {
+        "lamina": "Infragranular (Vb)",
+        "dominantTypes": ["Corticospinal pyramidal", "basket interneurons"]
+      }
+    },
+    {
+      "id": "M1_L6",
+      "name": "M1 Layer 6",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 90 },
+        { "preset": "basket", "count": 22 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.18, "type": "excitatory", "weight": 0.74 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.49, "type": "excitatory", "weight": 0.69 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.77, "type": "inhibitory", "weight": 0.63 },
+        { "from": "basket", "to": "basket", "probability": 0.29, "type": "inhibitory", "weight": 0.56 }
+      ],
+      "metadata": {
+        "lamina": "Corticothalamic Layer VI",
+        "dominantTypes": ["IT/CT pyramidal", "basket interneurons"]
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromCluster": "M1_L2_3",
+      "toCluster": "M1_L5B",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.35, "type": "excitatory", "weight": 1.05, "delay": 3.5 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.28, "type": "excitatory", "weight": 0.92, "delay": 3.2 }
+      ],
+      "metadata": {
+        "projection": "Intracortical IT→CS"
+      }
+    },
+    {
+      "fromCluster": "M1_L5B",
+      "toCluster": "M1_L2_3",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.19, "type": "excitatory", "weight": 0.88, "delay": 2.8 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.22, "type": "inhibitory", "weight": 0.71, "delay": 2.4 }
+      ],
+      "metadata": {
+        "projection": "Feedback Vb→II/III"
+      }
+    },
+    {
+      "fromCluster": "M1_L6",
+      "toCluster": "M1_L5B",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.16, "type": "excitatory", "weight": 0.78, "delay": 4.1 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.14, "type": "excitatory", "weight": 0.72, "delay": 4.0 }
+      ],
+      "metadata": {
+        "projection": "Corticothalamic feedback"
+      }
+    }
+  ]
+}

@@ -63,6 +63,7 @@ class SNNVisualizer {
     this.lessonConfig = this.createLessonConfig();
     this.lessonCache = new Map();
     this.activeTemplate = null;
+    this._atlasBootstrapPromise = null;
 
     // Make this instance globally accessible for lesson buttons
     window.snnVisualizer = this;
@@ -2094,6 +2095,100 @@ class SNNVisualizer {
         }
       });
     }
+
+    this.bootstrapAtlasTemplates()
+      .then((result) => {
+        if (!result || result.added === 0) return;
+        const preserveId =
+          this.dom.presetSelect?.value ||
+          this.config.presetId ||
+          'None';
+        this.refreshPresetOptions(preserveId);
+        if (this.dom.presetSummary && typeof this.renderPresetSummary === 'function') {
+          this.renderPresetSummary(preserveId);
+        }
+        this.showBanner(`Loaded ${result.added} region template${result.added === 1 ? '' : 's'} from library.`);
+      })
+      .catch((error) => {
+        console.warn('Atlas template bootstrap failed', error);
+      });
+  }
+
+  async bootstrapAtlasTemplates() {
+    if (this._atlasBootstrapPromise) return this._atlasBootstrapPromise;
+    if (!window.SNN_REGISTRY || !window.SNN_CONFIG_IO) {
+      return { added: 0, skipped: 0 };
+    }
+
+    const manifestUrl = 'data/brain_region_maps/manifest.json';
+    const registry = window.SNN_REGISTRY;
+    const loader = window.SNN_CONFIG_IO;
+
+    this._atlasBootstrapPromise = fetch(manifestUrl, { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Manifest fetch failed (${response.status})`);
+        }
+        const manifest = await response.json();
+        const entries = Array.isArray(manifest?.templates) ? manifest.templates : [];
+        let added = 0;
+        let skipped = 0;
+
+        for (const entry of entries) {
+          try {
+            const id = String(entry?.id || '').trim();
+            const file = String(entry?.file || '').trim();
+            if (!id || !file) {
+              skipped += 1;
+              continue;
+            }
+            if (registry.RegionPresets[id]) {
+              skipped += 1;
+              continue;
+            }
+
+            const url = `data/brain_region_maps/${file}`;
+            const template = await loader.loadTemplateFromUrl(url);
+            if (!template || typeof template !== 'object') {
+              skipped += 1;
+              continue;
+            }
+
+            const enriched = { ...template };
+            if (!enriched.regionName && entry.label) {
+              enriched.regionName = entry.label;
+            }
+            const meta = { ...(enriched.metadata || {}) };
+            if (entry.source && !meta.source) {
+              meta.source = entry.source;
+            }
+            if (entry.description) {
+              meta.description = entry.description;
+            }
+            if (entry.regions && !meta.regions) {
+              meta.regions = entry.regions;
+            }
+            if (entry.label) {
+              meta.displayLabel = entry.label;
+            }
+            enriched.metadata = meta;
+
+            registry.registerTemplate(id, enriched, 'library');
+            added += 1;
+          } catch (error) {
+            console.warn('Failed to register atlas template from manifest', entry, error);
+            skipped += 1;
+          }
+        }
+
+        return { added, skipped };
+      })
+      .catch((error) => {
+        console.warn('Failed to load atlas manifest', error);
+        return { added: 0, skipped: 0, error };
+      });
+
+    return this._atlasBootstrapPromise;
   }
 
   // Step 1 preset applicator: update clusterCount, clusterSize, and excRatio using registry.

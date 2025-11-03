@@ -1,0 +1,45 @@
+{
+  "version": "2024-05-18",
+  "templates": [
+    {
+      "id": "Allen_Prefrontal_Cortex",
+      "file": "allen_prefrontal_cortex.json",
+      "label": "Prefrontal Cortex (BA10/46)",
+      "source": "Allen Human Brain Atlas",
+      "description": "Dorsolateral PFC microcolumns with chandelier inhibition and thalamic drive.",
+      "regions": ["BA10", "BA46"]
+    },
+    {
+      "id": "Allen_Motor_Cortex",
+      "file": "allen_motor_cortex.json",
+      "label": "Primary Motor Cortex (M1)",
+      "source": "Allen Human Brain Atlas",
+      "description": "Layer-specific M1 circuit with corticospinal L5B projection neurons.",
+      "regions": ["BA4"]
+    },
+    {
+      "id": "Allen_Somatosensory_Cortex",
+      "file": "allen_somatosensory_cortex.json",
+      "label": "Somatosensory Cortex (S1)",
+      "source": "Allen Human Brain Atlas",
+      "description": "Barrel-column abstraction highlighting thalamorecipient layer IV.",
+      "regions": ["BA3b"]
+    },
+    {
+      "id": "BrainGlobe_Visual_Cortex",
+      "file": "brainglobe_visual_cortex.json",
+      "label": "Occipital Visual Cortex (V1/V2)",
+      "source": "BrainGlobe MNI152 Atlas",
+      "description": "Feedforward V1→V2 stream with deep-layer feedback.",
+      "regions": ["BA17", "BA18"]
+    },
+    {
+      "id": "Julich_Thalamocortical_Loop",
+      "file": "julich_thalamocortical_loop.json",
+      "label": "Mediodorsal ↔ PFC Loop",
+      "source": "EBRAINS Julich-Brain Atlas",
+      "description": "Mediodorsal thalamus engaging PFC with reticular inhibition.",
+      "regions": ["MD thalamus", "PFC"]
+    }
+  ]
+}

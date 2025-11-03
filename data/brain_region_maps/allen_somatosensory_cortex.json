@@ -1,0 +1,110 @@
+{
+  "id": "Allen_Somatosensory_Cortex",
+  "regionName": "Primary Somatosensory Cortex (BA3b)",
+  "metadata": {
+    "atlas": "Allen Human Brain Atlas",
+    "release": "2023-10",
+    "references": [
+      "Allen Brain Atlas structure graph: Somatosensory areas",
+      "Ramaswamy et al., 2021, Nat. Commun. 12: Layer-specific microcircuits in S1"
+    ],
+    "notes": [
+      "Granular layer IV dominates thalamic input; counts scaled to 0.8 mm column.",
+      "Inhibitory composition derived from human single nucleus transcriptomics."
+    ]
+  },
+  "clusters": [
+    {
+      "id": "S1_L2_3",
+      "name": "S1 Layers 2/3",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 110 },
+        { "preset": "basket", "count": 26 },
+        { "preset": "chandelier", "count": 6 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.21, "type": "excitatory", "weight": 0.79 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.54, "type": "excitatory", "weight": 0.74 },
+        { "from": "pyramidal", "to": "chandelier", "probability": 0.36, "type": "excitatory", "weight": 0.70 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.82, "type": "inhibitory", "weight": 0.64 },
+        { "from": "basket", "to": "basket", "probability": 0.29, "type": "inhibitory", "weight": 0.52 },
+        { "from": "chandelier", "to": "pyramidal", "probability": 0.89, "type": "inhibitory", "weight": 0.83 }
+      ],
+      "metadata": {
+        "lamina": "Supragranular",
+        "dominantTypes": ["IT pyramidal", "PV basket", "chandelier"]
+      }
+    },
+    {
+      "id": "S1_L4",
+      "name": "S1 Layer 4 Barrel",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 95 },
+        { "preset": "basket", "count": 42 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.18, "type": "excitatory", "weight": 0.68 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.61, "type": "excitatory", "weight": 0.71 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.86, "type": "inhibitory", "weight": 0.66 },
+        { "from": "basket", "to": "basket", "probability": 0.31, "type": "inhibitory", "weight": 0.59 }
+      ],
+      "metadata": {
+        "lamina": "Granular",
+        "dominantTypes": ["Spiny stellate IT", "PV basket"]
+      }
+    },
+    {
+      "id": "S1_L5_6",
+      "name": "S1 Layers 5/6",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 130 },
+        { "preset": "basket", "count": 30 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.24, "type": "excitatory", "weight": 0.82 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.47, "type": "excitatory", "weight": 0.75 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.79, "type": "inhibitory", "weight": 0.69 },
+        { "from": "basket", "to": "basket", "probability": 0.33, "type": "inhibitory", "weight": 0.58 }
+      ],
+      "metadata": {
+        "lamina": "Infragranular",
+        "dominantTypes": ["IT/CT pyramidal", "PV basket"]
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromCluster": "S1_L4",
+      "toCluster": "S1_L2_3",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.32, "type": "excitatory", "weight": 0.93, "delay": 2.1 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.27, "type": "excitatory", "weight": 0.88, "delay": 2.0 }
+      ],
+      "metadata": {
+        "projection": "Feedforward barrel → supragranular"
+      }
+    },
+    {
+      "fromCluster": "S1_L2_3",
+      "toCluster": "S1_L5_6",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.26, "type": "excitatory", "weight": 0.85, "delay": 3.0 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.22, "type": "excitatory", "weight": 0.77, "delay": 2.8 }
+      ],
+      "metadata": {
+        "projection": "Columnar IT → deep layers"
+      }
+    },
+    {
+      "fromCluster": "S1_L5_6",
+      "toCluster": "S1_L4",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.14, "type": "excitatory", "weight": 0.73, "delay": 3.4 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.18, "type": "inhibitory", "weight": 0.67, "delay": 3.1 }
+      ],
+      "metadata": {
+        "projection": "Feedback deep → barrel"
+      }
+    }
+  ]
+}

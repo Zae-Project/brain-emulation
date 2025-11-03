@@ -214,14 +214,14 @@
     return finalTemplate;
   }
 
-  function registerTemplate(key, template) {
+  function registerTemplate(key, template, source = 'external') {
     if (!key || typeof key !== 'string') {
       throw new Error('registerTemplate requires a string key');
     }
     if (!template || typeof template !== 'object') {
       throw new Error('registerTemplate requires a template object');
     }
-    return assignTemplate(key, template);
+    return assignTemplate(key, template, source);
   }
 
   function unregisterTemplate(key) {

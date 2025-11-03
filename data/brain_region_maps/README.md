@@ -31,7 +31,12 @@ This folder stores curated JSON templates that can be imported directly with the
 | File | Notes |
 | --- | --- |
 | `allen_prefrontal_cortex.json` | Two-cluster abstraction of Allen Human BA10/46 with excitatory/inhibitory populations. |
+| `allen_motor_cortex.json` | Layer-specific BA4 column featuring corticospinal Layer 5B neurons. |
+| `allen_somatosensory_cortex.json` | Barrel-column representation of BA3b with thalamorecipient layer 4. |
+| `brainglobe_visual_cortex.json` | Feedforward V1→V2 stream from BrainGlobe’s MNI152 atlas. |
 | `julich_thalamocortical_loop.json` | Mediodorsal thalamus ↔ prefrontal cortex loop derived from Julich-Brain (EBRAINS siibra). |
+
+All files listed above are referenced by `manifest.json`, which the client fetches on load. Any valid template included in the manifest appears automatically in the preset dropdown.
 
 ## Adding new maps
 
@@ -39,6 +44,7 @@ This folder stores curated JSON templates that can be imported directly with the
 2. Aggregate neuron counts per cell-type and map them to our presets (`pyramidal`, `basket`, `relay`, `inhibitory`, `chandelier`, ...).
 3. Fill `internalConnectivity` and `connections` with probabilities/weights (normalized to `[0,1]`, sign encoded via `type`).
 4. Save the JSON in this directory and verify it round-trips via `SNN_CONFIG_IO.deserializeTemplate`.
-5. Import through the HUD or call `SNN_REGISTRY.registerTemplate` programmatically to expose it in the preset list.
+5. Run `node scripts/refresh_brain_region_manifest.mjs` to rebuild `manifest.json`.
+6. Import through the HUD or call `SNN_REGISTRY.registerTemplate` programmatically to expose it in the preset list. (The manifest-driven bootstrap handles this automatically on reload.)
 
 Any template placed here is version-controlled and documented, ensuring reproducible atlas imports.

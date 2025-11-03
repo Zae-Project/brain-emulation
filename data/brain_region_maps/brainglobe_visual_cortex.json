@@ -1,0 +1,108 @@
+{
+  "id": "BrainGlobe_Visual_Cortex",
+  "regionName": "Occipital Visual Cortex (V1/V2)",
+  "metadata": {
+    "atlas": "BrainGlobe atlasapi (MNI152)",
+    "release": "2024-02",
+    "references": [
+      "BrainGlobe Atlas API - MNI152 0.5mm",
+      "Burkhalter, 2019, Annu. Rev. Vis. Sci. 5: Cortical circuit motifs in human V1/V2"
+    ],
+    "notes": [
+      "Voxel counts converted using 80k neurons/mm^3 superficial, 60k deep.",
+      "Connectivity emphasises strong V1→V2 feedforward drive."
+    ]
+  },
+  "clusters": [
+    {
+      "id": "V1_Superficial",
+      "name": "V1 Superficial (L2/3)",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 140 },
+        { "preset": "basket", "count": 32 },
+        { "preset": "chandelier", "count": 6 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.24, "type": "excitatory", "weight": 0.86 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.63, "type": "excitatory", "weight": 0.81 },
+        { "from": "pyramidal", "to": "chandelier", "probability": 0.38, "type": "excitatory", "weight": 0.76 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.84, "type": "inhibitory", "weight": 0.70 },
+        { "from": "basket", "to": "basket", "probability": 0.31, "type": "inhibitory", "weight": 0.58 },
+        { "from": "chandelier", "to": "pyramidal", "probability": 0.91, "type": "inhibitory", "weight": 0.87 }
+      ],
+      "metadata": {
+        "features": ["Pinwheel orientation columns", "High-density PV interneurons"]
+      }
+    },
+    {
+      "id": "V1_Deep",
+      "name": "V1 Deep (L5/6)",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 125 },
+        { "preset": "basket", "count": 28 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.21, "type": "excitatory", "weight": 0.82 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.52, "type": "excitatory", "weight": 0.75 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.77, "type": "inhibitory", "weight": 0.68 },
+        { "from": "basket", "to": "basket", "probability": 0.29, "type": "inhibitory", "weight": 0.56 }
+      ],
+      "metadata": {
+        "features": ["CT projecting pyramidal", "Feedback to LGN and V2"]
+      }
+    },
+    {
+      "id": "V2_Superficial",
+      "name": "V2 Superficial",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 130 },
+        { "preset": "basket", "count": 27 },
+        { "preset": "chandelier", "count": 5 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.20, "type": "excitatory", "weight": 0.78 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.59, "type": "excitatory", "weight": 0.74 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.81, "type": "inhibitory", "weight": 0.66 },
+        { "from": "chandelier", "to": "pyramidal", "probability": 0.83, "type": "inhibitory", "weight": 0.80 }
+      ],
+      "metadata": {
+        "features": ["Thick stripe orientation pools", "V2 dorsal stream entry"]
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromCluster": "V1_Superficial",
+      "toCluster": "V2_Superficial",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.41, "type": "excitatory", "weight": 1.08, "delay": 3.6 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.33, "type": "excitatory", "weight": 0.94, "delay": 3.5 }
+      ],
+      "metadata": {
+        "projection": "Feedforward V1→V2"
+      }
+    },
+    {
+      "fromCluster": "V2_Superficial",
+      "toCluster": "V1_Superficial",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.18, "type": "excitatory", "weight": 0.79, "delay": 4.2 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.20, "type": "inhibitory", "weight": 0.73, "delay": 3.9 }
+      ],
+      "metadata": {
+        "projection": "Feedback V2→V1"
+      }
+    },
+    {
+      "fromCluster": "V1_Deep",
+      "toCluster": "V1_Superficial",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.23, "type": "excitatory", "weight": 0.85, "delay": 2.7 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.25, "type": "excitatory", "weight": 0.78, "delay": 2.8 }
+      ],
+      "metadata": {
+        "projection": "Feedback within V1"
+      }
+    }
+  ]
+}
