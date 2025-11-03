@@ -1799,7 +1799,7 @@ class SNNVisualizer {
     });
 
     this.clearTrace();
-    if (this.dom.voltageValue) this.dom.voltageValue.textContent = '--';
+    if (this.dom.voltageValue) this.dom.voltageValue.textContent = "--";
 
     console.log(`Template network built: ${template.regionName || this.config.presetId} (${this.neurons.length} neurons, ${this.connections.length} connections)`);
     this.clearTrace();
@@ -3145,6 +3145,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Remove emergency fallback - it causes the wrong style flash
+
 
 
 
