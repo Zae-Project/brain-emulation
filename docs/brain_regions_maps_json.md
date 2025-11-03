@@ -98,3 +98,16 @@ Our importer (`SNN_CONFIG_IO`) expects templates shaped roughly like:
 6. **Version metadata** – stamp atlas source, release DOI, and transformation parameters in `metadata` so the UI can display provenance.
 
 The heavy lifting lives in a preprocessing script (e.g., `scripts/build_atlas_template.mjs`) so the client only consumes validated templates.
+### Repository Template Library
+
+Curated, ready-to-import templates derived from the pipelines above live in `data/brain_region_maps/`:
+
+| File | Atlas | Summary |
+| --- | --- | --- |
+| `allen_prefrontal_cortex.json` | Allen Human Brain Atlas | BA10/46 two-column abstraction with pyramidal, basket, and chandelier populations. |
+| `allen_motor_cortex.json` | Allen Human Brain Atlas | BA4 corticospinal microcircuit with supragranular feedback. |
+| `allen_somatosensory_cortex.json` | Allen Human Brain Atlas | BA3b barrel-column layers with strong layer IV drive. |
+| `brainglobe_visual_cortex.json` | BrainGlobe MNI152 | Feedforward V1→V2 stream complemented by deep-layer feedback. |
+| `julich_thalamocortical_loop.json` | EBRAINS Julich-Brain | Mediodorsal thalamus ↔ PFC loop with reticular inhibition. |
+
+The HUD now reads `data/brain_region_maps/manifest.json` at startup to auto-register every template listed there. Run `node scripts/refresh_brain_region_manifest.mjs` whenever you drop new template files so the manifest stays in sync. Any manifest entry is lifted into `SNN_REGISTRY` automatically—no manual wiring required beyond the JSON itself.
