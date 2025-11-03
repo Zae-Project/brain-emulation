@@ -18,7 +18,12 @@
 ## Next Actions (from Guide)
 1. ~~Implement the configuration schema layer so templates can be serialized/loaded externally (`Config File Schemas` section of guide).~~ ✅ Deployed via `SNN_CONFIG_IO`, registry helpers, HUD import/export, and inline schema docs.
 2. Surface per-cluster / per-connection metrics in the UI (e.g., display CA3->CA1 probabilities) and allow optional editing before rebuild.
-3. Prepare infrastructure for future plasticity hooks (placeholders for STDP/homeostatic tuning mentioned under `Future Extensions`).
+3. Prepare infrastructure for future plasticity hooks (placeholders for STDP/homeostatic tuning mentioned under Future Extensions).
+4. Build the brain-region JSON importer:
+   - Download and cache an atlas hierarchy (Allen/siibra/BrainGlobe).
+   - Merge cell-type counts (Allen Cell Types/NeuroMorpho) into 
+euronGroups presets.
+   - Map macro-connectome weights to template connections and emit serialized templates ready for Import.
 
 ## Verification Checklist
 - [ ] Manual smoke test: select each preset and confirm network builds without console errors.
@@ -28,5 +33,9 @@
 - [ ] Import an external template JSON and verify it appears in the preset dropdown and builds successfully.
 - [ ] Click neurons across presets to confirm the inspector reports correct region/cluster/type data and biophysical parameters.
 - [ ] Select lessons from the dropdown to ensure the modal opens (and no residual bottom card appears).
+- [ ] Run the atlas-import script on a sample JSON (Allen/siibra) and verify the generated template loads without schema errors.
+
+
+
 
 
