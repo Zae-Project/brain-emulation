@@ -433,7 +433,6 @@ class SNNVisualizer {
       pauseSpikesBtn: document.getElementById("pauseSpikes"),
       injectSpikeBtn: document.getElementById("injectSpike"),
       lessonSelect: document.getElementById("lessonSelect"),
-      lessonContent: document.getElementById("lessonContent"),
       voltageValue: document.getElementById("voltageValue"),
       trace: document.getElementById("trace"),
       errEl: document.getElementById("err"),
@@ -2588,31 +2587,8 @@ class SNNVisualizer {
   updateLesson(lessonNumber) {
     const lesson = this.lessonConfig[lessonNumber];
 
-    if (lesson && this.dom.lessonContent) {
-      const snippet = `
-      <div class="lesson">
-        <strong>${lesson.title}</strong><br />
-        ${lesson.content}
-        <button class="btn" style="margin-top: 8px; padding: 6px 12px; font-size: 12px;" onclick="window.snnVisualizer.showFullLesson(${lessonNumber})">View Full Lesson</button>
-      </div>
-    `;
-      this.dom.lessonContent.innerHTML = this.applyThemeColorsToMarkup(snippet);
-      // Make sure the info container is visible with correct styling
-      const infoElement = document.getElementById("info");
-      if (infoElement) {
-        infoElement.style.display = "block";
-        infoElement.style.position = "fixed";
-        infoElement.style.right = "16px";
-        infoElement.style.bottom = "16px";
-        infoElement.style.maxWidth = "400px";
-        infoElement.style.zIndex = "100";
-        infoElement.style.background = this.theme.surface1;
-        infoElement.style.border = `1px solid ${this.theme.border}`;
-        infoElement.style.backdropFilter = "blur(12px)";
-        infoElement.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.4)";
-        infoElement.style.padding = "20px";
-      }
-    }
+    if (!lesson) return;
+    this.showFullLesson(lessonNumber);
   }
 
 

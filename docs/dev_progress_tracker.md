@@ -7,6 +7,7 @@
 - `applyPreset` now locks sliders, loads the appropriate template, and the network builder instantiates neurons/edges directly from template connectivity rules.
 - Created `js/templates/config_io.js` with validation/serialisation helpers and wired import/export buttons in the HUD so templates can be saved to or loaded from JSON.
 - Added an expanded neuron detail inspector: clicking any neuron now surfaces region, cluster, cell-type, and biophysical parameters plus connectivity counts in the right-hand panel (sourced from template metadata).
+- Retired the persistent lesson card, triggering the full-lesson modal on dropdown selection, and repositioned the preset/status bar pair to the top center for a cleaner layout.
 
 ## Technical Notes
 - Template connectivity respects global probability/weight sliders as scaling factors (baseline 0.3 intra / 0.2 inter) and jitters weights for variability.
@@ -26,3 +27,5 @@
 - [ ] Export the active template and confirm the downloaded JSON validates and re-imports without errors.
 - [ ] Import an external template JSON and verify it appears in the preset dropdown and builds successfully.
 - [ ] Click neurons across presets to confirm the inspector reports correct region/cluster/type data and biophysical parameters.
+- [ ] Select lessons from the dropdown to ensure the modal opens (and no residual bottom card appears).
+
