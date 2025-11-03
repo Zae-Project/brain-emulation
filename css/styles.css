@@ -516,10 +516,10 @@ input[type="range"]::-moz-range-thumb {
   margin-left: 16px;
 }
 
-/* Top status bar under presets */
+/* Bottom center status bar */
 #statusBar {
   position: fixed;
-  top: 72px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -529,12 +529,12 @@ input[type="range"]::-moz-range-thumb {
   padding: 8px 20px;
   border: 1px solid rgba(216, 155, 90, 0.35);
   backdrop-filter: blur(12px);
-  box-shadow: 0 16px 28px rgba(9, 4, 1, 0.5);
+  box-shadow: 0 20px 36px rgba(9, 4, 1, 0.55);
   font-family: var(--font-sans);
   font-size: 12px;
   color: var(--text-2);
   border-radius: 999px;
-  z-index: 13;
+  z-index: 12;
 }
 
 .nav-emoji { cursor: pointer; margin-left: 4px; }
@@ -542,7 +542,7 @@ input[type="range"]::-moz-range-thumb {
 /* Popover nav controls near status bar; hidden by default */
 #navControls.nav-pop {
   position: fixed;
-  top: 116px;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   display: none;

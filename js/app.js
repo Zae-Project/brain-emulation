@@ -2576,19 +2576,28 @@ class SNNVisualizer {
 
   initLessons() {
     if (this.dom.lessonSelect) {
-      this.dom.lessonSelect.addEventListener("change", (e) => {
-        this.updateLesson(parseInt(e.target.value));
+      const select = this.dom.lessonSelect;
+      const openLesson = (value) => {
+        const lessonNumber = Number.parseInt(value, 10);
+        if (!Number.isFinite(lessonNumber)) return;
+        this.showFullLesson(lessonNumber);
+      };
+
+      select.dataset.lastSelection = select.value || "";
+
+      select.addEventListener("change", (e) => {
+        const current = e.target.value;
+        select.dataset.lastSelection = current;
+        openLesson(current);
+      });
+
+      select.addEventListener("click", () => {
+        const current = select.value;
+        if (current === select.dataset.lastSelection) {
+          openLesson(current);
+        }
       });
     }
-
-    this.updateLesson(1);
-  }
-
-  updateLesson(lessonNumber) {
-    const lesson = this.lessonConfig[lessonNumber];
-
-    if (!lesson) return;
-    this.showFullLesson(lessonNumber);
   }
 
 
