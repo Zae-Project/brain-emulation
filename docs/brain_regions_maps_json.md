@@ -14,10 +14,10 @@ Short answer: yes—you can get JSON for human brain region maps and related “
 
 - **NeuroMorpho.org** has an official REST API that returns JSON metadata (filter by _species=Human_, _brain_region=…_, _cell_type=…_). You then fetch the SWC reconstructions. Good for “give me all human hippocampal interneurons with metadata in JSON.” ([neuromorpho.org][5])
 
-**4 Connectivity (“neural networks”)**
+**4 Connectivity ("neural networks")**
 
 - **Macro-scale (region-to-region):** The **Human Connectome Project (HCP)** provides structural/functional connectomes; access is via REST/AWS after registration. Matrices are typically in CIFTI/NIfTI/CSV, but trivial to export as JSON adjacency. The **Brainnetome Atlas** also publishes connectivity patterns for its 246-region parcellation. ([wiki.humanconnectome.org][6])
-- **Micro-scale (synapse-level):** The **H01 human cortex EM** release is a petavoxel partial human connectome. Data are served in Neuroglancer “precomputed” format (metadata/annotations via JSON-speaking services like **CAVE**). This is the closest thing to a human neuron-level network, but it’s a tiny cortical fragment—not whole-brain. ([h01-release.storage.googleapis.com][7])
+- **Micro-scale (synapse-level):** The **H01 human cortex EM** release is a petavoxel partial human connectome. Data are served in Neuroglancer "precomputed" format (metadata/annotations via JSON-speaking services like **CAVE**). This is the closest thing to a human neuron-level network, but it's a tiny cortical fragment-not whole-brain. ([h01-release.storage.googleapis.com][7])
 
 ---
 
@@ -44,3 +44,57 @@ If you tell me the granularity you want (region ontology, cell-type clusters, mo
 [5]: https://www.neuromorpho.org/apiReference.html?utm_source=chatgpt.com "cngpro.gmu.edu:8080 API Reference - NeuroMorpho.Org"
 [6]: https://wiki.humanconnectome.org/docs/How%20To%20Access%20Subject%20Data%20via%20REST.html?utm_source=chatgpt.com "How To Access HCP-YA Subject Data via REST"
 [7]: https://h01-release.storage.googleapis.com/landing.html?utm_source=chatgpt.com "A Browsable Petascale Reconstruction of the Human Cortex"
+---
+
+### Mapping These Sources into Our Template Schema
+
+Our importer (`SNN_CONFIG_IO`) expects templates shaped roughly like:
+
+```jsonc
+{
+  "id": "Region_Key",
+  "regionName": "Frontal Cortex",
+  "clusters": [
+    {
+      "id": "PFC_column_1",
+      "name": "PFC Column 1",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 120 },
+        { "preset": "basket", "count": 30 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.3, "type": "excitatory" }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "fromCluster": "PFC_column_1",
+      "toCluster": "PFC_column_2",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.2, "type": "excitatory", "weight": 0.9 }
+      ]
+    }
+  ],
+  "metadata": { "atlas": "Allen Human Brain Atlas" }
+}
+```
+
+| External JSON | Template field(s) | Notes |
+| --- | --- | --- |
+| Allen structure graph (`structure.id`, `structure.name`, `structure.acronym`) | `clusters[*].id`, `clusters[*].name`, `metadata.acronym` | Build one cluster per atlas region; parent-child relations can become default `connections`. |
+| EBRAINS siibra (`regions[*].id/name`, `features`) | `regionName`, `clusters[*].metadata` | Use siibra parcellations for cluster layout; attach available features (thickness, receptors) as metadata. |
+| BrainGlobe atlas JSON | `clusters[*].metadata.voxelCount` → `neuronGroups` | Convert voxel counts to neuron counts via density heuristics; map atlas hierarchy identical to Allen. |
+| NeuroMorpho API (`cell_type`, `brain_region`) | `neuronGroups[*].preset/count` | Aggregate counts per brain_region + cell_type, translate to our preset names using a lookup. |
+| HCP/Brainnetome matrices | `connections[*].connectivity` | Normalize weights to `[0,1]`; assign `type` based on known excitatory/inhibitory projections. |
+
+**Proposed ingestion pipeline**
+
+1. **Fetch atlas hierarchy** (Allen, siibra, BrainGlobe) and cache locally.
+2. **Join cell-type data** (Allen Cell Types / NeuroMorpho) to produce `neuronGroups` counts per region/preset.
+3. **Generate clusters** – one per region (or subregion) with metadata (acronym, references, coordinates).
+4. **Add connections** – use macro-connectome matrices where available; otherwise seed archetypal intra-cluster rules and leave inter-cluster empty.
+5. **Serialize via `SNN_CONFIG_IO.serializeTemplate`** and expose through Import (local file or hosted URL).
+6. **Version metadata** – stamp atlas source, release DOI, and transformation parameters in `metadata` so the UI can display provenance.
+
+The heavy lifting lives in a preprocessing script (e.g., `scripts/build_atlas_template.mjs`) so the client only consumes validated templates.
