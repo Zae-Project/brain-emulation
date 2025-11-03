@@ -147,7 +147,7 @@
       <div id="templateActions">
         <button class="btn btn-ghost" id="exportTemplate" title="Download the active template configuration">Export</button>
         <button class="btn" id="importTemplate" title="Load a template configuration from JSON">Import</button>
-        <button class="btn btn-icon" id="importHelp" title="Template import documentation">ℹ</button>
+        <button class="btn btn-icon" id="importHelp" title="Template import documentation" aria-label="Template import documentation">&#9432;</button>
         <input type="file" id="templateImport" accept="application/json,.json" hidden />
       </div>
     </div>
@@ -420,10 +420,6 @@
       <canvas id="trace" width="260" height="150"></canvas>
     </div>
 
-    <div id="info">
-      <div id="lessonContent"></div>
-    </div>
-
     <!-- STATUS BAR (center bottom) -->
     <div id="statusBar">
       <span id="statusText">CAM: -- | ZOOM: -- | NEURONS: --</span>
@@ -450,4 +446,5 @@
     <script src="js/app.js?v=desert-20250105"></script>
   </body>
 </html>
+
 
