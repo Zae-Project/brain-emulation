@@ -1,0 +1,77 @@
+{
+  "id": "Julich_Thalamocortical_Loop",
+  "regionName": "Julich Thalamocortical Loop (MD ↔ PFC)",
+  "metadata": {
+    "source": "EBRAINS siibra-api · Julich-Brain Atlas",
+    "release": "v3.0",
+    "references": [
+      "Amunts et al., Science 2020",
+      "https://siibra-api-stable.apps.hbp.eu"
+    ],
+    "notes": "Simplified mediodorsal thalamus to prefrontal cortex loop with reticular gating."
+  },
+  "clusters": [
+    {
+      "id": "MD_Thalamus_Relay",
+      "name": "Mediodorsal Thalamus Relay",
+      "neuronGroups": [
+        { "preset": "relay", "count": 260 },
+        { "preset": "inhibitory", "count": 60 }
+      ],
+      "internalConnectivity": [
+        { "from": "relay", "to": "relay", "probability": 0.05, "type": "excitatory", "weight": 0.4 },
+        { "from": "relay", "to": "inhibitory", "probability": 0.6, "type": "excitatory", "weight": 0.7 },
+        { "from": "inhibitory", "to": "relay", "probability": 0.88, "type": "inhibitory", "weight": 1.15 }
+      ],
+      "metadata": {
+        "centroid_mm": [ -5.2, -11.4, 9.8 ],
+        "parcellation": "Julich-Brain MD nucleus",
+        "notes": "Relay and reticular mix based on Julich cytoarchitecture."
+      }
+    },
+    {
+      "id": "PFC_Target_Column",
+      "name": "Prefrontal Target Column",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 340 },
+        { "preset": "basket", "count": 80 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.09, "type": "excitatory", "weight": 0.78 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.52, "type": "excitatory", "weight": 0.88 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.86, "type": "inhibitory", "weight": 1.2 }
+      ],
+      "metadata": {
+        "centroid_mm": [ 32.6, 42.1, 23.3 ],
+        "parcellation": "Julich PFC (areas Fp1/Fp2)",
+        "notes": "Counts scaled from siibra volumetry and typical cortical densities."
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromCluster": "MD_Thalamus_Relay",
+      "toCluster": "PFC_Target_Column",
+      "connectivity": [
+        { "from": "relay", "to": "pyramidal", "probability": 0.44, "type": "excitatory", "weight": 1.05, "delay": 3.5 },
+        { "from": "relay", "to": "basket", "probability": 0.32, "type": "excitatory", "weight": 0.82, "delay": 3.5 }
+      ],
+      "metadata": {
+        "tract": "MD ↔ PFC (Julich)",
+        "notes": "Probabilities scaled from siibra tract density (normalized)."
+      }
+    },
+    {
+      "fromCluster": "PFC_Target_Column",
+      "toCluster": "MD_Thalamus_Relay",
+      "connectivity": [
+        { "from": "pyramidal", "to": "relay", "probability": 0.26, "type": "excitatory", "weight": 0.76, "delay": 4.1 },
+        { "from": "pyramidal", "to": "inhibitory", "probability": 0.18, "type": "excitatory", "weight": 0.7, "delay": 4.1 }
+      ],
+      "metadata": {
+        "tract": "PFC corticothalamic feedback",
+        "notes": "Top-down gating; values derived from Julich connectivity fingerprints."
+      }
+    }
+  ]
+}
