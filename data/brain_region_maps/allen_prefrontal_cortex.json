@@ -1,0 +1,80 @@
+{
+  "id": "Allen_Human_Prefrontal",
+  "regionName": "Allen Human Prefrontal Cortex (BA10/46)",
+  "metadata": {
+    "source": "Allen Human Brain Atlas – Structure Graph (Human)",
+    "release": "2017",
+    "references": [
+      "https://human.brain-map.org/static/download"
+    ],
+    "notes": "Simplified two-cluster representation derived from Brodmann areas 10/46 with approximated cell-type proportions."
+  },
+  "clusters": [
+    {
+      "id": "BA10_Lateral",
+      "name": "BA10 Lateral Column",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 420 },
+        { "preset": "basket", "count": 90 },
+        { "preset": "chandelier", "count": 40 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.28, "type": "excitatory", "weight": 0.85 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.55, "type": "excitatory", "weight": 0.9 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.82, "type": "inhibitory", "weight": 1.15 },
+        { "from": "chandelier", "to": "pyramidal", "probability": 0.65, "type": "inhibitory", "weight": 1.05 }
+      ],
+      "metadata": {
+        "acronym": "BA10",
+        "hemisphere": "bilateral",
+        "notes": "Frontopolar cortex; higher-order integration."
+      }
+    },
+    {
+      "id": "BA46_Dorsal",
+      "name": "BA46 Dorsal Column",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 360 },
+        { "preset": "basket", "count": 100 },
+        { "preset": "chandelier", "count": 30 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.26, "type": "excitatory", "weight": 0.82 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.58, "type": "excitatory", "weight": 0.92 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.84, "type": "inhibitory", "weight": 1.12 },
+        { "from": "chandelier", "to": "pyramidal", "probability": 0.60, "type": "inhibitory", "weight": 1.02 }
+      ],
+      "metadata": {
+        "acronym": "BA46",
+        "hemisphere": "bilateral",
+        "notes": "Dorsolateral prefrontal cortex; working-memory circuit."
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromCluster": "BA10_Lateral",
+      "toCluster": "BA46_Dorsal",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.18, "type": "excitatory", "weight": 0.78 },
+        { "from": "pyramidal", "to": "basket", "probability": 0.12, "type": "excitatory", "weight": 0.74 }
+      ],
+      "metadata": {
+        "projection": "frontopolar → dorsolateral",
+        "notes": "Long-range excitatory projections derived from diffusion tractography (approx.)."
+      }
+    },
+    {
+      "fromCluster": "BA46_Dorsal",
+      "toCluster": "BA10_Lateral",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.16, "type": "excitatory", "weight": 0.76 },
+        { "from": "basket", "to": "pyramidal", "probability": 0.08, "type": "inhibitory", "weight": 0.9 }
+      ],
+      "metadata": {
+        "projection": "dorsolateral ↔ frontopolar",
+        "notes": "Reciprocal feedback within PFC loop."
+      }
+    }
+  ]
+}
