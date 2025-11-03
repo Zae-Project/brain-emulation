@@ -576,15 +576,7 @@ class SNNVisualizer {
         this.dom.voltageValue.textContent = `${v.toFixed(3)} (${ago})`;
       }
 
-      // Update right panel neuron metadata
-      if (this.dom.neuronMeta) {
-        const n = this.state.selectedNeuron;
-        const typeStr = n.type === 'I' ? 'Inhibitory' : 'Excitatory';
-        const preset = this.config.presetId || 'None';
-        const clusterInfo = typeof n.clusterId === 'number' ? `#${n.clusterId}` : '—';
-        const arche = n.archetypeLabel || n.archetypeId || '—';
-        this.dom.neuronMeta.textContent = `Type: ${typeStr}  |  Cluster: ${clusterInfo} (${arche})  |  Preset: ${preset}`;
-      }
+      this.renderNeuronDetails(this.state.selectedNeuron);
     }
   }
 
@@ -637,6 +629,195 @@ class SNNVisualizer {
       y: a.z * b.x - a.x * b.z,
       z: a.x * b.y - a.y * b.x,
     };
+  }
+
+  formatLabel(value) {
+    if (value === undefined || value === null) return "";
+    return value
+      .toString()
+      .replace(/[_\-]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/\b\w/g, (match) => match.toUpperCase());
+  }
+
+  buildMetaGrid(rows) {
+    if (!rows || !rows.length) return "";
+    const cells = rows
+      .filter((row) => row && row.label)
+      .map((row) => {
+        let value = row.value;
+        if (value === undefined || value === null || value === "—") {
+          value = "—";
+        } else if (typeof value === "number") {
+          value = value.toString();
+        }
+        return `<span class="meta-label">${row.label}</span><span class="meta-value">${value}</span>`;
+      })
+      .join("");
+    if (!cells) return "";
+    return `<div class="meta-grid">${cells}</div>`;
+  }
+
+  resolveMetadataNote(metadata) {
+    if (!metadata) return null;
+    const candidates = [
+      ...(Array.isArray(metadata.anatomicalNotes) ? metadata.anatomicalNotes : []),
+      ...(Array.isArray(metadata.notes) ? metadata.notes : []),
+      ...(Array.isArray(metadata.references) ? metadata.references : []),
+      ...(Array.isArray(metadata.neuromodulators) ? metadata.neuromodulators : []),
+      typeof metadata.description === "string" ? metadata.description : null,
+    ];
+    return (
+      candidates.find((entry) => typeof entry === "string" && entry.trim().length) || null
+    );
+  }
+
+  getClusterMetaForNeuron(neuron) {
+    if (!neuron || !this.clusterMetadata) return null;
+    return (
+      this.clusterMetadata.find(
+        (meta) => meta && (meta.id === neuron.clusterId || meta.index === neuron.clusterIndex)
+      ) || null
+    );
+  }
+
+  renderNeuronDetails(neuron) {
+    if (!this.dom.neuronMeta) return;
+    if (!neuron) {
+      this.dom.neuronMeta.innerHTML =
+        '<div class="meta-placeholder">Select a neuron to inspect its properties.</div>';
+      return;
+    }
+
+    const region = this.regionInfo || {};
+    const cluster = this.getClusterMetaForNeuron(neuron) || {};
+    const regionNote = this.resolveMetadataNote(region.metadata);
+    const clusterNote = this.resolveMetadataNote(cluster.metadata);
+    const outgoing = Array.isArray(neuron.connections) ? neuron.connections.length : 0;
+    const incoming = this.connections.reduce(
+      (sum, conn) => (conn.to === neuron ? sum + 1 : sum),
+      0
+    );
+    const groupSummary = (cluster.groupSummary || []).map(
+      (entry) => `${entry.label}: ${entry.count}`
+    );
+    const bio = neuron.bio || {};
+    const regionLabel =
+      region.name || region.presetLabel || this.formatLabel(this.config.presetId);
+    const groupLabel = neuron.groupLabel || this.formatLabel(neuron.groupPreset);
+    const excitStr = neuron.type === "I" ? "Inhibitory" : "Excitatory";
+    const synapseType = bio.synapseType ? ` • Synapse: ${bio.synapseType}` : "";
+    const peerGroup =
+      cluster.groups && neuron.groupPreset ? cluster.groups[neuron.groupPreset] : null;
+
+    const intrinsicRows = [
+      {
+        label: "Threshold",
+        value:
+          neuron.threshold !== undefined ? Number(neuron.threshold).toFixed(2) : "—",
+      },
+      {
+        label: "Leak",
+        value: neuron.leak !== undefined ? Number(neuron.leak).toFixed(3) : "—",
+      },
+      {
+        label: "Background",
+        value:
+          neuron.bgImpulse !== undefined ? Number(neuron.bgImpulse).toFixed(3) : "—",
+      },
+      {
+        label: "Spike Gain",
+        value: neuron.spikeGain !== undefined ? Number(neuron.spikeGain).toFixed(2) : "—",
+      },
+      {
+        label: "Refractory",
+        value:
+          neuron.refractoryMs !== undefined
+            ? `${Number(neuron.refractoryMs).toFixed(0)} ms`
+            : "—",
+      },
+    ].filter((row) => row.value !== "—");
+
+    const bioRowsRaw = [
+      { label: "Resting Vm", value: bio.restingPotential },
+      { label: "Spike Threshold", value: bio.spikeThreshold },
+      { label: "Reset Vm", value: bio.resetPotential },
+      { label: "Tau m", value: bio.membraneTimeConstant },
+      { label: "EPSP Rise", value: bio.EPSP_rise },
+      { label: "EPSP Decay", value: bio.EPSP_decay },
+      { label: "IPSP Rise", value: bio.IPSP_rise },
+      { label: "IPSP Decay", value: bio.IPSP_decay },
+      { label: "Synaptic Delay", value: bio.synapticDelay },
+      { label: "Weight", value: bio.weight },
+    ];
+
+    const bioRows = bioRowsRaw
+      .map((row) => {
+        if (row.value === undefined || row.value === null) return null;
+        const suffix =
+          row.label.includes("Vm") || row.label === "Weight"
+            ? row.label === "Weight"
+              ? ""
+              : " mV"
+            : " ms";
+        const digits = row.label === "Weight" ? 2 : 1;
+        return {
+          label: row.label,
+          value: `${Number(row.value).toFixed(digits)}${suffix}`,
+        };
+      })
+      .filter(Boolean);
+
+    const connectionsGrid = this.buildMetaGrid([
+      { label: "Outgoing", value: outgoing },
+      { label: "Incoming", value: incoming },
+      { label: "Cluster Size", value: cluster.totalNeurons ?? "—" },
+      { label: "Peers", value: peerGroup ? peerGroup.length : "—" },
+    ]);
+
+    const intrinsicGrid = this.buildMetaGrid([...intrinsicRows, ...bioRows]);
+
+    const groupLine = groupSummary.length
+      ? `<div class="meta-note">${groupSummary.join(" • ")}</div>`
+      : "";
+
+    this.dom.neuronMeta.innerHTML = `
+      <div class="meta-section">
+        <div class="meta-heading">Region</div>
+        <div class="meta-value">${regionLabel || "Procedural Network"}</div>
+        ${
+          region.presetLabel && region.presetLabel !== regionLabel
+            ? `<div class="meta-note">Preset: ${region.presetLabel}</div>`
+            : ""
+        }
+        ${regionNote ? `<div class="meta-note">${regionNote}</div>` : ""}
+      </div>
+      <div class="meta-section">
+        <div class="meta-heading">Cluster</div>
+        <div class="meta-value">${cluster.label || `Cluster ${((cluster.index ?? 0) + 1)}`}</div>
+        ${clusterNote ? `<div class="meta-note">${clusterNote}</div>` : ""}
+        ${groupLine}
+      </div>
+      <div class="meta-section">
+        <div class="meta-heading">Neuron</div>
+        <div class="meta-value">${groupLabel || excitStr}</div>
+        <div class="meta-note">Type: ${excitStr}${synapseType}</div>
+        ${
+          connectionsGrid
+            ? `<div class="meta-subheading">Connectivity</div>${connectionsGrid}`
+            : ""
+        }
+      </div>
+      ${
+        intrinsicGrid
+          ? `<div class="meta-section">
+              <div class="meta-heading">Biophysics</div>
+              ${intrinsicGrid}
+            </div>`
+          : ""
+      }
+    `;
   }
 
   updateCameraPosition() {
@@ -1127,6 +1308,8 @@ class SNNVisualizer {
     this.connections = [];
     this.voltageHistory = [];
     this.state.selectedNeuron = null;
+    this.clusterMetadata = [];
+    this.regionInfo = null;
 
     if (this.config.presetId && this.config.presetId !== 'None' && this.activeTemplate) {
       this.createNetworkFromTemplate(this.activeTemplate);
@@ -1146,6 +1329,22 @@ class SNNVisualizer {
     const spacingX = 240;
     const spacingY = 240;
 
+    const registry = window.SNN_REGISTRY;
+    const presetEntry = (this.config.presetId && registry)
+      ? registry.RegionPresets?.[this.config.presetId]
+      : null;
+    const regionLabel =
+      presetEntry?.label ||
+      (this.config.presetId && this.config.presetId !== 'None'
+        ? this.formatLabel(this.config.presetId)
+        : 'Procedural Network');
+    this.regionInfo = {
+      id: this.config.presetId || 'procedural',
+      name: regionLabel,
+      presetLabel: presetEntry?.label || null,
+      metadata: presetEntry?.metadata || null,
+    };
+
     // From preset: per-cluster archetype list
     let clusterTypeList = new Array(clusterCount).fill(null);
     if (this.config.presetId && this.config.presetId !== 'None' && window.SNN_REGISTRY) {
@@ -1160,6 +1359,23 @@ class SNNVisualizer {
         }
       }
     }
+
+    const clustersMeta = Array.from({ length: clusterCount }, (_, idx) => {
+      const archeId = clusterTypeList[idx];
+      const arche = archeId && registry ? registry.ClusterTypes?.[archeId] : null;
+      return {
+        id: idx,
+        label: arche?.label || `Cluster ${idx + 1}`,
+        index: idx,
+        regionId: this.regionInfo.id,
+        regionName: this.regionInfo.name,
+        archetypeId: archeId || null,
+        archetypeLabel: arche?.label || null,
+        metadata: arche?.metadata || null,
+        neurons: [],
+        groups: {},
+      };
+    });
 
     const sampleTypeId = (mix) => {
       if (!mix || mix.length === 0) return null;
@@ -1200,13 +1416,18 @@ class SNNVisualizer {
 
       // Determine neuron type (from preset mix if available)
       let nType = null;
+      let groupPresetId = null;
       if (clusterTypeList[clusterId] && window.SNN_REGISTRY) {
         const arche = window.SNN_REGISTRY.ClusterTypes[clusterTypeList[clusterId]];
         const typeId = sampleTypeId(arche?.mix);
+        groupPresetId = typeId;
         const def = window.SNN_REGISTRY.NeuronTypes[typeId];
         if (def) nType = def;
       }
       const isExcitatory = nType ? (nType.type !== 'inhibitory') : (i < Math.floor(this.config.excRatio * networkSize));
+      const groupPreset = groupPresetId || (isExcitatory ? 'excitatory' : 'inhibitory');
+      const groupLabel = this.formatLabel(groupPreset);
+      const clusterMeta = clustersMeta[clusterId];
 
       this.neurons.push({
         id: i,
@@ -1227,9 +1448,28 @@ class SNNVisualizer {
         bgImpulse: nType?.bgImpulse,
         spikeGain: nType?.spikeGain,
         clusterId,
+        clusterIndex: clusterId,
+        clusterLabel: clusterMeta.label,
+        clusterMetadata: clusterMeta.metadata || null,
         archetypeId: clusterTypeList[clusterId] || null,
-        archetypeLabel: (clusterTypeList[clusterId] && window.SNN_REGISTRY && window.SNN_REGISTRY.ClusterTypes[clusterTypeList[clusterId]]?.label) || null,
+        archetypeLabel:
+          (clusterTypeList[clusterId] &&
+            window.SNN_REGISTRY &&
+            window.SNN_REGISTRY.ClusterTypes[clusterTypeList[clusterId]]?.label) ||
+          null,
+        regionId: this.regionInfo.id,
+        regionName: this.regionInfo.name,
+        regionMetadata: this.regionInfo.metadata || null,
+        groupPreset,
+        groupLabel,
+        neuronTypeId: groupPreset,
+        neuronTypeLabel: groupLabel,
+        bio: nType?.bio || null,
       });
+      const neuron = this.neurons[this.neurons.length - 1];
+      clusterMeta.neurons.push(neuron);
+      if (!clusterMeta.groups[groupPreset]) clusterMeta.groups[groupPreset] = [];
+      clusterMeta.groups[groupPreset].push(neuron);
     }
 
     // Create connections between neurons with probability based on cluster membership
@@ -1310,6 +1550,17 @@ class SNNVisualizer {
       selection.forEach((n) => this.fireNeuron(n));
     }
 
+    clustersMeta.forEach((meta) => {
+      meta.totalNeurons = meta.neurons.length;
+      meta.groupSummary = Object.entries(meta.groups).map(([preset, list]) => ({
+        preset,
+        label: this.formatLabel(preset),
+        count: list.length,
+        type: (registry?.NeuronTypes?.[preset]?.type) || null,
+      }));
+    });
+    this.clusterMetadata = clustersMeta;
+
     // Sync UI labels to derived sizes
     if (this.dom.sizeValueLabel) this.dom.sizeValueLabel.textContent = this.config.networkSize;
     if (this.dom.networkSizeSlider) this.dom.networkSizeSlider.value = String(this.config.networkSize);
@@ -1324,6 +1575,7 @@ class SNNVisualizer {
     if (this.dom.voltageValue) {
       this.dom.voltageValue.textContent = "--";
     }
+    if (this.dom.neuronMeta) this.renderNeuronDetails(null);
 
     console.log(
       `Network created with ${this.neurons.length} neurons and ${this.connections.length} connections`
@@ -1331,13 +1583,24 @@ class SNNVisualizer {
   }
 
   createNetworkFromTemplate(template) {
-    const neuronTypes = window.SNN_REGISTRY?.NeuronTypes || {};
+    const registry = window.SNN_REGISTRY;
+    const neuronTypes = registry?.NeuronTypes || {};
     const clusters = Array.isArray(template?.clusters) ? template.clusters : [];
 
     if (!clusters.length) {
       console.warn('Template preset has no clusters', template);
       return;
     }
+
+    const presetEntry = registry?.RegionPresets?.[this.config.presetId];
+    const regionInfo = {
+      id: template.id || this.config.presetId || template.regionName || 'template',
+      name: template.regionName || presetEntry?.label || this.formatLabel(this.config.presetId),
+      presetLabel: presetEntry?.label || null,
+      metadata: template.metadata || presetEntry?.metadata || null,
+    };
+    this.regionInfo = regionInfo;
+    this.clusterMetadata = [];
 
     const clusterCount = clusters.length;
     const cols = Math.ceil(Math.sqrt(clusterCount));
@@ -1388,6 +1651,9 @@ class SNNVisualizer {
         id: clusterCfg.id || `cluster_${idx}`,
         label: clusterCfg.name || `Cluster ${idx + 1}`,
         index: idx,
+        regionId: regionInfo.id,
+        regionName: regionInfo.name,
+        metadata: clusterCfg.metadata || null,
         neurons: [],
         groups: {},
       };
@@ -1406,6 +1672,7 @@ class SNNVisualizer {
         const presetId = group.preset;
         const count = Math.max(0, group.count | 0);
         const typeDef = neuronTypes[presetId] || {};
+        const groupLabel = this.formatLabel(presetId);
         for (let n = 0; n < count; n++) {
           const r = radius * (0.4 + Math.random() * 0.6);
           const theta = Math.random() * Math.PI * 2;
@@ -1433,10 +1700,18 @@ class SNNVisualizer {
             refractoryMs: typeDef.refractoryMs,
             bgImpulse: typeDef.bgImpulse,
             spikeGain: typeDef.spikeGain,
+            bio: typeDef.bio || null,
             groupPreset: presetId,
+            groupLabel,
+            neuronTypeId: presetId,
+            neuronTypeLabel: groupLabel,
             clusterId: clusterMeta.id,
             clusterLabel: clusterMeta.label,
             clusterIndex: idx,
+            clusterMetadata: clusterMeta.metadata || null,
+            regionId: regionInfo.id,
+            regionName: regionInfo.name,
+            regionMetadata: regionInfo.metadata || null,
           };
 
           this.neurons.push(neuron);
@@ -1446,6 +1721,17 @@ class SNNVisualizer {
         }
       });
     });
+
+    clustersMeta.forEach((meta) => {
+      meta.totalNeurons = meta.neurons.length;
+      meta.groupSummary = Object.entries(meta.groups).map(([preset, list]) => ({
+        preset,
+        label: this.formatLabel(preset),
+        count: list.length,
+        type: (registry?.NeuronTypes?.[preset]?.type) || null,
+      }));
+    });
+    this.clusterMetadata = clustersMeta;
 
     // Internal cluster wiring
     clusters.forEach((clusterCfg, idx) => {
@@ -1513,6 +1799,9 @@ class SNNVisualizer {
     if (this.dom.voltageValue) this.dom.voltageValue.textContent = '--';
 
     console.log(`Template network built: ${template.regionName || this.config.presetId} (${this.neurons.length} neurons, ${this.connections.length} connections)`);
+    this.clearTrace();
+    if (this.dom.voltageValue) this.dom.voltageValue.textContent = "--";
+    if (this.dom.neuronMeta) this.renderNeuronDetails(null);
   }
 
   fireNeuron(neuron) {
@@ -2853,4 +3142,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Remove emergency fallback - it causes the wrong style flash
+
 

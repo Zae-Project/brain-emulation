@@ -205,6 +205,78 @@ input[type="range"]::-moz-range-thumb {
   border: 1px solid var(--border);
 }
 
+.neuron-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text-2);
+  min-height: 120px;
+}
+
+.neuron-meta .meta-section {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.neuron-meta .meta-heading {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.neuron-meta .meta-value {
+  color: var(--text);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.neuron-meta .meta-note {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.neuron-meta .meta-subheading {
+  margin-top: 6px;
+  margin-bottom: 4px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.neuron-meta .meta-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.neuron-meta .meta-grid .meta-label {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.neuron-meta .meta-grid .meta-value {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.neuron-meta .meta-placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 12px;
+}
+
 #err {
   position: fixed;
   left: 16px;
