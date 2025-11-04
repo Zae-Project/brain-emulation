@@ -3,120 +3,242 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 1: Basic Spike Dynamics</title>
+    <title>Documentation 1 · Project Overview & Goals</title>
     <style>
-      body {
-        font-family: Inter, system-ui, sans-serif;
-        background: #0f1419;
-        color: #e6e9ef;
-        margin: 0;
-        padding: 20px;
-        line-height: 1.6;
+      :root {
+        --bg: #12100c;
+        --surface: #1f170f;
+        --accent: #c19a6b;
+        --accent-soft: rgba(193, 154, 107, 0.2);
+        --text: #f4eadc;
+        --text-muted: #cdb08f;
+        --border: rgba(193, 154, 107, 0.35);
+        --code-bg: #2c2116;
       }
+
+      body {
+        margin: 0;
+        padding: 32px 20px 48px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.6;
+        max-width: 920px;
+        margin-inline: auto;
+      }
+
       h1,
       h2,
       h3 {
-        color: #ff9bf0;
-        margin-top: 24px;
+        color: var(--accent);
+        margin-top: 32px;
+        letter-spacing: 0.02em;
       }
+
       h1 {
-        font-size: 28px;
+        font-size: 32px;
         margin-bottom: 16px;
       }
+
       h2 {
-        font-size: 22px;
+        font-size: 24px;
         margin-bottom: 12px;
       }
-      code {
-        background: #1e293b;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-family: "Courier New", monospace;
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 8px;
       }
+
+      p {
+        margin: 0 0 16px 0;
+      }
+
       ul,
       ol {
-        margin-left: 20px;
+        margin: 12px 0 20px 24px;
+        padding: 0;
       }
+
       li {
         margin-bottom: 8px;
       }
-      strong {
-        color: #ff9bf0;
+
+      code {
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
       }
-      p {
-        margin-bottom: 12px;
+
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+      }
+
+      .callout strong {
+        color: var(--accent);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin: 20px 0;
+      }
+
+      .grid-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+      }
+
+      .grid-card h3 {
+        margin-top: 0;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 1: Basic Spike Dynamics</h1>
-
+    <h1>Documentation 1 · Project Overview & Goals</h1>
     <p>
-      Spiking Neural Networks (SNNs) use discrete spikes to communicate
-      information, unlike traditional neural networks that use continuous
-      values. This fundamental difference makes SNNs more biologically realistic
-      and energy-efficient.
+      Welcome to the living documentation for our brain emulation visualizer.
+      This reference replaces the old “lesson” flow with a guided handbook that
+      covers every component of the project—from scientific data sources to the
+      interactive interface that renders our spiking neural networks in real
+      time. Each documentation page in this series can be read independently,
+      and together they form a complete reference for contributors, students,
+      and curious explorers.
     </p>
 
-    <h2>Key Concepts</h2>
+    <div class="callout">
+      <strong>Who is this for?</strong>
+      <p>
+        • Newcomers with no neuroscience or coding background who want a plain
+        language introduction.<br />
+        • Developers integrating new brain-region templates or neuron presets.<br />
+        • Researchers and educators who need transparent sourcing for every
+        dataset and assumption baked into the simulator.
+      </p>
+    </div>
 
-    <h3>Membrane Potential</h3>
+    <h2>Project Mission</h2>
     <p>
-      The voltage inside a neuron that accumulates over time. In our simulation,
-      this is represented by the <code>voltage</code> property of each neuron.
-      As the neuron receives inputs from connected neurons, its membrane
-      potential increases.
+      The visualizer sits at the intersection of computational neuroscience,
+      scientific storytelling, and practical tooling. Our mission is to
+      <em>demystify</em> biologically grounded neural networks, provide a
+      sandbox for hypothesis testing, and maintain an audit trail for the data
+      that powers each simulation. The UI embraces cinematic clarity while
+      keeping the underlying models transparent and reproducible.
     </p>
 
-    <h3>Threshold</h3>
-    <p>
-      When the membrane potential reaches this critical level (typically 1.0 in
-      our simulation), the neuron fires a spike. This is the fundamental
-      mechanism that determines when information is transmitted.
-    </p>
+    <h2>High-Level Architecture</h2>
+    <div class="grid">
+      <div class="grid-card">
+        <h3>1. Data Layer</h3>
+        <p>
+          JSON templates in <code>data/brain_region_maps/</code> describe
+          clusters, neuron counts, and connectivity. Sources include the Allen
+          Human Brain Atlas, EBRAINS Julich-Brain, and BrainGlobe Atlas API.
+        </p>
+      </div>
+      <div class="grid-card">
+        <h3>2. Template Registry</h3>
+        <p>
+          <code>js/templates/registry.js</code> loads builtin presets plus any
+          manifest-discovered templates and exposes them to the UI via
+          <code>SNN_REGISTRY</code>.
+        </p>
+      </div>
+      <div class="grid-card">
+        <h3>3. Simulation Core</h3>
+        <p>
+          <code>js/app.js</code> is the rendering + physics engine: it builds
+          neuron instances, steps the spiking dynamics, draws glyphs, and feeds
+          the inspector.
+        </p>
+      </div>
+      <div class="grid-card">
+        <h3>4. Documentation</h3>
+        <p>
+          The <code>lessons/lesson*.html</code> files (now “Documentation
+          Chapters”) plus markdown notes in <code>docs/</code> explain the
+          interface, data pipelines, and research grounding.
+        </p>
+      </div>
+    </div>
 
-    <h3>Spike Generation</h3>
-    <p>
-      A brief electrical pulse sent to all connected neurons when the threshold
-      is reached. In our visualization, you can see this as the bright glow
-      effect around firing neurons.
-    </p>
+    <h2>Design Principles</h2>
+    <ol>
+      <li>
+        <strong>Transparency</strong> · Every visual element (neuron shape,
+        template slider, inspector field) maps to a documented field in our
+        schema. You should never guess where a number or glyph came from.
+      </li>
+      <li>
+        <strong>Biological Plausibility</strong> · Default ratios (≈80% excitatory,
+        20% inhibitory) and connectivity probabilities mirror cortical
+        literature (Beaulieu &amp; Colonnier 1985, Ramaswamy et al. 2021).
+      </li>
+      <li>
+        <strong>Modularity</strong> · You can drop new JSON templates, rebuild
+        the manifest, and the UI will ingest them without code changes.
+      </li>
+      <li>
+        <strong>Accessibility</strong> · The documentation aims for plain
+        language first, technical detail second, so that non-experts can
+        orient themselves quickly.
+      </li>
+    </ol>
 
-    <h3>Reset Mechanism</h3>
-    <p>
-      After firing, the membrane potential returns to 0, preparing the neuron
-      for the next accumulation cycle. This prevents continuous firing and
-      creates the discrete nature of spikes.
-    </p>
-
-    <h2>Interactive Exploration</h2>
-
-    <p>
-      Try adjusting the following parameters to see how they affect spike
-      dynamics:
-    </p>
+    <h2>What You Will Find in this Handbook</h2>
     <ul>
       <li>
-        <strong>Network Size:</strong> More neurons create more complex spike
-        patterns
+        A visual tour of the interface, highlighting each control and panel.
       </li>
       <li>
-        <strong>Connection Probability:</strong> Higher values create more
-        interconnected networks
+        Deep dives into neuron types, color palette choices, and the glyph
+        dictionary used in the renderer.
       </li>
       <li>
-        <strong>Firing Rate:</strong> Controls how often neurons spontaneously
-        fire
+        Step-by-step instructions for importing atlas data, validating schema
+        compliance, and tracing provenance.
       </li>
       <li>
-        <strong>Spike Threshold:</strong> Lower values make neurons fire more
-        easily
+        Troubleshooting advice, testing checklists, and a glossary of
+        neuroscience terms referenced throughout the UI.
       </li>
     </ul>
 
+    <h2>Recommended Reading Path</h2>
     <p>
-      Watch how spikes propagate through the network and create cascading
-      patterns of activity!
+      The remaining chapters are ordered from orientation to deep technical
+      integration. New users can read the first three pages to operate the
+      interface confidently, while contributors can jump directly to the
+      advanced configuration or data pipeline sections as needed.
     </p>
+
+    <div class="callout">
+      <strong>Next Chapter</strong>
+      <p>
+        Continue with <em>Documentation 2 · Quick Start &amp; Environment
+        Setup</em> to learn how to launch the project locally, configure the
+        renderer, and understand the repository layout.
+      </p>
+    </div>
   </body>
 </html>
