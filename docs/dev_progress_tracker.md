@@ -11,6 +11,7 @@
 - Curated additional atlas templates (M1, S1, V1/V2) under `data/brain_region_maps/` with a manifest-driven auto-loader and CLI helper to rebuild the manifest.
 - Applied neuron-type glyphs across the canvas (triangles, diamonds, hexagons, etc.) and mirrored the same icons in the inspector so morphology cues stay consistent.
 - Inspector now lists canonical neuron taxonomy names (`Pyramidal neuron`, `Basket cell`, etc.) alongside excitation class and glyph to match the neuron type guide.
+- Converted the lesson dropdown into a documentation selector with chapter titles, only launching the modal after a user picks a section.
 
 ## Technical Notes
 - Template connectivity respects global probability/weight sliders as scaling factors (baseline 0.3 intra / 0.2 inter) and jitters weights for variability.
