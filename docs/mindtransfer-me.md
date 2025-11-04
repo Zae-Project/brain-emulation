@@ -6,7 +6,7 @@ note: This file mirrors all visible text content from the homepage. Update this 
 
 # mindtransfer.me | Human cognition, simulated
 
-Mindtransfer.me is an open, research-led effort to map living neurobiology into interactive software. Our goal is to make whole brain emulation and mind transfer a measurable engineering problem, not a slogan. We do that by combining peer-reviewed data, auditable models, and an explorable interface that anyone can launch in a browser.
+Mindtransfer.me is an open, research led effort to map living neurobiology into interactive software. Our goal is to make whole brain emulation and mind transfer a measurable engineering problem, not a slogan. We do that by combining peer reviewed data, auditable models, and an explorable interface that anyone can launch in a browser.
 
 - **Primary CTA:** Explore the live demo
 - **Contact:** Reach us via email (protected with Cloudflare)
@@ -15,7 +15,7 @@ Mindtransfer.me is an open, research-led effort to map living neurobiology into 
 
 ## What we are building
 
-**Mind uploading through evidence.** Instead of speculative essays, we deliver a working spiking neural network environment that mirrors known brain architecture. Each release expands our ability to capture the computations that underwrite human memory, perception, and identity. When mind transfer becomes technically possible, it will rest on the kind of transparent, verifiable models we are assembling today.
+**Mind uploading through evidence.** We are working spiking neural network environment that mirrors known brain architecture. Each release expands our ability to capture the computations that underwrite human memory, perception, and identity. When mind transfer becomes technically possible, it will rest on the kind of transparent, verifiable models we are assembling today.
 
 ---
 
@@ -23,7 +23,7 @@ Mindtransfer.me is an open, research-led effort to map living neurobiology into 
 
 ### Interactive brain emulation playground
 
-- Real-time 3D spiking neural network visualiser with orbit controls and smooth zooming.
+- Realtime 3D spiking neural network visualiser with orbit controls and smooth zooming.
 - Dynamic inspector that surfaces cluster context, neuron taxonomy, excitatory/inhibitory balance, and live voltage traces.
 - Cinematic yet accessible visual language: neuron glyphs convey cell type, warm desert palette highlights region provenance, and status telemetry keeps orientation effortless.
 
