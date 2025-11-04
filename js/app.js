@@ -3213,117 +3213,106 @@ class SNNVisualizer {
   createLessonConfig() {
     return {
       1: {
-        title: "Lesson 1: Basic Spikes",
+        title: "Documentation 1 · Project Overview & Goals",
         content:
-          "Each neuron accumulates voltage over time. When it reaches threshold (v≥1), it fires a spike and resets to 0.",
+          "Mission, architecture, and design principles that frame the brain emulation visualizer.",
         file: "lessons/lesson1.html",
       },
       2: {
-        title: "Lesson 2: Synaptic Transmission",
+        title: "Documentation 2 · Quick Start & Environment Setup",
         content:
-          "Spikes travel along synapses (connections) between neurons, with varying weights affecting signal strength.",
+          "Clone, install, and launch instructions plus a tour of the repository layout.",
         file: "lessons/lesson2.html",
       },
       3: {
-        title: "Lesson 3: Network Plasticity",
+        title: "Documentation 3 · Interface Tour",
         content:
-          "Synaptic weights can change over time based on neural activity, enabling learning and adaptation.",
+          "Guided walkthrough of the orbit canvas, HUD controls, inspector, and status bar.",
         file: "lessons/lesson3.html",
       },
       4: {
-        title: "Lesson 4: Pattern Recognition",
+        title: "Documentation 4 · Controls & Parameter Panel",
         content:
-          "SNNs can learn to recognize temporal patterns in spike trains, making them ideal for processing time-series data.",
+          "Detailed reference for every slider and toggle, including template locking behavior.",
         file: "lessons/lesson4.html",
       },
       5: {
-        title: "Lesson 5: Network Topology",
+        title: "Documentation 5 · Neuron Taxonomy & Glyph Dictionary",
         content:
-          "Brain-like networks organize into clusters and modules, creating small-world properties that optimize both local processing and global communication.",
+          "Canonical mapping between neuron presets, biological names, and rendered glyphs.",
         file: "lessons/lesson5.html",
       },
       6: {
-        title: "Lesson 6: Inhibition & Competition",
+        title: "Documentation 6 · Brain Regions & Template Library",
         content:
-          "Inhibitory connections create competitive dynamics, enabling winner-take-all mechanisms crucial for attention and decision-making.",
+          "Template schema, atlas data sources, and manifest workflow for managing presets.",
         file: "lessons/lesson6.html",
       },
       7: {
-        title: "Lesson 7: Multi-layer Processing",
+        title: "Documentation 7 · Simulation Pipeline & Runtime",
         content:
-          "Hierarchical networks extract increasingly complex features, similar to cortical organization in biological brains.",
+          "How templates become networks, covering neuron construction, connectivity, and frame updates.",
         file: "lessons/lesson7.html",
       },
       8: {
-        title: "Lesson 8: Memory Systems",
+        title: "Documentation 8 · Importing & Exporting Atlas Data",
         content:
-          "Different types of memory (working, long-term, episodic) emerge from distinct network architectures and plasticity rules.",
+          "Round-tripping template JSON through the HUD with validation and provenance tips.",
         file: "lessons/lesson8.html",
       },
       9: {
-        title: "Lesson 9: Large-Scale Networks",
+        title: "Documentation 9 · Neuron Inspector & Analytics",
         content:
-          "Brain-wide networks coordinate information integration, giving rise to global workspace dynamics and potentially consciousness.",
+          "Understanding inspector cards, connectivity metrics, and the voltage trace display.",
         file: "lessons/lesson9.html",
       },
       10: {
-        title: "Lesson 10: Neural Oscillations",
+        title: "Documentation 10 · Advanced Configuration & Manifest",
         content:
-          "Rhythmic neural activity coordinates processing across brain regions, enabling binding and temporal organization of information.",
+          "Environment variables, manifest extensions, and programmatic template registration.",
         file: "lessons/lesson10.html",
       },
       11: {
-        title: "Lesson 11: Brain Emulation Theory",
+        title: "Documentation 11 · Troubleshooting & Verification",
         content:
-          "Whole brain emulation aims to create functional copies of specific brains, requiring advances in scanning, modeling, and computing.",
+          "Diagnostic workflow, common fixes, and the project’s verification checklist.",
         file: "lessons/lesson11.html",
       },
       12: {
-        title: "Lesson 12: Ethics & Future",
+        title: "Documentation 12 · Glossary & Further Resources",
         content:
-          "Digital minds raise profound questions about consciousness, identity, rights, and humanity's future that we must address responsibly.",
+          "Glossary of simulator terminology and curated links to atlases and reference material.",
         file: "lessons/lesson12.html",
       },
     };
   }
 
   initLessons() {
-    if (this.dom.lessonSelect) {
-      const select = this.dom.lessonSelect;
-      const openLesson = (value) => {
-        const lessonNumber = Number.parseInt(value, 10);
-        if (!Number.isFinite(lessonNumber)) return;
-        this.showFullLesson(lessonNumber);
-      };
-
-      select.dataset.lastSelection = select.value || "";
-
-      select.addEventListener("change", (e) => {
-        const current = e.target.value;
-        select.dataset.lastSelection = current;
-        openLesson(current);
-      });
-
-      select.addEventListener("click", () => {
-        const current = select.value;
-        if (current === select.dataset.lastSelection) {
-          openLesson(current);
-        }
-      });
-    }
+    if (!this.dom.lessonSelect) return;
+    const select = this.dom.lessonSelect;
+    select.addEventListener("change", (e) => {
+      const value = e.target.value;
+      const lessonNumber = Number.parseInt(value, 10);
+      if (!Number.isFinite(lessonNumber)) {
+        return;
+      }
+      this.showFullLesson(lessonNumber);
+      // Reset to placeholder so users can re-open the same chapter without extra steps.
+      select.value = "";
+    });
   }
 
   async showFullLesson(lessonNumber) {
     const lesson = this.lessonConfig[lessonNumber];
 
     if (!lesson) {
-      console.error(`No content found for lesson ${lessonNumber}`);
+      console.error(`No content found for documentation ${lessonNumber}`);
       return;
     }
 
     const lessonHtml = await this.getLessonHtml(lessonNumber);
     if (!lessonHtml) {
-      console.error(`Unable to load lesson ${lessonNumber}`);
+      console.error(`Unable to load documentation ${lessonNumber}`);
       return;
     }
 
@@ -3357,7 +3346,7 @@ class SNNVisualizer {
 
     const footerButton = document.createElement("button");
     footerButton.className = "btn";
-    footerButton.textContent = "CLOSE LESSON";
+    footerButton.textContent = "CLOSE DOCUMENTATION";
     footer.appendChild(footerButton);
     modalContent.appendChild(footer);
 
@@ -3469,8 +3458,8 @@ class SNNVisualizer {
     }
 
     return this.wrapLessonContent(
-      lesson.title || `Lesson ${lessonNumber}`,
-      '<p style="font-size: 16px;">Lesson content is currently unavailable.</p>'
+      lesson.title || `Documentation ${lessonNumber}`,
+      '<p style="font-size: 16px;">Documentation content is currently unavailable.</p>'
     );
   }
 
@@ -3483,14 +3472,14 @@ class SNNVisualizer {
       const response = await fetch(lesson.file, { cache: "no-store" });
       if (!response.ok) {
         console.warn(
-          `Lesson file not found: ${lesson.file} (status ${response.status})`
+          `Documentation file not found: ${lesson.file} (status ${response.status})`
         );
         return null;
       }
       const htmlText = await response.text();
       return this.normalizeLessonHtml(htmlText, lesson);
     } catch (error) {
-      console.error(`Failed to load lesson file ${lesson.file}:`, error);
+      console.error(`Failed to load documentation file ${lesson.file}:`, error);
       return null;
     }
   }
@@ -3525,14 +3514,14 @@ class SNNVisualizer {
       return this.applyThemeColorsToMarkup(injected);
     }
 
-    return this.wrapLessonContent(lesson ? lesson.title : "Lesson", trimmed);
+    return this.wrapLessonContent(lesson ? lesson.title : "Documentation", trimmed);
   }
 
   wrapLessonContent(title, bodyContent) {
-    const safeTitle = title || "Lesson";
+    const safeTitle = title || "Documentation";
     const safeBody =
       bodyContent ||
-      '<p style="font-size: 16px;">Lesson content is currently unavailable.</p>';
+      '<p style="font-size: 16px;">Documentation content is currently unavailable.</p>';
     const themedHtml = `<!DOCTYPE html>
 <html>
 <head>
