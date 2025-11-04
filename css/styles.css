@@ -664,7 +664,7 @@ input[type="range"]::-moz-range-thumb {
 
 #lessonPanel {
   left: 16px;
-  top: 80px;
+  top: 100px;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -685,7 +685,7 @@ input[type="range"]::-moz-range-thumb {
 #presetBar {
   position: fixed;
   top: 16px;
-  left: 50%;
+  left: 55%;
   transform: translateX(-50%);
   display: flex;
   gap: 12px;
@@ -791,6 +791,7 @@ input[type="range"]::-moz-range-thumb {
     calc(100% - 14px) calc(50% - 2px), 0 0;
   background-size: 6px 6px, 6px 6px, 100%;
   background-repeat: no-repeat;
+  max-width: 270px;
 }
 
 #lessonPanel select option,
