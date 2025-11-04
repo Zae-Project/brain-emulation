@@ -4,7 +4,7 @@ exported_at: 2025-11-04
 note: This file mirrors all visible text content from the homepage. Update this single file to edit copy across the site.
 ---
 
-# mindtransfer.me — Human cognition, simulated
+# mindtransfer.me | Human cognition, simulated
 
 Mindtransfer.me is an open, research-led effort to map living neurobiology into interactive software. Our goal is to make whole brain emulation and mind transfer a measurable engineering problem, not a slogan. We do that by combining peer-reviewed data, auditable models, and an explorable interface that anyone can launch in a browser.
 
