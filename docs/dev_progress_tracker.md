@@ -17,6 +17,7 @@
 - Template summary text now lists cluster compositions (e.g., "CA3 Region: 80x pyramidal, 20x basket").
 - Legacy presets (e.g., Amygdala) still fall back to archetype-based generation.
 - `SNN_REGISTRY.registerTemplate/exportTemplateConfig` exposes the config IO pipeline for programmatic use; UI import ensures unique keys and automatically selects the new preset.
+- Region templates preserve literature-backed excitatory / inhibitory proportions (≈75–80% excitatory neurons per cortical column, per Beaulieu & Colonnier 1985; Ramaswamy et al. 2021).
 
 ## Next Actions (from Guide)
 1. ~~Implement the configuration schema layer so templates can be serialized/loaded externally (`Config File Schemas` section of guide).~~ ✅ Deployed via `SNN_CONFIG_IO`, registry helpers, HUD import/export, and inline schema docs.
