@@ -1702,7 +1702,13 @@ class SNNVisualizer {
         if (def) nType = def;
       }
       const isExcitatory = nType ? (nType.type !== 'inhibitory') : (i < Math.floor(this.config.excRatio * networkSize));
-      const groupPreset = groupPresetId || (isExcitatory ? 'excitatory' : 'inhibitory');
+      let groupPreset = groupPresetId;
+      if (!groupPreset) {
+        groupPreset = isExcitatory ? 'pyramidal' : 'basket';
+        if (!nType && registry) {
+          nType = registry.NeuronTypes?.[groupPreset] || null;
+        }
+      }
       const typeMeta = this.resolveNeuronTypeMeta(groupPreset);
       const groupLabel = typeMeta?.label || this.formatLabel(groupPreset);
       const clusterMeta = clustersMeta[clusterId];
