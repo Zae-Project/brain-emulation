@@ -55,40 +55,43 @@ class SNNVisualizer {
       },
     ];
 
-    this.NEURON_SHAPE_LOOKUP = {
-      pyramidal: "triangle-up",
-      "pyramidal-l6": "triangle-down",
-      betz: "triangle-up",
-      "spiny-stellate": "diamond",
-      basket: "square-rounded",
-      chandelier: "rect-tall",
-      martinotti: "triangle-up",
-      "double-bouquet": "triangle-down",
-      neurogliaform: "circle",
-      purkinje: "circle",
-      "granule-cerebellar": "circle",
-      "golgi-cerebellar": "hexagon",
-      "stellate-cerebellar": "diamond",
-      mossy: "hexagon",
-      "granule-dentate": "circle",
-      msn: "diamond",
-      "alpha-motor": "trapezoid",
-      pseudounipolar: "circle",
-      "thalamic-relay": "hexagon",
-      rod: "rect-tall",
-      cone: "triangle-up",
-      "bipolar-retina": "rect-tall",
-      amacrine: "square",
-      "horizontal-retina": "rect-wide",
-      rgc: "circle",
-      mitral: "triangle-right",
-      tufted: "triangle-right",
-      dopaminergic: "parallelogram",
-      cholinergic: "trapezoid-inverted",
-      relay: "hexagon",
-      inhibitory: "square-rounded",
-      excitatory: "triangle-up",
+    this.NEURON_TYPE_META = {
+      pyramidal: { label: "Pyramidal neuron", shape: "triangle-up" },
+      "pyramidal-l6": { label: "Corticothalamic pyramidal (L6)", shape: "triangle-down" },
+      betz: { label: "Betz cell (giant pyramidal)", shape: "triangle-up-bold" },
+      "spiny-stellate": { label: "Spiny stellate (cortex)", shape: "diamond" },
+      basket: { label: "Basket cell (interneuron)", shape: "square-rounded" },
+      chandelier: { label: "Chandelier / axo-axonic", shape: "rect-tall" },
+      martinotti: { label: "Martinotti", shape: "triangle-up-narrow" },
+      "double-bouquet": { label: "Double bouquet", shape: "chevron-down" },
+      neurogliaform: { label: "Neurogliaform", shape: "circle-small" },
+      purkinje: { label: "Purkinje (cerebellum)", shape: "semicircle-up" },
+      "granule-cerebellar": { label: "Cerebellar granule", shape: "circle" },
+      "golgi-cerebellar": { label: "Golgi cell (cerebellum)", shape: "pentagon" },
+      "stellate-cerebellar": { label: "Cerebellar stellate", shape: "star-5" },
+      mossy: { label: "Mossy cell (hippocampus)", shape: "hexagon" },
+      "granule-dentate": { label: "Dentate granule (hippocampus)", shape: "circle-small" },
+      msn: { label: "Medium spiny neuron (striatum)", shape: "diamond-rounded" },
+      "alpha-motor": { label: "Alpha motor neuron (spinal)", shape: "trapezoid" },
+      pseudounipolar: { label: "DRG pseudounipolar sensory", shape: "circle-with-stem" },
+      "thalamic-relay": { label: "Thalamocortical relay", shape: "hexagon" },
+      rod: { label: "Retinal rod", shape: "pill-vertical" },
+      cone: { label: "Retinal cone", shape: "triangle-up-slim" },
+      "bipolar-retina": { label: "Retinal bipolar", shape: "rect-tall-rounded" },
+      amacrine: { label: "Amacrine", shape: "square" },
+      "horizontal-retina": { label: "Horizontal (retina)", shape: "rect-wide" },
+      rgc: { label: "Retinal ganglion cell", shape: "donut" },
+      mitral: { label: "Mitral (olfactory bulb)", shape: "triangle-right" },
+      tufted: { label: "Tufted (olfactory bulb)", shape: "triangle-right-small" },
+      dopaminergic: { label: "Dopaminergic (SNc/VTA)", shape: "parallelogram" },
+      cholinergic: { label: "Cholinergic (basal forebrain)", shape: "trapezoid-inverted" },
+      relay: { label: "Thalamic relay", shape: "hexagon" },
+      inhibitory: { label: "Inhibitory interneuron", shape: "square-rounded" },
+      excitatory: { label: "Excitatory neuron", shape: "triangle-up" },
     };
+    this.NEURON_SHAPE_LOOKUP = Object.fromEntries(
+      Object.entries(this.NEURON_TYPE_META).map(([slug, meta]) => [slug, meta.shape])
+    );
 
     this.neurons = [];
     this.connections = [];
@@ -764,6 +767,20 @@ class SNNVisualizer {
     }
   }
 
+  resolveNeuronTypeMeta(presetId) {
+    if (!presetId) return null;
+    const key = presetId.toString().toLowerCase();
+    if (this.NEURON_TYPE_META[key]) return this.NEURON_TYPE_META[key];
+    return null;
+  }
+
+  resolveNeuronTypeLabel(presetId) {
+    if (!presetId) return "";
+    const meta = this.resolveNeuronTypeMeta(presetId);
+    if (meta && meta.label) return meta.label;
+    return this.formatLabel(presetId);
+  }
+
   resolveNeuronShapeKey(presetId, neuronType) {
     const lookupKey = (presetId || "").toLowerCase();
     if (lookupKey && this.NEURON_SHAPE_LOOKUP[lookupKey]) {
@@ -946,7 +963,6 @@ class SNNVisualizer {
       region.name || region.presetLabel || this.formatLabel(this.config.presetId);
     const groupLabel = neuron.groupLabel || this.formatLabel(neuron.groupPreset);
     const excitStr = neuron.type === "I" ? "Inhibitory" : "Excitatory";
-    const synapseType = bio.synapseType ? ` &bull; Synapse: ${bio.synapseType}` : "";
     const peerGroup =
       cluster.groups && neuron.groupPreset ? cluster.groups[neuron.groupPreset] : null;
     const shapeKey = neuron.shapeKey || this.resolveNeuronShapeKey(neuron.groupPreset, neuron.type);
@@ -955,6 +971,10 @@ class SNNVisualizer {
       ? `<span class="neuron-shape-badge" title="Graph shape: ${shapeLabel}"><span class="neuron-shape-icon shape-${shapeKey}" aria-hidden="true"></span><span class="neuron-shape-label">${shapeLabel}</span></span>`
       : "";
     const shapeSegment = shapeBadge ? ` <span class="shape-separator">&bull;</span> ${shapeBadge}` : "";
+    const typeLabel = neuron.neuronTypeName || neuron.neuronTypeLabel || groupLabel || excitStr;
+    const synapseSegment = bio.synapseType
+      ? ` &bull; Synapse: ${bio.synapseType}`
+      : "";
 
     const intrinsicRows = [
       {
@@ -1050,7 +1070,7 @@ class SNNVisualizer {
       <div class="meta-section">
         <div class="meta-heading">Neuron</div>
         <div class="meta-value">${groupLabel || excitStr}</div>
-        <div class="meta-note meta-note-type">Type: ${excitStr}${synapseType}${shapeSegment}</div>
+        <div class="meta-note meta-note-type">Type: ${typeLabel} (${excitStr})${synapseSegment}${shapeSegment}</div>
         ${
           connectionsGrid
             ? `<div class="meta-subheading">Connectivity</div>${connectionsGrid}`
@@ -1683,7 +1703,8 @@ class SNNVisualizer {
       }
       const isExcitatory = nType ? (nType.type !== 'inhibitory') : (i < Math.floor(this.config.excRatio * networkSize));
       const groupPreset = groupPresetId || (isExcitatory ? 'excitatory' : 'inhibitory');
-      const groupLabel = this.formatLabel(groupPreset);
+      const typeMeta = this.resolveNeuronTypeMeta(groupPreset);
+      const groupLabel = typeMeta?.label || this.formatLabel(groupPreset);
       const clusterMeta = clustersMeta[clusterId];
       const neuronTypeCode = isExcitatory ? 'E' : 'I';
       const shapeKey = this.resolveNeuronShapeKey(groupPreset, neuronTypeCode);
@@ -1723,6 +1744,7 @@ class SNNVisualizer {
         groupLabel,
         neuronTypeId: groupPreset,
         neuronTypeLabel: groupLabel,
+        neuronTypeName: groupLabel,
         bio: nType?.bio || null,
         shapeKey,
       });
@@ -1814,7 +1836,7 @@ class SNNVisualizer {
       meta.totalNeurons = meta.neurons.length;
       meta.groupSummary = Object.entries(meta.groups).map(([preset, list]) => ({
         preset,
-        label: this.formatLabel(preset),
+        label: this.resolveNeuronTypeLabel(preset),
         count: list.length,
         type: (registry?.NeuronTypes?.[preset]?.type) || null,
       }));
@@ -1932,7 +1954,8 @@ class SNNVisualizer {
         const presetId = group.preset;
         const count = Math.max(0, group.count | 0);
         const typeDef = neuronTypes[presetId] || {};
-        const groupLabel = this.formatLabel(presetId);
+        const typeMeta = this.resolveNeuronTypeMeta(presetId);
+        const groupLabel = typeMeta?.label || this.formatLabel(presetId);
         const neuronTypeCode = typeDef.type === 'inhibitory' ? 'I' : 'E';
         const shapeKey = this.resolveNeuronShapeKey(presetId, neuronTypeCode);
         for (let n = 0; n < count; n++) {
@@ -1975,6 +1998,7 @@ class SNNVisualizer {
             regionName: regionInfo.name,
             regionMetadata: regionInfo.metadata || null,
             shapeKey,
+            neuronTypeName: groupLabel,
           };
 
           this.neurons.push(neuron);
