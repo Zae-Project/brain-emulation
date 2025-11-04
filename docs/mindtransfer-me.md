@@ -29,14 +29,14 @@ Mindtransfer.me is an open, research led effort to map living neurobiology into 
 
 ### Scientifically grounded region templates
 
-- Curated human brain maps sourced from the Allen Human Brain Atlas, the EBRAINS Julich-Brain project, and the BrainGlobe atlas ecosystem.
-- Layer-specific motor cortex, somatosensory barrel fields, occipital visual streams, and mediodorsal thalamic loops—each with realistic neuron ratios (≈80% excitatory, 20% inhibitory), delays, and projection targets backed by published literature.
+- Curated human brain maps sourced from the Allen Human Brain Atlas, the EBRAINS Julich Brain project, and the BrainGlobe atlas ecosystem.
+- Layer specific motor cortex, somatosensory barrel fields, occipital visual streams, and mediodorsal thalamic loops each with realistic neuron ratios (≈80% excitatory, 20% inhibitory), delays, and projection targets backed by published literature.
 - Import/export pipeline for JSON templates so researchers can test their own atlases without rewriting code.
 
 ### Guided documentation for every concept
 
 - Twelve documentation chapters replace the old “lessons,” covering everything from the project vision to advanced configuration and troubleshooting.
-- Plain-language explanations ensure newcomers understand what mind uploading demands, while contributors get the detail needed to extend the simulator responsibly.
+- Plain language explanations ensure newcomers understand what mind uploading demands, while contributors get the detail needed to extend the simulator responsibly.
 
 ---
 
@@ -50,15 +50,15 @@ Mindtransfer.me is an open, research led effort to map living neurobiology into 
 
 ## In active development
 
-- Automated atlas ingestion script to convert Allen and siibra data into ready-to-run templates.
-- Expanded analytic overlays (frequency spectra, spike synchrony) to measure mind-relevant signatures like oscillations and global workspace dynamics.
+- Automated atlas ingestion script to convert Allen and siibra data into ready to run templates.
+- Expanded analytic overlays (frequency spectra, spike synchrony) to measure mind relevant signatures like oscillations and global workspace dynamics.
 - Preservation tooling: versioned exports, integrity checks, and reproducible manifests to support long-term mind transfer archives.
 
 ---
 
 ## Why mindtransfer.me matters
 
-Mind uploading and whole brain emulation demand rigorous models, not marketing hype. By shipping a transparent simulator today—complete with verifiable data, intuitive controls, and documented assumptions—we advance the field toward a future where consciousness can be studied, preserved, and perhaps migrated with scientific confidence.
+Mind uploading and whole brain emulation demand rigorous models. By shipping a transparent simulator today complete with verifiable data, intuitive controls, and documented assumptions we advance the field toward a future where consciousness can be studied, preserved, and perhaps migrated with scientific confidence.
 
 > “Real neurons. Real research. A clear path toward digital continuity.”
 
