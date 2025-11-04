@@ -78,7 +78,11 @@ canvas {
   display: flex;
   gap: 12px;
   align-items: center;
-  background: linear-gradient(140deg, rgba(216, 155, 90, 0.22), rgba(32, 22, 13, 0.92));
+  background: linear-gradient(
+    140deg,
+    rgba(216, 155, 90, 0.22),
+    rgba(32, 22, 13, 0.92)
+  );
   padding: 12px 16px;
   border: 1px solid rgba(216, 155, 90, 0.45);
   backdrop-filter: blur(12px);
@@ -181,7 +185,11 @@ input[type="range"]::-moz-range-thumb {
   right: 16px;
   top: 16px;
   width: 320px;
-  background: linear-gradient(160deg, rgba(33, 22, 13, 0.96), rgba(216, 155, 90, 0.14));
+  background: linear-gradient(
+    160deg,
+    rgba(33, 22, 13, 0.96),
+    rgba(216, 155, 90, 0.14)
+  );
   border: 1px solid rgba(216, 155, 90, 0.35);
   padding: 20px;
   backdrop-filter: blur(12px);
@@ -291,7 +299,11 @@ input[type="range"]::-moz-range-thumb {
   display: block;
   width: 12px;
   height: 12px;
-  background: linear-gradient(135deg, rgba(247, 196, 116, 0.9), rgba(210, 145, 78, 0.9));
+  background: linear-gradient(
+    135deg,
+    rgba(247, 196, 116, 0.9),
+    rgba(210, 145, 78, 0.9)
+  );
   border: 1px solid rgba(0, 0, 0, 0.4);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   border-radius: 4px;
@@ -434,7 +446,11 @@ input[type="range"]::-moz-range-thumb {
   position: fixed;
   left: 16px;
   bottom: 16px;
-  background: linear-gradient(135deg, rgba(216, 155, 90, 0.35), rgba(33, 22, 13, 0.95));
+  background: linear-gradient(
+    135deg,
+    rgba(216, 155, 90, 0.35),
+    rgba(33, 22, 13, 0.95)
+  );
   color: var(--text);
   padding: 12px 16px;
   font-family: var(--font-sans);
@@ -444,7 +460,11 @@ input[type="range"]::-moz-range-thumb {
 }
 
 #err[data-tone="error"] {
-  background: linear-gradient(135deg, rgba(213, 116, 74, 0.9), rgba(111, 41, 24, 0.9));
+  background: linear-gradient(
+    135deg,
+    rgba(213, 116, 74, 0.9),
+    rgba(111, 41, 24, 0.9)
+  );
   border-color: rgba(213, 116, 74, 0.6);
 }
 
@@ -453,7 +473,11 @@ input[type="range"]::-moz-range-thumb {
   left: 16px;
   top: 150px;
   width: 320px;
-  background: linear-gradient(165deg, rgba(32, 21, 12, 0.96), rgba(216, 155, 90, 0.16));
+  background: linear-gradient(
+    165deg,
+    rgba(32, 21, 12, 0.96),
+    rgba(216, 155, 90, 0.16)
+  );
   border: 1px solid rgba(216, 155, 90, 0.35);
   padding: 20px;
   backdrop-filter: blur(12px);
@@ -466,7 +490,9 @@ input[type="range"]::-moz-range-thumb {
   padding-bottom: 12px;
 }
 
-#controls::-webkit-scrollbar { display: none; }
+#controls::-webkit-scrollbar {
+  display: none;
+}
 
 .control-group {
   margin-bottom: 16px;
@@ -543,9 +569,14 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .lesson-modal-content {
-  background: linear-gradient(170deg, rgba(32, 21, 12, 0.96), rgba(216, 155, 90, 0.18));
+  background: linear-gradient(
+    170deg,
+    rgba(32, 21, 12, 0.96),
+    rgba(216, 155, 90, 0.18)
+  );
   border: 1px solid rgba(216, 155, 90, 0.3);
   padding: 32px;
+  width: 100%;
   max-width: 800px;
   max-height: 85vh;
   overflow-y: auto;
@@ -637,7 +668,11 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   gap: 12px;
   align-items: center;
-  background: linear-gradient(160deg, rgba(34, 23, 13, 0.95), rgba(216, 155, 90, 0.15));
+  background: linear-gradient(
+    160deg,
+    rgba(34, 23, 13, 0.95),
+    rgba(216, 155, 90, 0.15)
+  );
   padding: 12px 16px;
   border: 1px solid rgba(216, 155, 90, 0.4);
   backdrop-filter: blur(12px);
@@ -655,7 +690,11 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   gap: 12px;
   align-items: center;
-  background: linear-gradient(150deg, rgba(32, 22, 13, 0.95), rgba(216, 155, 90, 0.12));
+  background: linear-gradient(
+    150deg,
+    rgba(32, 22, 13, 0.95),
+    rgba(216, 155, 90, 0.12)
+  );
   padding: 12px 18px;
   border: 1px solid rgba(216, 155, 90, 0.35);
   backdrop-filter: blur(12px);
@@ -678,7 +717,11 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   gap: 12px;
   align-items: center;
-  background: linear-gradient(140deg, rgba(216, 155, 90, 0.18), rgba(32, 22, 13, 0.92));
+  background: linear-gradient(
+    140deg,
+    rgba(216, 155, 90, 0.18),
+    rgba(32, 22, 13, 0.92)
+  );
   padding: 8px 20px;
   border: 1px solid rgba(216, 155, 90, 0.35);
   backdrop-filter: blur(12px);
@@ -690,7 +733,10 @@ input[type="range"]::-moz-range-thumb {
   z-index: 12;
 }
 
-.nav-emoji { cursor: pointer; margin-left: 4px; }
+.nav-emoji {
+  cursor: pointer;
+  margin-left: 4px;
+}
 
 /* Popover nav controls near status bar; hidden by default */
 #navControls.nav-pop {
@@ -742,8 +788,7 @@ input[type="range"]::-moz-range-thumb {
     linear-gradient(135deg, #f0b15d 50%, transparent 50%),
     linear-gradient(to right, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
   background-position: calc(100% - 18px) calc(50% - 2px),
-    calc(100% - 14px) calc(50% - 2px),
-    0 0;
+    calc(100% - 14px) calc(50% - 2px), 0 0;
   background-size: 6px 6px, 6px 6px, 100%;
   background-repeat: no-repeat;
 }
@@ -779,7 +824,11 @@ input[type="range"]::-moz-range-thumb {
 #navControls {
   right: 16px;
   top: 300px;
-  background: linear-gradient(155deg, rgba(33, 22, 13, 0.95), rgba(216, 155, 90, 0.1));
+  background: linear-gradient(
+    155deg,
+    rgba(33, 22, 13, 0.95),
+    rgba(216, 155, 90, 0.1)
+  );
   border: 1px solid rgba(216, 155, 90, 0.28);
   padding: 16px;
   color: var(--text);
