@@ -34,13 +34,13 @@ class SNNVisualizer {
 
     this.CLUSTER_COLORS = [
       {
-        primary: { r: 0.800, g: 0.467, b: 0.133 }, // Ochre blaze (#CC7722)
+        primary: { r: 0.8, g: 0.467, b: 0.133 }, // Ochre blaze (#CC7722)
         glow: { r: 0.965, g: 0.804, b: 0.522 }, // sunlit ochre
         name: "Ochre Blaze",
       },
       {
-        primary: { r: 0.757, g: 0.604, b: 0.420 }, // Camel dune (#C19A6B)
-        glow: { r: 0.910, g: 0.796, b: 0.620 }, // lifted camel
+        primary: { r: 0.757, g: 0.604, b: 0.42 }, // Camel dune (#C19A6B)
+        glow: { r: 0.91, g: 0.796, b: 0.62 }, // lifted camel
         name: "Camel Dune",
       },
       {
@@ -57,7 +57,10 @@ class SNNVisualizer {
 
     this.NEURON_TYPE_META = {
       pyramidal: { label: "Pyramidal neuron", shape: "triangle-up" },
-      "pyramidal-l6": { label: "Corticothalamic pyramidal (L6)", shape: "triangle-down" },
+      "pyramidal-l6": {
+        label: "Corticothalamic pyramidal (L6)",
+        shape: "triangle-down",
+      },
       betz: { label: "Betz cell (giant pyramidal)", shape: "triangle-up-bold" },
       "spiny-stellate": { label: "Spiny stellate (cortex)", shape: "diamond" },
       basket: { label: "Basket cell (interneuron)", shape: "square-rounded" },
@@ -67,30 +70,57 @@ class SNNVisualizer {
       neurogliaform: { label: "Neurogliaform", shape: "circle-small" },
       purkinje: { label: "Purkinje (cerebellum)", shape: "semicircle-up" },
       "granule-cerebellar": { label: "Cerebellar granule", shape: "circle" },
-      "golgi-cerebellar": { label: "Golgi cell (cerebellum)", shape: "pentagon" },
+      "golgi-cerebellar": {
+        label: "Golgi cell (cerebellum)",
+        shape: "pentagon",
+      },
       "stellate-cerebellar": { label: "Cerebellar stellate", shape: "star-5" },
       mossy: { label: "Mossy cell (hippocampus)", shape: "hexagon" },
-      "granule-dentate": { label: "Dentate granule (hippocampus)", shape: "circle-small" },
-      msn: { label: "Medium spiny neuron (striatum)", shape: "diamond-rounded" },
-      "alpha-motor": { label: "Alpha motor neuron (spinal)", shape: "trapezoid" },
-      pseudounipolar: { label: "DRG pseudounipolar sensory", shape: "circle-with-stem" },
+      "granule-dentate": {
+        label: "Dentate granule (hippocampus)",
+        shape: "circle-small",
+      },
+      msn: {
+        label: "Medium spiny neuron (striatum)",
+        shape: "diamond-rounded",
+      },
+      "alpha-motor": {
+        label: "Alpha motor neuron (spinal)",
+        shape: "trapezoid",
+      },
+      pseudounipolar: {
+        label: "DRG pseudounipolar sensory",
+        shape: "circle-with-stem",
+      },
       "thalamic-relay": { label: "Thalamocortical relay", shape: "hexagon" },
       rod: { label: "Retinal rod", shape: "pill-vertical" },
       cone: { label: "Retinal cone", shape: "triangle-up-slim" },
-      "bipolar-retina": { label: "Retinal bipolar", shape: "rect-tall-rounded" },
+      "bipolar-retina": {
+        label: "Retinal bipolar",
+        shape: "rect-tall-rounded",
+      },
       amacrine: { label: "Amacrine", shape: "square" },
       "horizontal-retina": { label: "Horizontal (retina)", shape: "rect-wide" },
       rgc: { label: "Retinal ganglion cell", shape: "donut" },
       mitral: { label: "Mitral (olfactory bulb)", shape: "triangle-right" },
-      tufted: { label: "Tufted (olfactory bulb)", shape: "triangle-right-small" },
+      tufted: {
+        label: "Tufted (olfactory bulb)",
+        shape: "triangle-right-small",
+      },
       dopaminergic: { label: "Dopaminergic (SNc/VTA)", shape: "parallelogram" },
-      cholinergic: { label: "Cholinergic (basal forebrain)", shape: "trapezoid-inverted" },
+      cholinergic: {
+        label: "Cholinergic (basal forebrain)",
+        shape: "trapezoid-inverted",
+      },
       relay: { label: "Thalamic relay", shape: "hexagon" },
       inhibitory: { label: "Inhibitory interneuron", shape: "square-rounded" },
       excitatory: { label: "Excitatory neuron", shape: "triangle-up" },
     };
     this.NEURON_SHAPE_LOOKUP = Object.fromEntries(
-      Object.entries(this.NEURON_TYPE_META).map(([slug, meta]) => [slug, meta.shape])
+      Object.entries(this.NEURON_TYPE_META).map(([slug, meta]) => [
+        slug,
+        meta.shape,
+      ])
     );
 
     this.neurons = [];
@@ -132,24 +162,24 @@ class SNNVisualizer {
   // the tooltip near the cursor and keeps it within the viewport.
   initTooltips() {
     try {
-      const infos = document.querySelectorAll('.param-info');
+      const infos = document.querySelectorAll(".param-info");
       if (!infos || infos.length === 0) return; // No-op if not present
 
       infos.forEach((infoEl) => {
-        let tip = infoEl.querySelector('.tooltip');
+        let tip = infoEl.querySelector(".tooltip");
         if (!tip) {
           // Create a minimal fallback tooltip if missing
-          tip = document.createElement('div');
-          tip.className = 'tooltip';
-          tip.textContent = 'No additional info available.';
+          tip = document.createElement("div");
+          tip.className = "tooltip";
+          tip.textContent = "No additional info available.";
           infoEl.appendChild(tip);
         }
 
         // Ensure base styles for JS‑controlled positioning/visibility
-        tip.style.position = 'fixed';
-        tip.style.visibility = 'hidden';
-        tip.style.opacity = '0';
-        tip.style.pointerEvents = 'none';
+        tip.style.position = "fixed";
+        tip.style.visibility = "hidden";
+        tip.style.opacity = "0";
+        tip.style.pointerEvents = "none";
 
         // Move tooltip to body so it's never clipped by panel stacking/overflow
         if (tip.parentElement !== document.body) {
@@ -167,7 +197,10 @@ class SNNVisualizer {
           // Prefer right of icon; if not enough space, place to left
           const preferRightX = rect.right + 10;
           const preferLeftX = rect.left - tipRect.width - 10;
-          let x = preferRightX <= window.innerWidth - padding ? preferRightX : Math.max(padding, preferLeftX);
+          let x =
+            preferRightX <= window.innerWidth - padding
+              ? preferRightX
+              : Math.max(padding, preferLeftX);
           // Align vertically with icon; clamp to viewport
           let y = rect.top - 4;
           const maxX = window.innerWidth - tipRect.width - padding;
@@ -180,36 +213,37 @@ class SNNVisualizer {
           // Ensure appearance when detached from panel CSS
           tip.style.background = tip.style.background || this.theme.surface3;
           tip.style.color = tip.style.color || this.theme.text;
-          tip.style.padding = tip.style.padding || '12px';
-          tip.style.borderRadius = tip.style.borderRadius || '8px';
+          tip.style.padding = tip.style.padding || "12px";
+          tip.style.borderRadius = tip.style.borderRadius || "8px";
           tip.style.border =
             tip.style.border || `1px solid ${this.theme.accentSubtle}`;
-          tip.style.boxShadow = tip.style.boxShadow || '0 4px 20px rgba(0,0,0,0.3)';
-          tip.style.maxWidth = tip.style.maxWidth || '320px';
+          tip.style.boxShadow =
+            tip.style.boxShadow || "0 4px 20px rgba(0,0,0,0.3)";
+          tip.style.maxWidth = tip.style.maxWidth || "320px";
         };
 
         const show = () => {
           placeNearIcon();
-          tip.style.visibility = 'visible';
-          tip.style.opacity = '1';
+          tip.style.visibility = "visible";
+          tip.style.opacity = "1";
         };
         const hide = () => {
-          tip.style.visibility = 'hidden';
-          tip.style.opacity = '0';
+          tip.style.visibility = "hidden";
+          tip.style.opacity = "0";
         };
 
-        infoEl.addEventListener('mouseenter', show);
-        infoEl.addEventListener('mouseleave', hide);
-        window.addEventListener('resize', () => {
-          if (tip.style.visibility === 'visible') placeNearIcon();
+        infoEl.addEventListener("mouseenter", show);
+        infoEl.addEventListener("mouseleave", hide);
+        window.addEventListener("resize", () => {
+          if (tip.style.visibility === "visible") placeNearIcon();
         });
         // Also keep accessible on focus/blur for keyboard users
-        infoEl.setAttribute('tabindex', '0');
-        infoEl.addEventListener('focus', show);
-        infoEl.addEventListener('blur', hide);
+        infoEl.setAttribute("tabindex", "0");
+        infoEl.addEventListener("focus", show);
+        infoEl.addEventListener("blur", hide);
       });
     } catch (e) {
-      console.warn('Tooltip initialization failed:', e);
+      console.warn("Tooltip initialization failed:", e);
       // Do not block visualization if tooltips fail
     }
   }
@@ -368,6 +402,7 @@ class SNNVisualizer {
         background: var(--surface-1);
         border: 1px solid var(--border);
         padding: 32px;
+        width:100%;
         max-width: 800px;
         max-height: 85vh;
         overflow-y: auto;
@@ -414,7 +449,10 @@ class SNNVisualizer {
         const scheduleHide = () => {
           clearHide();
           hideTimeout = setTimeout(() => {
-            if (!statusBar.matches(":hover") && !navControls.matches(":hover")) {
+            if (
+              !statusBar.matches(":hover") &&
+              !navControls.matches(":hover")
+            ) {
               navControls.classList.remove("is-visible");
             }
           }, 160);
@@ -610,7 +648,9 @@ class SNNVisualizer {
       if (this.dom.voltageValue) {
         const v = this.state.selectedNeuron.voltage;
         const last = this.state.selectedNeuron.lastFire || 0;
-        const ago = last ? `${((Date.now() - last) / 1000).toFixed(1)}s ago` : "no spike yet";
+        const ago = last
+          ? `${((Date.now() - last) / 1000).toFixed(1)}s ago`
+          : "no spike yet";
         this.dom.voltageValue.textContent = `${v.toFixed(3)} (${ago})`;
       }
 
@@ -700,14 +740,20 @@ class SNNVisualizer {
   resolveMetadataNote(metadata) {
     if (!metadata) return null;
     const candidates = [
-      ...(Array.isArray(metadata.anatomicalNotes) ? metadata.anatomicalNotes : []),
+      ...(Array.isArray(metadata.anatomicalNotes)
+        ? metadata.anatomicalNotes
+        : []),
       ...(Array.isArray(metadata.notes) ? metadata.notes : []),
       ...(Array.isArray(metadata.references) ? metadata.references : []),
-      ...(Array.isArray(metadata.neuromodulators) ? metadata.neuromodulators : []),
+      ...(Array.isArray(metadata.neuromodulators)
+        ? metadata.neuromodulators
+        : []),
       typeof metadata.description === "string" ? metadata.description : null,
     ];
     return (
-      candidates.find((entry) => typeof entry === "string" && entry.trim().length) || null
+      candidates.find(
+        (entry) => typeof entry === "string" && entry.trim().length
+      ) || null
     );
   }
 
@@ -715,7 +761,9 @@ class SNNVisualizer {
     if (!neuron || !this.clusterMetadata) return null;
     return (
       this.clusterMetadata.find(
-        (meta) => meta && (meta.id === neuron.clusterId || meta.index === neuron.clusterIndex)
+        (meta) =>
+          meta &&
+          (meta.id === neuron.clusterId || meta.index === neuron.clusterIndex)
       ) || null
     );
   }
@@ -842,13 +890,33 @@ class SNNVisualizer {
         const corner = size * 0.18;
         path.moveTo(x - halfWidth + corner, y - halfHeight);
         path.lineTo(x + halfWidth - corner, y - halfHeight);
-        path.quadraticCurveTo(x + halfWidth, y - halfHeight, x + halfWidth, y - halfHeight + corner);
+        path.quadraticCurveTo(
+          x + halfWidth,
+          y - halfHeight,
+          x + halfWidth,
+          y - halfHeight + corner
+        );
         path.lineTo(x + halfWidth, y + halfHeight - corner);
-        path.quadraticCurveTo(x + halfWidth, y + halfHeight, x + halfWidth - corner, y + halfHeight);
+        path.quadraticCurveTo(
+          x + halfWidth,
+          y + halfHeight,
+          x + halfWidth - corner,
+          y + halfHeight
+        );
         path.lineTo(x - halfWidth + corner, y + halfHeight);
-        path.quadraticCurveTo(x - halfWidth, y + halfHeight, x - halfWidth, y + halfHeight - corner);
+        path.quadraticCurveTo(
+          x - halfWidth,
+          y + halfHeight,
+          x - halfWidth,
+          y + halfHeight - corner
+        );
         path.lineTo(x - halfWidth, y - halfHeight + corner);
-        path.quadraticCurveTo(x - halfWidth, y - halfHeight, x - halfWidth + corner, y - halfHeight);
+        path.quadraticCurveTo(
+          x - halfWidth,
+          y - halfHeight,
+          x - halfWidth + corner,
+          y - halfHeight
+        );
         path.closePath();
         break;
       }
@@ -950,7 +1018,9 @@ class SNNVisualizer {
     const cluster = this.getClusterMetaForNeuron(neuron) || {};
     const regionNote = this.resolveMetadataNote(region.metadata);
     const clusterNote = this.resolveMetadataNote(cluster.metadata);
-    const outgoing = Array.isArray(neuron.connections) ? neuron.connections.length : 0;
+    const outgoing = Array.isArray(neuron.connections)
+      ? neuron.connections.length
+      : 0;
     const incoming = this.connections.reduce(
       (sum, conn) => (conn.to === neuron ? sum + 1 : sum),
       0
@@ -960,18 +1030,28 @@ class SNNVisualizer {
     );
     const bio = neuron.bio || {};
     const regionLabel =
-      region.name || region.presetLabel || this.formatLabel(this.config.presetId);
-    const groupLabel = neuron.groupLabel || this.formatLabel(neuron.groupPreset);
+      region.name ||
+      region.presetLabel ||
+      this.formatLabel(this.config.presetId);
+    const groupLabel =
+      neuron.groupLabel || this.formatLabel(neuron.groupPreset);
     const excitStr = neuron.type === "I" ? "Inhibitory" : "Excitatory";
     const peerGroup =
-      cluster.groups && neuron.groupPreset ? cluster.groups[neuron.groupPreset] : null;
-    const shapeKey = neuron.shapeKey || this.resolveNeuronShapeKey(neuron.groupPreset, neuron.type);
+      cluster.groups && neuron.groupPreset
+        ? cluster.groups[neuron.groupPreset]
+        : null;
+    const shapeKey =
+      neuron.shapeKey ||
+      this.resolveNeuronShapeKey(neuron.groupPreset, neuron.type);
     const shapeLabel = shapeKey ? this.formatLabel(shapeKey) : null;
     const shapeBadge = shapeLabel
       ? `<span class="neuron-shape-badge" title="Graph shape: ${shapeLabel}"><span class="neuron-shape-icon shape-${shapeKey}" aria-hidden="true"></span><span class="neuron-shape-label">${shapeLabel}</span></span>`
       : "";
-    const shapeSegment = shapeBadge ? ` <span class="shape-separator">&bull;</span> ${shapeBadge}` : "";
-    const typeLabel = neuron.neuronTypeName || neuron.neuronTypeLabel || groupLabel || excitStr;
+    const shapeSegment = shapeBadge
+      ? ` <span class="shape-separator">&bull;</span> ${shapeBadge}`
+      : "";
+    const typeLabel =
+      neuron.neuronTypeName || neuron.neuronTypeLabel || groupLabel || excitStr;
     const synapseSegment = bio.synapseType
       ? ` &bull; Synapse: ${bio.synapseType}`
       : "";
@@ -980,7 +1060,9 @@ class SNNVisualizer {
       {
         label: "Threshold",
         value:
-          neuron.threshold !== undefined ? Number(neuron.threshold).toFixed(2) : "—",
+          neuron.threshold !== undefined
+            ? Number(neuron.threshold).toFixed(2)
+            : "—",
       },
       {
         label: "Leak",
@@ -989,11 +1071,16 @@ class SNNVisualizer {
       {
         label: "Background",
         value:
-          neuron.bgImpulse !== undefined ? Number(neuron.bgImpulse).toFixed(3) : "—",
+          neuron.bgImpulse !== undefined
+            ? Number(neuron.bgImpulse).toFixed(3)
+            : "—",
       },
       {
         label: "Spike Gain",
-        value: neuron.spikeGain !== undefined ? Number(neuron.spikeGain).toFixed(2) : "—",
+        value:
+          neuron.spikeGain !== undefined
+            ? Number(neuron.spikeGain).toFixed(2)
+            : "—",
       },
       {
         label: "Refractory",
@@ -1024,12 +1111,11 @@ class SNNVisualizer {
         if (!Number.isFinite(numeric)) {
           return { label: row.label, value: row.value };
         }
-        const suffix =
-          row.label.includes("Vm")
-            ? " mV"
-            : row.label === "Weight"
-            ? ""
-            : " ms";
+        const suffix = row.label.includes("Vm")
+          ? " mV"
+          : row.label === "Weight"
+          ? ""
+          : " ms";
         const digits = row.label === "Weight" ? 2 : 1;
         return {
           label: row.label,
@@ -1063,7 +1149,9 @@ class SNNVisualizer {
       </div>
       <div class="meta-section">
         <div class="meta-heading">Cluster</div>
-        <div class="meta-value">${cluster.label || `Cluster ${((cluster.index ?? 0) + 1)}`}</div>
+        <div class="meta-value">${
+          cluster.label || `Cluster ${(cluster.index ?? 0) + 1}`
+        }</div>
         ${clusterNote ? `<div class="meta-note">${clusterNote}</div>` : ""}
         ${groupLine}
       </div>
@@ -1301,7 +1389,11 @@ class SNNVisualizer {
     }
 
     // Sort and render connections back-to-front using average depth
-    const clusterSize = Math.max(1, this.config.clusterSize || Math.floor(this.config.networkSize / (this.config.clusterCount || 1)));
+    const clusterSize = Math.max(
+      1,
+      this.config.clusterSize ||
+        Math.floor(this.config.networkSize / (this.config.clusterCount || 1))
+    );
     const edges = this.connections
       .map((conn) => {
         const sp = projById.get(conn.from.id);
@@ -1313,21 +1405,28 @@ class SNNVisualizer {
     // determine fog scale by depth
     const maxDepth = Math.max(1, ...projNeurons.map((x) => x.p.depth));
     const fogK = Math.min(1, Math.max(0, this.config.fogStrength || 0));
-    const fogFactor = (d) => 1 - fogK * (Math.min(1, d / maxDepth));
+    const fogFactor = (d) => 1 - fogK * Math.min(1, d / maxDepth);
 
     for (const e of edges) {
-      const bothFired = recentlyFired.has(e.conn.from.id) && recentlyFired.has(e.conn.to.id);
+      const bothFired =
+        recentlyFired.has(e.conn.from.id) && recentlyFired.has(e.conn.to.id);
       const sameCluster =
-        Math.floor(e.conn.from.id / clusterSize) === Math.floor(e.conn.to.id / clusterSize);
+        Math.floor(e.conn.from.id / clusterSize) ===
+        Math.floor(e.conn.to.id / clusterSize);
 
       if (bothFired && sameCluster) {
         const c = e.conn.from.colors.glow;
         const alpha = 0.8 * fogFactor(e.depth);
-        this.ctx.strokeStyle = `rgba(${Math.floor(c.r * 255)}, ${Math.floor(c.g * 255)}, ${Math.floor(c.b * 255)}, ${alpha})`;
+        this.ctx.strokeStyle = `rgba(${Math.floor(c.r * 255)}, ${Math.floor(
+          c.g * 255
+        )}, ${Math.floor(c.b * 255)}, ${alpha})`;
         this.ctx.lineWidth = 0.6;
       } else {
         const alpha = 0.15 * fogFactor(e.depth);
-        this.ctx.strokeStyle = this.hexWithAlpha(this.theme.accentSubtle, alpha);
+        this.ctx.strokeStyle = this.hexWithAlpha(
+          this.theme.accentSubtle,
+          alpha
+        );
         this.ctx.lineWidth = 0.2;
       }
 
@@ -1348,20 +1447,44 @@ class SNNVisualizer {
         projected.x > this.dom.canvas.width + 200 ||
         projected.y < -200 ||
         projected.y > this.dom.canvas.height + 200
-      ) continue;
+      )
+        continue;
 
       const baseRadius = 4;
-      const radius = Math.max(0.75, baseRadius * projected.scale * (projected.zoomFactor || 1) * this.config.neuronSize);
+      const radius = Math.max(
+        0.75,
+        baseRadius *
+          projected.scale *
+          (projected.zoomFactor || 1) *
+          this.config.neuronSize
+      );
       const intensity = neuron.pulse / this.config.pulseIntensity;
-      const isActive = intensity > 0.10;
+      const isActive = intensity > 0.1;
 
       if (isActive) {
         const glowRadius = radius * (1.8 + intensity * 2.0);
-        const gradient = this.ctx.createRadialGradient(projected.x, projected.y, 0, projected.x, projected.y, glowRadius);
+        const gradient = this.ctx.createRadialGradient(
+          projected.x,
+          projected.y,
+          0,
+          projected.x,
+          projected.y,
+          glowRadius
+        );
         const glowColor = neuron.colors.glow;
         const f = fogFactor(projected.depth);
-        gradient.addColorStop(0, `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(glowColor.g * 255)}, ${Math.floor(glowColor.b * 255)}, ${f * intensity * 0.6})`);
-        gradient.addColorStop(0.5, `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(glowColor.g * 255)}, ${Math.floor(glowColor.b * 255)}, ${f * intensity * 0.3})`);
+        gradient.addColorStop(
+          0,
+          `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
+            glowColor.g * 255
+          )}, ${Math.floor(glowColor.b * 255)}, ${f * intensity * 0.6})`
+        );
+        gradient.addColorStop(
+          0.5,
+          `rgba(${Math.floor(glowColor.r * 255)}, ${Math.floor(
+            glowColor.g * 255
+          )}, ${Math.floor(glowColor.b * 255)}, ${f * intensity * 0.3})`
+        );
         gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
         this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
@@ -1371,26 +1494,41 @@ class SNNVisualizer {
 
       const depthFade = Math.min(1, 800 / Math.max(20, projected.depth));
       const shapeSize = radius * 2;
-      const shapeKey = neuron.shapeKey || this.resolveNeuronShapeKey(neuron.groupPreset, neuron.type);
+      const shapeKey =
+        neuron.shapeKey ||
+        this.resolveNeuronShapeKey(neuron.groupPreset, neuron.type);
       if (!neuron.shapeKey) neuron.shapeKey = shapeKey;
-      const shapeData = this.buildNeuronShape(shapeKey, projected.x, projected.y, shapeSize);
+      const shapeData = this.buildNeuronShape(
+        shapeKey,
+        projected.x,
+        projected.y,
+        shapeSize
+      );
       const f = fogFactor(projected.depth);
       let fillStyle;
       if (isActive) {
         const color = neuron.colors.primary;
-        fillStyle = `rgba(${Math.floor(color.r * 255 * depthFade)}, ${Math.floor(color.g * 255 * depthFade)}, ${Math.floor(color.b * 255 * depthFade)}, ${0.85 * f})`;
+        fillStyle = `rgba(${Math.floor(
+          color.r * 255 * depthFade
+        )}, ${Math.floor(color.g * 255 * depthFade)}, ${Math.floor(
+          color.b * 255 * depthFade
+        )}, ${0.85 * f})`;
       } else {
         const accent = this.hexToRgb(this.theme.accentSubtle);
-        fillStyle = `rgba(${Math.floor(accent.r * depthFade)}, ${Math.floor(accent.g * depthFade)}, ${Math.floor(accent.b * depthFade)}, ${0.45 * f})`;
+        fillStyle = `rgba(${Math.floor(accent.r * depthFade)}, ${Math.floor(
+          accent.g * depthFade
+        )}, ${Math.floor(accent.b * depthFade)}, ${0.45 * f})`;
       }
       this.ctx.fillStyle = fillStyle;
       this.ctx.fill(shapeData.path);
 
       // Step 5: subtle inhibitory cue (small cyan dot at top-left)
-      if (neuron.type === 'I') {
+      if (neuron.type === "I") {
         const dotR = Math.max(1.2, shapeSize * 0.06);
         const glowAccent = this.hexToRgb(this.theme.accentGlow);
-        this.ctx.fillStyle = `rgba(${glowAccent.r}, ${glowAccent.g}, ${glowAccent.b}, ${0.7 * depthFade})`;
+        this.ctx.fillStyle = `rgba(${glowAccent.r}, ${glowAccent.g}, ${
+          glowAccent.b
+        }, ${0.7 * depthFade})`;
         this.ctx.beginPath();
         this.ctx.arc(
           projected.x - shapeData.halfWidth + dotR + 1,
@@ -1404,17 +1542,30 @@ class SNNVisualizer {
 
       const f2 = fogFactor(projected.depth);
       const strokeStyle = isActive
-        ? `rgba(${Math.floor(neuron.colors.glow.r * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.g * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.b * 255 * depthFade)}, ${0.9 * f2})`
+        ? `rgba(${Math.floor(
+            neuron.colors.glow.r * 255 * depthFade
+          )}, ${Math.floor(
+            neuron.colors.glow.g * 255 * depthFade
+          )}, ${Math.floor(neuron.colors.glow.b * 255 * depthFade)}, ${
+            0.9 * f2
+          })`
         : this.hexWithAlpha(this.theme.border, 0.7 * f2);
       this.ctx.strokeStyle = strokeStyle;
       this.ctx.lineWidth = 1;
       this.ctx.setLineDash([]);
       this.ctx.stroke(shapeData.path);
 
-      const labelScale = Math.min(shapeData.halfWidth, shapeData.halfHeight) * 2;
+      const labelScale =
+        Math.min(shapeData.halfWidth, shapeData.halfHeight) * 2;
       if (labelScale > 12) {
-        this.ctx.fillStyle = this.hexWithAlpha(this.theme.text, 0.9 * depthFade);
-        this.ctx.font = `${Math.max(8, Math.min(12, labelScale * 0.4))}px Inter, monospace`;
+        this.ctx.fillStyle = this.hexWithAlpha(
+          this.theme.text,
+          0.9 * depthFade
+        );
+        this.ctx.font = `${Math.max(
+          8,
+          Math.min(12, labelScale * 0.4)
+        )}px Inter, monospace`;
         this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
         this.ctx.fillText(neuron.id.toString(), projected.x, projected.y);
@@ -1428,7 +1579,11 @@ class SNNVisualizer {
         this.ctx.restore();
       }
 
-      if (this.state.showWeights && neuron.connections.length > 0 && radius > 8) {
+      if (
+        this.state.showWeights &&
+        neuron.connections.length > 0 &&
+        radius > 8
+      ) {
         this.renderWeightPanel(neuron, projected);
       }
     }
@@ -1449,7 +1604,8 @@ class SNNVisualizer {
   // Shows top outgoing connections with their weights.
   renderWeightPanel(neuron, projected) {
     const maxRows = 5;
-    if (!neuron || !neuron.connections || neuron.connections.length === 0) return;
+    if (!neuron || !neuron.connections || neuron.connections.length === 0)
+      return;
 
     // Sort by weight desc and take a few
     const rows = neuron.connections
@@ -1494,7 +1650,8 @@ class SNNVisualizer {
     this.ctx.fillStyle = this.theme.text2;
     rows.forEach((r, i) => {
       const yy = y + padY + headerH + i * lineH - 2;
-      this.ctx.fillText(`${r.id.toString().padStart(2, " ")}: ${r.w.toFixed(2)}`,
+      this.ctx.fillText(
+        `${r.id.toString().padStart(2, " ")}: ${r.w.toFixed(2)}`,
         x + padX,
         yy
       );
@@ -1570,7 +1727,8 @@ class SNNVisualizer {
     this.traceCtx.lineWidth = 1;
     spikes.forEach((t) => {
       if (now - t <= windowMs) {
-        const x = this.dom.trace.width - ((now - t) / windowMs) * this.dom.trace.width;
+        const x =
+          this.dom.trace.width - ((now - t) / windowMs) * this.dom.trace.width;
         this.traceCtx.beginPath();
         this.traceCtx.moveTo(x, 0);
         this.traceCtx.lineTo(x, this.dom.trace.height);
@@ -1588,14 +1746,19 @@ class SNNVisualizer {
     this.clusterMetadata = [];
     this.regionInfo = null;
 
-    if (this.config.presetId && this.config.presetId !== 'None' && this.activeTemplate) {
+    if (
+      this.config.presetId &&
+      this.config.presetId !== "None" &&
+      this.activeTemplate
+    ) {
       this.createNetworkFromTemplate(this.activeTemplate);
       return;
     }
 
     // Create neurons with random positions in 3D space
     // Derive network size from cluster controls (updated for presets)
-    this.config.networkSize = this.config.clusterCount * this.config.clusterSize;
+    this.config.networkSize =
+      this.config.clusterCount * this.config.clusterSize;
     const networkSize = this.config.networkSize;
     const radius = 260; // Closer grouping
 
@@ -1607,16 +1770,17 @@ class SNNVisualizer {
     const spacingY = 240;
 
     const registry = window.SNN_REGISTRY;
-    const presetEntry = (this.config.presetId && registry)
-      ? registry.RegionPresets?.[this.config.presetId]
-      : null;
+    const presetEntry =
+      this.config.presetId && registry
+        ? registry.RegionPresets?.[this.config.presetId]
+        : null;
     const regionLabel =
       presetEntry?.label ||
-      (this.config.presetId && this.config.presetId !== 'None'
+      (this.config.presetId && this.config.presetId !== "None"
         ? this.formatLabel(this.config.presetId)
-        : 'Procedural Network');
+        : "Procedural Network");
     this.regionInfo = {
-      id: this.config.presetId || 'procedural',
+      id: this.config.presetId || "procedural",
       name: regionLabel,
       presetLabel: presetEntry?.label || null,
       metadata: presetEntry?.metadata || null,
@@ -1624,9 +1788,13 @@ class SNNVisualizer {
 
     // From preset: per-cluster archetype list
     let clusterTypeList = new Array(clusterCount).fill(null);
-    if (this.config.presetId && this.config.presetId !== 'None' && registry) {
+    if (this.config.presetId && this.config.presetId !== "None" && registry) {
       const preset = registry?.RegionPresets?.[this.config.presetId];
-      if (preset && Array.isArray(preset.clusters) && preset.clusters.length > 0) {
+      if (
+        preset &&
+        Array.isArray(preset.clusters) &&
+        preset.clusters.length > 0
+      ) {
         const list = [];
         preset.clusters.forEach((c) => {
           for (let k = 0; k < (c.count || 1); k++) list.push(c.typeId);
@@ -1639,7 +1807,8 @@ class SNNVisualizer {
 
     const clustersMeta = Array.from({ length: clusterCount }, (_, idx) => {
       const archeId = clusterTypeList[idx];
-      const arche = archeId && registry ? registry.ClusterTypes?.[archeId] : null;
+      const arche =
+        archeId && registry ? registry.ClusterTypes?.[archeId] : null;
       return {
         id: idx,
         label: arche?.label || `Cluster ${idx + 1}`,
@@ -1656,7 +1825,8 @@ class SNNVisualizer {
 
     const sampleTypeId = (mix) => {
       if (!mix || mix.length === 0) return null;
-      let r = Math.random(), acc = 0;
+      let r = Math.random(),
+        acc = 0;
       for (const m of mix) {
         acc += m.fraction || 0;
         if (r <= acc) return m.typeId;
@@ -1689,7 +1859,8 @@ class SNNVisualizer {
       };
 
       // Assign cluster color
-      const colors = this.CLUSTER_COLORS[clusterId % this.CLUSTER_COLORS.length];
+      const colors =
+        this.CLUSTER_COLORS[clusterId % this.CLUSTER_COLORS.length];
 
       // Determine neuron type (from preset mix if available)
       let nType = null;
@@ -1701,10 +1872,12 @@ class SNNVisualizer {
         const def = registry.NeuronTypes?.[typeId];
         if (def) nType = def;
       }
-      const isExcitatory = nType ? (nType.type !== 'inhibitory') : (i < Math.floor(this.config.excRatio * networkSize));
+      const isExcitatory = nType
+        ? nType.type !== "inhibitory"
+        : i < Math.floor(this.config.excRatio * networkSize);
       let groupPreset = groupPresetId;
       if (!groupPreset) {
-        groupPreset = isExcitatory ? 'pyramidal' : 'basket';
+        groupPreset = isExcitatory ? "pyramidal" : "basket";
         if (!nType && registry) {
           nType = registry.NeuronTypes?.[groupPreset] || null;
         }
@@ -1712,7 +1885,7 @@ class SNNVisualizer {
       const typeMeta = this.resolveNeuronTypeMeta(groupPreset);
       const groupLabel = typeMeta?.label || this.formatLabel(groupPreset);
       const clusterMeta = clustersMeta[clusterId];
-      const neuronTypeCode = isExcitatory ? 'E' : 'I';
+      const neuronTypeCode = isExcitatory ? "E" : "I";
       const shapeKey = this.resolveNeuronShapeKey(groupPreset, neuronTypeCode);
 
       this.neurons.push({
@@ -1756,7 +1929,8 @@ class SNNVisualizer {
       });
       const neuron = this.neurons[this.neurons.length - 1];
       clusterMeta.neurons.push(neuron);
-      if (!clusterMeta.groups[groupPreset]) clusterMeta.groups[groupPreset] = [];
+      if (!clusterMeta.groups[groupPreset])
+        clusterMeta.groups[groupPreset] = [];
       clusterMeta.groups[groupPreset].push(neuron);
     }
 
@@ -1777,36 +1951,47 @@ class SNNVisualizer {
         let connectionProb;
         let weight;
 
-        const usingPreset = this.config.presetId && this.config.presetId !== 'None' && registry;
+        const usingPreset =
+          this.config.presetId && this.config.presetId !== "None" && registry;
         if (usingPreset) {
           const fromArcheId = clusterTypeList[fromCluster];
           const fromArche = registry.ClusterTypes?.[fromArcheId] || null;
           if (fromArche && fromArche.intra && fromArche.inter) {
-            const p = same ? (fromArche.intra.prob ?? 0.2) : (fromArche.inter.prob ?? 0.05);
+            const p = same
+              ? fromArche.intra.prob ?? 0.2
+              : fromArche.inter.prob ?? 0.05;
             // Base slider is a global multiplier, interProbScale further reduces cross-cluster
-            connectionProb = this.config.connectionProb * (same ? p : p * ((this.config.interProbScale ?? 0.2) || 0.2));
+            connectionProb =
+              this.config.connectionProb *
+              (same ? p : p * ((this.config.interProbScale ?? 0.2) || 0.2));
 
-            const key = fromNeuron.type === 'E' ? 'E' : 'I';
-            const range = same ? (fromArche.intra.weight?.[key]) : (fromArche.inter.weight?.[key]);
+            const key = fromNeuron.type === "E" ? "E" : "I";
+            const range = same
+              ? fromArche.intra.weight?.[key]
+              : fromArche.inter.weight?.[key];
             const minW = Array.isArray(range) ? range[0] : 0.2;
             const maxW = Array.isArray(range) ? range[1] : 0.6;
             const baseW = minW + Math.random() * (maxW - minW);
-            const interScale = same ? 1 : ((this.config.interWeightScale ?? 0.3) || 0.3);
-            weight = baseW * interScale * (fromNeuron.type === 'E' ? 1 : -1);
+            const interScale = same
+              ? 1
+              : (this.config.interWeightScale ?? 0.3) || 0.3;
+            weight = baseW * interScale * (fromNeuron.type === "E" ? 1 : -1);
           }
         }
 
         if (connectionProb === undefined) {
           // Fallback to legacy global model
           const baseProbability = this.config.connectionProb;
-          connectionProb = baseProbability * (same ? 1.8 : (0.02 + 0.28 * (this.config.interProbScale ?? 0.2)));
-          if (fromNeuron.type === 'E') {
+          connectionProb =
+            baseProbability *
+            (same ? 1.8 : 0.02 + 0.28 * (this.config.interProbScale ?? 0.2));
+          if (fromNeuron.type === "E") {
             const baseE = 0.45 + Math.random() * 0.55;
-            const interW = 0.10 + 0.90 * (this.config.interWeightScale ?? 0.3);
+            const interW = 0.1 + 0.9 * (this.config.interWeightScale ?? 0.3);
             weight = same ? baseE : baseE * interW;
           } else {
             const baseI = 0.25 + Math.random() * 0.45;
-            const interWI = 0.10 + 0.90 * (this.config.interWeightScale ?? 0.3);
+            const interWI = 0.1 + 0.9 * (this.config.interWeightScale ?? 0.3);
             weight = -(same ? baseI : baseI * interWI);
           }
         }
@@ -1844,18 +2029,24 @@ class SNNVisualizer {
         preset,
         label: this.resolveNeuronTypeLabel(preset),
         count: list.length,
-        type: (registry?.NeuronTypes?.[preset]?.type) || null,
+        type: registry?.NeuronTypes?.[preset]?.type || null,
       }));
     });
     this.clusterMetadata = clustersMeta;
 
     // Sync UI labels to derived sizes
-    if (this.dom.sizeValueLabel) this.dom.sizeValueLabel.textContent = this.config.networkSize;
-    if (this.dom.networkSizeSlider) this.dom.networkSizeSlider.value = String(this.config.networkSize);
-    if (this.dom.clustersValueLabel) this.dom.clustersValueLabel.textContent = this.config.clusterCount;
-    if (this.dom.clusterCountSlider) this.dom.clusterCountSlider.value = String(this.config.clusterCount);
-    if (this.dom.clusterSizeValueLabel) this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
-    if (this.dom.clusterSizeSlider) this.dom.clusterSizeSlider.value = String(this.config.clusterSize);
+    if (this.dom.sizeValueLabel)
+      this.dom.sizeValueLabel.textContent = this.config.networkSize;
+    if (this.dom.networkSizeSlider)
+      this.dom.networkSizeSlider.value = String(this.config.networkSize);
+    if (this.dom.clustersValueLabel)
+      this.dom.clustersValueLabel.textContent = this.config.clusterCount;
+    if (this.dom.clusterCountSlider)
+      this.dom.clusterCountSlider.value = String(this.config.clusterCount);
+    if (this.dom.clusterSizeValueLabel)
+      this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
+    if (this.dom.clusterSizeSlider)
+      this.dom.clusterSizeSlider.value = String(this.config.clusterSize);
 
     // Clear trace if a neuron was selected
     this.clearTrace();
@@ -1876,14 +2067,21 @@ class SNNVisualizer {
     const clusters = Array.isArray(template?.clusters) ? template.clusters : [];
 
     if (!clusters.length) {
-      console.warn('Template preset has no clusters', template);
+      console.warn("Template preset has no clusters", template);
       return;
     }
 
     const presetEntry = registry?.RegionPresets?.[this.config.presetId];
     const regionInfo = {
-      id: template.id || this.config.presetId || template.regionName || 'template',
-      name: template.regionName || presetEntry?.label || this.formatLabel(this.config.presetId),
+      id:
+        template.id ||
+        this.config.presetId ||
+        template.regionName ||
+        "template",
+      name:
+        template.regionName ||
+        presetEntry?.label ||
+        this.formatLabel(this.config.presetId),
       presetLabel: presetEntry?.label || null,
       metadata: template.metadata || presetEntry?.metadata || null,
     };
@@ -1897,13 +2095,17 @@ class SNNVisualizer {
     const spacingY = 240;
     const radius = 240;
 
-    const baseProbScale = this.config.connectionProb ? this.config.connectionProb / 0.3 : 0;
-    const crossProbScale = this.config.interProbScale !== undefined
-      ? this.config.interProbScale / 0.2
-      : 1;
-    const crossWeightScale = this.config.interWeightScale !== undefined
-      ? this.config.interWeightScale / 0.3
-      : 1;
+    const baseProbScale = this.config.connectionProb
+      ? this.config.connectionProb / 0.3
+      : 0;
+    const crossProbScale =
+      this.config.interProbScale !== undefined
+        ? this.config.interProbScale / 0.2
+        : 1;
+    const crossWeightScale =
+      this.config.interWeightScale !== undefined
+        ? this.config.interWeightScale / 0.3
+        : 1;
 
     const clustersMeta = [];
     const clusterLookup = new Map();
@@ -1916,7 +2118,7 @@ class SNNVisualizer {
     };
 
     const scaleProbability = (prob, isInter) => {
-      const base = typeof prob === 'number' ? prob : (isInter ? 0.05 : 0.2);
+      const base = typeof prob === "number" ? prob : isInter ? 0.05 : 0.2;
       if (base <= 0) return 0;
       if (isInter) {
         if (!this.config.interProbScale) return 0;
@@ -1928,10 +2130,13 @@ class SNNVisualizer {
 
     const deriveWeight = (rule, isInter) => {
       const presetDef = neuronTypes[rule.from] || {};
-      const base = typeof rule.weight === 'number' ? rule.weight : (presetDef.weight ?? 0.6);
+      const base =
+        typeof rule.weight === "number" ? rule.weight : presetDef.weight ?? 0.6;
       const scale = isInter ? crossWeightScale : 1;
       const magnitude = base * scale * (0.9 + Math.random() * 0.2);
-      return rule.type === 'inhibitory' ? -Math.abs(magnitude) : Math.abs(magnitude);
+      return rule.type === "inhibitory"
+        ? -Math.abs(magnitude)
+        : Math.abs(magnitude);
     };
 
     clusters.forEach((clusterCfg, idx) => {
@@ -1962,7 +2167,7 @@ class SNNVisualizer {
         const typeDef = neuronTypes[presetId] || {};
         const typeMeta = this.resolveNeuronTypeMeta(presetId);
         const groupLabel = typeMeta?.label || this.formatLabel(presetId);
-        const neuronTypeCode = typeDef.type === 'inhibitory' ? 'I' : 'E';
+        const neuronTypeCode = typeDef.type === "inhibitory" ? "I" : "E";
         const shapeKey = this.resolveNeuronShapeKey(presetId, neuronTypeCode);
         for (let n = 0; n < count; n++) {
           const r = radius * (0.4 + Math.random() * 0.6);
@@ -2021,7 +2226,7 @@ class SNNVisualizer {
         preset,
         label: this.formatLabel(preset),
         count: list.length,
-        type: (registry?.NeuronTypes?.[preset]?.type) || null,
+        type: registry?.NeuronTypes?.[preset]?.type || null,
       }));
     });
     this.clusterMetadata = clustersMeta;
@@ -2072,10 +2277,12 @@ class SNNVisualizer {
     this.config.clusterCount = clusterCount;
     const derivedClusterSizes = clustersMeta.map((meta) => meta.neurons.length);
     if (derivedClusterSizes.length) {
-      const avg = Math.round(derivedClusterSizes.reduce((a, b) => a + b, 0) / derivedClusterSizes.length);
+      const avg = Math.round(
+        derivedClusterSizes.reduce((a, b) => a + b, 0) /
+          derivedClusterSizes.length
+      );
       this.config.clusterSize = avg;
     }
-
 
     // Seed a couple of neurons per cluster so the network is immediately active
     clustersMeta.forEach((meta) => {
@@ -2088,7 +2295,13 @@ class SNNVisualizer {
       }
     });
 
-    console.log(`Template network built: ${template.regionName || this.config.presetId} (${this.neurons.length} neurons, ${this.connections.length} connections)`);
+    console.log(
+      `Template network built: ${
+        template.regionName || this.config.presetId
+      } (${this.neurons.length} neurons, ${
+        this.connections.length
+      } connections)`
+    );
     this.clearTrace();
     if (this.dom.voltageValue) this.dom.voltageValue.textContent = "--";
     if (this.dom.neuronMeta) this.renderNeuronDetails(null);
@@ -2110,7 +2323,7 @@ class SNNVisualizer {
       neuron.spikeHistory.push(now);
       if (neuron.spikeHistory.length > 100) neuron.spikeHistory.shift();
     }
-    const refr = (neuron.refractoryMs ?? this.config.refractoryMs) ?? 0;
+    const refr = neuron.refractoryMs ?? this.config.refractoryMs ?? 0;
     neuron.refractoryUntil = now + refr;
 
     // Propagate to connected neurons
@@ -2150,8 +2363,12 @@ class SNNVisualizer {
 
         // Background random input
         if (Math.random() < this.state.firingRate) {
-          const base = (neuron.bgImpulse ?? this.config.backgroundImpulse) ?? 0.08;
-          const amp = base * (0.25 + 0.75 * (1 - Math.min(1, Math.max(0, this.state.firingRate))));
+          const base =
+            neuron.bgImpulse ?? this.config.backgroundImpulse ?? 0.08;
+          const amp =
+            base *
+            (0.25 +
+              0.75 * (1 - Math.min(1, Math.max(0, this.state.firingRate))));
           neuron.voltage += amp;
         }
 
@@ -2174,7 +2391,9 @@ class SNNVisualizer {
       if (this.dom.voltageValue) {
         const v = this.state.selectedNeuron.voltage;
         const last = this.state.selectedNeuron.lastFire || 0;
-        const ago = last ? `${((Date.now() - last) / 1000).toFixed(1)}s ago` : "no spike yet";
+        const ago = last
+          ? `${((Date.now() - last) / 1000).toFixed(1)}s ago`
+          : "no spike yet";
         this.dom.voltageValue.textContent = `${v.toFixed(3)} (${ago})`;
       }
 
@@ -2199,18 +2418,24 @@ class SNNVisualizer {
     }
 
     if (this.dom.exportTemplateBtn) {
-      this.dom.exportTemplateBtn.addEventListener("click", () => this.exportCurrentTemplate());
+      this.dom.exportTemplateBtn.addEventListener("click", () =>
+        this.exportCurrentTemplate()
+      );
     }
 
     if (this.dom.importTemplateBtn && this.dom.importTemplateInput) {
-      this.dom.importTemplateBtn.addEventListener("click", () => this.dom.importTemplateInput.click());
+      this.dom.importTemplateBtn.addEventListener("click", () =>
+        this.dom.importTemplateInput.click()
+      );
       this.dom.importTemplateInput.addEventListener("change", (e) => {
         this.handleTemplateFileList(e.target.files);
       });
     }
 
     if (this.dom.importHelpBtn) {
-      this.dom.importHelpBtn.addEventListener("click", () => this.showTemplateImportDocs());
+      this.dom.importHelpBtn.addEventListener("click", () =>
+        this.showTemplateImportDocs()
+      );
     }
 
     // Preset selection
@@ -2221,7 +2446,7 @@ class SNNVisualizer {
       });
     }
 
-    this.refreshPresetOptions(this.config.presetId || 'None');
+    this.refreshPresetOptions(this.config.presetId || "None");
 
     // Initialize lock state
     this.updatePresetLockUI();
@@ -2231,9 +2456,15 @@ class SNNVisualizer {
         this.config.networkSize = parseInt(e.target.value);
         // Keep cluster size in sync with network size and cluster count
         if (this.config.clusterCount > 0) {
-          this.config.clusterSize = Math.max(1, Math.round(this.config.networkSize / this.config.clusterCount));
-          if (this.dom.clusterSizeSlider) this.dom.clusterSizeSlider.value = String(this.config.clusterSize);
-          if (this.dom.clusterSizeValueLabel) this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
+          this.config.clusterSize = Math.max(
+            1,
+            Math.round(this.config.networkSize / this.config.clusterCount)
+          );
+          if (this.dom.clusterSizeSlider)
+            this.dom.clusterSizeSlider.value = String(this.config.clusterSize);
+          if (this.dom.clusterSizeValueLabel)
+            this.dom.clusterSizeValueLabel.textContent =
+              this.config.clusterSize;
         }
         if (this.dom.sizeValueLabel) {
           this.dom.sizeValueLabel.textContent = this.config.networkSize;
@@ -2263,26 +2494,38 @@ class SNNVisualizer {
     if (this.dom.clusterCountSlider) {
       this.dom.clusterCountSlider.addEventListener("input", (e) => {
         this.config.clusterCount = parseInt(e.target.value);
-        if (this.dom.clustersValueLabel) this.dom.clustersValueLabel.textContent = this.config.clusterCount;
+        if (this.dom.clustersValueLabel)
+          this.dom.clustersValueLabel.textContent = this.config.clusterCount;
         // Update derived network size
-        this.config.networkSize = this.config.clusterCount * this.config.clusterSize;
-        if (this.dom.networkSizeSlider) this.dom.networkSizeSlider.value = String(this.config.networkSize);
-        if (this.dom.sizeValueLabel) this.dom.sizeValueLabel.textContent = this.config.networkSize;
+        this.config.networkSize =
+          this.config.clusterCount * this.config.clusterSize;
+        if (this.dom.networkSizeSlider)
+          this.dom.networkSizeSlider.value = String(this.config.networkSize);
+        if (this.dom.sizeValueLabel)
+          this.dom.sizeValueLabel.textContent = this.config.networkSize;
       });
-      this.dom.clusterCountSlider.addEventListener("change", () => this.createNetwork());
+      this.dom.clusterCountSlider.addEventListener("change", () =>
+        this.createNetwork()
+      );
     }
 
     // Cluster size control
     if (this.dom.clusterSizeSlider) {
       this.dom.clusterSizeSlider.addEventListener("input", (e) => {
         this.config.clusterSize = parseInt(e.target.value);
-        if (this.dom.clusterSizeValueLabel) this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
+        if (this.dom.clusterSizeValueLabel)
+          this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
         // Update derived network size
-        this.config.networkSize = this.config.clusterCount * this.config.clusterSize;
-        if (this.dom.networkSizeSlider) this.dom.networkSizeSlider.value = String(this.config.networkSize);
-        if (this.dom.sizeValueLabel) this.dom.sizeValueLabel.textContent = this.config.networkSize;
+        this.config.networkSize =
+          this.config.clusterCount * this.config.clusterSize;
+        if (this.dom.networkSizeSlider)
+          this.dom.networkSizeSlider.value = String(this.config.networkSize);
+        if (this.dom.sizeValueLabel)
+          this.dom.sizeValueLabel.textContent = this.config.networkSize;
       });
-      this.dom.clusterSizeSlider.addEventListener("change", () => this.createNetwork());
+      this.dom.clusterSizeSlider.addEventListener("change", () =>
+        this.createNetwork()
+      );
     }
 
     // Inter-cluster probability
@@ -2290,9 +2533,12 @@ class SNNVisualizer {
       this.dom.interProbSlider.addEventListener("input", (e) => {
         this.config.interProbScale = parseFloat(e.target.value);
         if (this.dom.interProbValueLabel)
-          this.dom.interProbValueLabel.textContent = this.config.interProbScale.toFixed(2);
+          this.dom.interProbValueLabel.textContent =
+            this.config.interProbScale.toFixed(2);
       });
-      this.dom.interProbSlider.addEventListener("change", () => this.createNetwork());
+      this.dom.interProbSlider.addEventListener("change", () =>
+        this.createNetwork()
+      );
     }
 
     // Inter-cluster weight
@@ -2300,9 +2546,12 @@ class SNNVisualizer {
       this.dom.interWeightSlider.addEventListener("input", (e) => {
         this.config.interWeightScale = parseFloat(e.target.value);
         if (this.dom.interWeightValueLabel)
-          this.dom.interWeightValueLabel.textContent = this.config.interWeightScale.toFixed(2);
+          this.dom.interWeightValueLabel.textContent =
+            this.config.interWeightScale.toFixed(2);
       });
-      this.dom.interWeightSlider.addEventListener("change", () => this.createNetwork());
+      this.dom.interWeightSlider.addEventListener("change", () =>
+        this.createNetwork()
+      );
     }
 
     // E/I balance (excitatory ratio)
@@ -2310,9 +2559,12 @@ class SNNVisualizer {
       this.dom.excRatioSlider.addEventListener("input", (e) => {
         this.config.excRatio = parseFloat(e.target.value);
         if (this.dom.excRatioValueLabel)
-          this.dom.excRatioValueLabel.textContent = this.config.excRatio.toFixed(2);
+          this.dom.excRatioValueLabel.textContent =
+            this.config.excRatio.toFixed(2);
       });
-      this.dom.excRatioSlider.addEventListener("change", () => this.createNetwork());
+      this.dom.excRatioSlider.addEventListener("change", () =>
+        this.createNetwork()
+      );
     }
 
     // Depth fog strength
@@ -2320,7 +2572,8 @@ class SNNVisualizer {
       this.dom.fogSlider.addEventListener("input", (e) => {
         this.config.fogStrength = parseFloat(e.target.value);
         if (this.dom.fogValueLabel)
-          this.dom.fogValueLabel.textContent = this.config.fogStrength.toFixed(2);
+          this.dom.fogValueLabel.textContent =
+            this.config.fogStrength.toFixed(2);
       });
     }
 
@@ -2350,7 +2603,8 @@ class SNNVisualizer {
       this.dom.firingRateSlider.addEventListener("input", (e) => {
         this.state.firingRate = parseFloat(e.target.value);
         if (this.dom.firingValueLabel) {
-          this.dom.firingValueLabel.textContent = this.state.firingRate.toFixed(2);
+          this.dom.firingValueLabel.textContent =
+            this.state.firingRate.toFixed(2);
         }
       });
     }
@@ -2390,17 +2644,22 @@ class SNNVisualizer {
       .then((result) => {
         if (!result || result.added === 0) return;
         const preserveId =
-          this.dom.presetSelect?.value ||
-          this.config.presetId ||
-          'None';
+          this.dom.presetSelect?.value || this.config.presetId || "None";
         this.refreshPresetOptions(preserveId);
-        if (this.dom.presetSummary && typeof this.renderPresetSummary === 'function') {
+        if (
+          this.dom.presetSummary &&
+          typeof this.renderPresetSummary === "function"
+        ) {
           this.renderPresetSummary(preserveId);
         }
-        this.showBanner(`Loaded ${result.added} region template${result.added === 1 ? '' : 's'} from library.`);
+        this.showBanner(
+          `Loaded ${result.added} region template${
+            result.added === 1 ? "" : "s"
+          } from library.`
+        );
       })
       .catch((error) => {
-        console.warn('Atlas template bootstrap failed', error);
+        console.warn("Atlas template bootstrap failed", error);
       });
   }
 
@@ -2410,24 +2669,26 @@ class SNNVisualizer {
       return { added: 0, skipped: 0 };
     }
 
-    const manifestUrl = 'data/brain_region_maps/manifest.json';
+    const manifestUrl = "data/brain_region_maps/manifest.json";
     const registry = window.SNN_REGISTRY;
     const loader = window.SNN_CONFIG_IO;
 
-    this._atlasBootstrapPromise = fetch(manifestUrl, { cache: 'no-store' })
+    this._atlasBootstrapPromise = fetch(manifestUrl, { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(`Manifest fetch failed (${response.status})`);
         }
         const manifest = await response.json();
-        const entries = Array.isArray(manifest?.templates) ? manifest.templates : [];
+        const entries = Array.isArray(manifest?.templates)
+          ? manifest.templates
+          : [];
         let added = 0;
         let skipped = 0;
 
         for (const entry of entries) {
           try {
-            const id = String(entry?.id || '').trim();
-            const file = String(entry?.file || '').trim();
+            const id = String(entry?.id || "").trim();
+            const file = String(entry?.file || "").trim();
             if (!id || !file) {
               skipped += 1;
               continue;
@@ -2439,7 +2700,7 @@ class SNNVisualizer {
 
             const url = `data/brain_region_maps/${file}`;
             const template = await loader.loadTemplateFromUrl(url);
-            if (!template || typeof template !== 'object') {
+            if (!template || typeof template !== "object") {
               skipped += 1;
               continue;
             }
@@ -2463,10 +2724,14 @@ class SNNVisualizer {
             }
             enriched.metadata = meta;
 
-            registry.registerTemplate(id, enriched, 'library');
+            registry.registerTemplate(id, enriched, "library");
             added += 1;
           } catch (error) {
-            console.warn('Failed to register atlas template from manifest', entry, error);
+            console.warn(
+              "Failed to register atlas template from manifest",
+              entry,
+              error
+            );
             skipped += 1;
           }
         }
@@ -2474,7 +2739,7 @@ class SNNVisualizer {
         return { added, skipped };
       })
       .catch((error) => {
-        console.warn('Failed to load atlas manifest', error);
+        console.warn("Failed to load atlas manifest", error);
         return { added: 0, skipped: 0, error };
       });
 
@@ -2486,11 +2751,13 @@ class SNNVisualizer {
     if (!window.SNN_REGISTRY) return;
     const preset = window.SNN_REGISTRY.RegionPresets[presetId];
 
-    if (!preset || presetId === 'None') {
-      this.config.presetId = 'None';
+    if (!preset || presetId === "None") {
+      this.config.presetId = "None";
       this.activeTemplate = null;
-      if (typeof this.updatePresetLockUI === 'function') this.updatePresetLockUI();
-      if (typeof this.renderPresetSummary === 'function') this.renderPresetSummary(presetId);
+      if (typeof this.updatePresetLockUI === "function")
+        this.updatePresetLockUI();
+      if (typeof this.renderPresetSummary === "function")
+        this.renderPresetSummary(presetId);
       this.createNetwork();
       return;
     }
@@ -2504,31 +2771,43 @@ class SNNVisualizer {
     if (counts) {
       this.config.clusterCount = counts.clusters;
       this.config.clusterSize = counts.clusterSize;
-      this.config.networkSize = counts.totalNeurons ?? (counts.clusters * counts.clusterSize);
-      if (this.dom.clustersValueLabel) this.dom.clustersValueLabel.textContent = this.config.clusterCount;
-      if (this.dom.clusterCountSlider) this.dom.clusterCountSlider.value = String(this.config.clusterCount);
-      if (this.dom.clusterSizeValueLabel) this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
-      if (this.dom.clusterSizeSlider) this.dom.clusterSizeSlider.value = String(this.config.clusterSize);
-      if (this.dom.sizeValueLabel) this.dom.sizeValueLabel.textContent = this.config.networkSize;
-      if (this.dom.networkSizeSlider) this.dom.networkSizeSlider.value = String(this.config.networkSize);
+      this.config.networkSize =
+        counts.totalNeurons ?? counts.clusters * counts.clusterSize;
+      if (this.dom.clustersValueLabel)
+        this.dom.clustersValueLabel.textContent = this.config.clusterCount;
+      if (this.dom.clusterCountSlider)
+        this.dom.clusterCountSlider.value = String(this.config.clusterCount);
+      if (this.dom.clusterSizeValueLabel)
+        this.dom.clusterSizeValueLabel.textContent = this.config.clusterSize;
+      if (this.dom.clusterSizeSlider)
+        this.dom.clusterSizeSlider.value = String(this.config.clusterSize);
+      if (this.dom.sizeValueLabel)
+        this.dom.sizeValueLabel.textContent = this.config.networkSize;
+      if (this.dom.networkSizeSlider)
+        this.dom.networkSizeSlider.value = String(this.config.networkSize);
     }
 
-    if (typeof ei === 'number' && !Number.isNaN(ei)) {
+    if (typeof ei === "number" && !Number.isNaN(ei)) {
       this.config.excRatio = ei;
-      if (this.dom.excRatioSlider) this.dom.excRatioSlider.value = ei.toFixed(2);
-      if (this.dom.excRatioValueLabel) this.dom.excRatioValueLabel.textContent = ei.toFixed(2);
+      if (this.dom.excRatioSlider)
+        this.dom.excRatioSlider.value = ei.toFixed(2);
+      if (this.dom.excRatioValueLabel)
+        this.dom.excRatioValueLabel.textContent = ei.toFixed(2);
     }
 
-    if (typeof this.updatePresetLockUI === 'function') this.updatePresetLockUI();
-    if (typeof this.renderPresetSummary === 'function') this.renderPresetSummary(presetId);
+    if (typeof this.updatePresetLockUI === "function")
+      this.updatePresetLockUI();
+    if (typeof this.renderPresetSummary === "function")
+      this.renderPresetSummary(presetId);
     this.createNetwork();
   }
 
-
   // Step 4: Disable/enable controls that are governed by a preset
   updatePresetLockUI() {
-    const locked = !!(this.config.presetId && this.config.presetId !== 'None');
-    const setDisabled = (el) => { if (el) el.disabled = locked; };
+    const locked = !!(this.config.presetId && this.config.presetId !== "None");
+    const setDisabled = (el) => {
+      if (el) el.disabled = locked;
+    };
     setDisabled(this.dom.clusterCountSlider);
     setDisabled(this.dom.clusterSizeSlider);
     setDisabled(this.dom.excRatioSlider);
@@ -2537,26 +2816,36 @@ class SNNVisualizer {
   // Step 4: Show a compact summary of the active preset
   renderPresetSummary(presetId) {
     if (!this.dom.presetSummary) return;
-    if (!presetId || presetId === 'None' || !window.SNN_REGISTRY) {
-      this.dom.presetSummary.textContent = '';
+    if (!presetId || presetId === "None" || !window.SNN_REGISTRY) {
+      this.dom.presetSummary.textContent = "";
       return;
     }
 
     const preset = window.SNN_REGISTRY.RegionPresets[presetId];
     if (!preset) {
-      this.dom.presetSummary.textContent = '';
+      this.dom.presetSummary.textContent = "";
       return;
     }
 
     const template = window.SNN_REGISTRY.getTemplateForPreset(preset);
-    if (template && Array.isArray(template.clusters) && template.clusters.length) {
+    if (
+      template &&
+      Array.isArray(template.clusters) &&
+      template.clusters.length
+    ) {
       const segments = template.clusters.map((cluster) => {
-        const groups = (cluster.neuronGroups || []).map((group) => `${group.count}x${group.preset}`);
-        return `${cluster.name || cluster.id}: ${groups.join(', ')}`;
+        const groups = (cluster.neuronGroups || []).map(
+          (group) => `${group.count}x${group.preset}`
+        );
+        return `${cluster.name || cluster.id}: ${groups.join(", ")}`;
       });
       const ei = window.SNN_REGISTRY.estimateEI(preset);
-      const ratioText = Number.isFinite(ei) ? `  |  E frac ≈ ${ei.toFixed(2)}` : '';
-      this.dom.presetSummary.textContent = `${segments.join('  |  ')}${ratioText}`;
+      const ratioText = Number.isFinite(ei)
+        ? `  |  E frac ≈ ${ei.toFixed(2)}`
+        : "";
+      this.dom.presetSummary.textContent = `${segments.join(
+        "  |  "
+      )}${ratioText}`;
       return;
     }
 
@@ -2566,32 +2855,38 @@ class SNNVisualizer {
       parts.push(`${c.count || 1}x${label}`);
     });
     const ei = window.SNN_REGISTRY.estimateEI(preset);
-    this.dom.presetSummary.textContent = `${parts.join('  |  ')}  |  E frac ≈ ${ei.toFixed(2)}`;
+    this.dom.presetSummary.textContent = `${parts.join(
+      "  |  "
+    )}  |  E frac ≈ ${ei.toFixed(2)}`;
   }
 
   refreshPresetOptions(selectedId) {
     if (!this.dom.presetSelect || !window.SNN_REGISTRY) return;
     const registry = window.SNN_REGISTRY;
-    const entries = typeof registry.listTemplates === 'function'
-      ? registry.listTemplates()
-      : Object.keys(registry.RegionPresets || {}).map((key) => ({
-          id: key,
-          label: registry.RegionPresets[key]?.label || key,
-        }));
+    const entries =
+      typeof registry.listTemplates === "function"
+        ? registry.listTemplates()
+        : Object.keys(registry.RegionPresets || {}).map((key) => ({
+            id: key,
+            label: registry.RegionPresets[key]?.label || key,
+          }));
 
     const sorted = entries
-      .filter((entry, idx, arr) => arr.findIndex((e) => e.id === entry.id) === idx)
+      .filter(
+        (entry, idx, arr) => arr.findIndex((e) => e.id === entry.id) === idx
+      )
       .sort((a, b) => {
-        if (a.id === 'None') return -1;
-        if (b.id === 'None') return 1;
+        if (a.id === "None") return -1;
+        if (b.id === "None") return 1;
         return a.label.localeCompare(b.label);
       });
 
-    const currentSelection = selectedId || this.dom.presetSelect.value || 'None';
-    this.dom.presetSelect.innerHTML = '';
+    const currentSelection =
+      selectedId || this.dom.presetSelect.value || "None";
+    this.dom.presetSelect.innerHTML = "";
     const frag = document.createDocumentFragment();
     sorted.forEach(({ id, label }) => {
-      const option = document.createElement('option');
+      const option = document.createElement("option");
       option.value = id;
       option.textContent = label;
       frag.appendChild(option);
@@ -2605,12 +2900,12 @@ class SNNVisualizer {
   exportCurrentTemplate() {
     if (!window.SNN_REGISTRY) return;
     const presetId =
-      (this.config.presetId && this.config.presetId !== 'None')
+      this.config.presetId && this.config.presetId !== "None"
         ? this.config.presetId
         : this.dom.presetSelect?.value;
 
-    if (!presetId || presetId === 'None') {
-      this.showBanner('Select a template preset before exporting.');
+    if (!presetId || presetId === "None") {
+      this.showBanner("Select a template preset before exporting.");
       return;
     }
 
@@ -2618,20 +2913,27 @@ class SNNVisualizer {
       const json = window.SNN_REGISTRY.exportTemplateConfig(presetId, 2);
       const preset = window.SNN_REGISTRY.RegionPresets[presetId];
       const label = preset?.label || presetId;
-      const slug = (label || 'template').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-      const blob = new Blob([json], { type: 'application/json' });
+      const slug = (label || "template")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+      const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = `${slug || 'template'}.json`;
+      link.download = `${slug || "template"}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       this.showBanner(`Exported template "${label}".`);
     } catch (error) {
-      console.error('Template export failed', error);
-      this.showBanner(`Template export failed: ${error.message || error}`, 'error', 5000);
+      console.error("Template export failed", error);
+      this.showBanner(
+        `Template export failed: ${error.message || error}`,
+        "error",
+        5000
+      );
     }
   }
 
@@ -2643,10 +2945,15 @@ class SNNVisualizer {
       const template = window.SNN_CONFIG_IO
         ? window.SNN_CONFIG_IO.deserializeTemplate(text)
         : JSON.parse(text);
-      const desiredKey = (template.id || template.regionName || file.name || 'Imported_Template')
+      const desiredKey = (
+        template.id ||
+        template.regionName ||
+        file.name ||
+        "Imported_Template"
+      )
         .toString()
-        .replace(/[^a-z0-9_]+/gi, '_')
-        .replace(/^_+|_+$/g, '');
+        .replace(/[^a-z0-9_]+/gi, "_")
+        .replace(/^_+|_+$/g, "");
       let key = desiredKey || `Template_${Date.now()}`;
       let suffix = 1;
       const presets = window.SNN_REGISTRY.RegionPresets || {};
@@ -2661,21 +2968,22 @@ class SNNVisualizer {
       this.applyPreset(key);
       this.showBanner(`Imported template "${registered.regionName || key}".`);
     } catch (error) {
-      console.error('Template import failed', error);
-      this.showBanner(`Template import failed: ${error.message || error}`, 'error', 6000);
+      console.error("Template import failed", error);
+      this.showBanner(
+        `Template import failed: ${error.message || error}`,
+        "error",
+        6000
+      );
     } finally {
       if (this.dom.importTemplateInput) {
-        this.dom.importTemplateInput.value = '';
+        this.dom.importTemplateInput.value = "";
       }
     }
   }
 
   showTemplateImportDocs() {
     const escapeHtml = (value) =>
-      value
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+      value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const accentColor = this.theme?.textAccent || "#f6c274";
     const textColor = this.theme?.text || "#f4eadc";
     const secondaryText = this.theme?.textMuted || "#b8926a";
@@ -2696,8 +3004,18 @@ class SNNVisualizer {
                 { preset: "basket", count: 20 },
               ],
               internalConnectivity: [
-                { from: "pyramidal", to: "pyramidal", probability: 0.3, type: "excitatory" },
-                { from: "basket", to: "pyramidal", probability: 0.8, type: "inhibitory" },
+                {
+                  from: "pyramidal",
+                  to: "pyramidal",
+                  probability: 0.3,
+                  type: "excitatory",
+                },
+                {
+                  from: "basket",
+                  to: "pyramidal",
+                  probability: 0.8,
+                  type: "inhibitory",
+                },
               ],
             },
             {
@@ -2708,8 +3026,18 @@ class SNNVisualizer {
                 { preset: "basket", count: 15 },
               ],
               internalConnectivity: [
-                { from: "pyramidal", to: "pyramidal", probability: 0.2, type: "excitatory" },
-                { from: "basket", to: "pyramidal", probability: 0.75, type: "inhibitory" },
+                {
+                  from: "pyramidal",
+                  to: "pyramidal",
+                  probability: 0.2,
+                  type: "excitatory",
+                },
+                {
+                  from: "basket",
+                  to: "pyramidal",
+                  probability: 0.75,
+                  type: "inhibitory",
+                },
               ],
             },
           ],
@@ -2871,14 +3199,14 @@ class SNNVisualizer {
     });
   }
 
-  showBanner(message, tone = 'info', duration = 3500) {
+  showBanner(message, tone = "info", duration = 3500) {
     if (!this.dom.errEl) return;
     this.dom.errEl.textContent = message;
     this.dom.errEl.dataset.tone = tone;
-    this.dom.errEl.style.display = 'block';
+    this.dom.errEl.style.display = "block";
     if (this._bannerTimer) clearTimeout(this._bannerTimer);
     this._bannerTimer = setTimeout(() => {
-      this.dom.errEl.style.display = 'none';
+      this.dom.errEl.style.display = "none";
     }, duration);
   }
 
@@ -2984,7 +3312,6 @@ class SNNVisualizer {
       });
     }
   }
-
 
   async showFullLesson(lessonNumber) {
     const lesson = this.lessonConfig[lessonNumber];
@@ -3155,7 +3482,9 @@ class SNNVisualizer {
     try {
       const response = await fetch(lesson.file, { cache: "no-store" });
       if (!response.ok) {
-        console.warn(`Lesson file not found: ${lesson.file} (status ${response.status})`);
+        console.warn(
+          `Lesson file not found: ${lesson.file} (status ${response.status})`
+        );
         return null;
       }
       const htmlText = await response.text();
@@ -3173,17 +3502,26 @@ class SNNVisualizer {
 
     const trimmed = htmlText.trim();
     const hasHtmlTag = /<html[\s>]/i.test(trimmed);
-    const baseHref = lesson && lesson.file ? new URL(lesson.file, window.location.href).href : window.location.href;
+    const baseHref =
+      lesson && lesson.file
+        ? new URL(lesson.file, window.location.href).href
+        : window.location.href;
 
     if (hasHtmlTag) {
       if (/<head[\s>]/i.test(trimmed)) {
         if (!/<base/i.test(trimmed)) {
-          const withBase = trimmed.replace(/<head([^>]*)>/i, `<head$1><base href="${baseHref}">`);
+          const withBase = trimmed.replace(
+            /<head([^>]*)>/i,
+            `<head$1><base href="${baseHref}">`
+          );
           return this.applyThemeColorsToMarkup(withBase);
         }
         return this.applyThemeColorsToMarkup(trimmed);
       }
-      const injected = trimmed.replace(/<html([^>]*)>/i, `<html$1><head><base href="${baseHref}"></head>`);
+      const injected = trimmed.replace(
+        /<html([^>]*)>/i,
+        `<html$1><head><base href="${baseHref}"></head>`
+      );
       return this.applyThemeColorsToMarkup(injected);
     }
 
@@ -3192,7 +3530,9 @@ class SNNVisualizer {
 
   wrapLessonContent(title, bodyContent) {
     const safeTitle = title || "Lesson";
-    const safeBody = bodyContent || '<p style="font-size: 16px;">Lesson content is currently unavailable.</p>';
+    const safeBody =
+      bodyContent ||
+      '<p style="font-size: 16px;">Lesson content is currently unavailable.</p>';
     const themedHtml = `<!DOCTYPE html>
 <html>
 <head>
@@ -3482,7 +3822,9 @@ ${safeBody}
     // Update bottom status text
     if (this.dom.statusText) {
       const zoom = (1800 / this.camera.distance).toFixed(2);
-      this.dom.statusText.textContent = `CAM: ${Math.round(this.camera.distance)} | ZOOM: ${zoom}x | NEURONS: ${this.neurons.length}`;
+      this.dom.statusText.textContent = `CAM: ${Math.round(
+        this.camera.distance
+      )} | ZOOM: ${zoom}x | NEURONS: ${this.neurons.length}`;
     }
 
     if (this.state.isRunning) {
@@ -3512,19 +3854,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Remove emergency fallback - it causes the wrong style flash
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
