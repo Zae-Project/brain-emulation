@@ -55,6 +55,41 @@ class SNNVisualizer {
       },
     ];
 
+    this.NEURON_SHAPE_LOOKUP = {
+      pyramidal: "triangle-up",
+      "pyramidal-l6": "triangle-down",
+      betz: "triangle-up",
+      "spiny-stellate": "diamond",
+      basket: "square-rounded",
+      chandelier: "rect-tall",
+      martinotti: "triangle-up",
+      "double-bouquet": "triangle-down",
+      neurogliaform: "circle",
+      purkinje: "circle",
+      "granule-cerebellar": "circle",
+      "golgi-cerebellar": "hexagon",
+      "stellate-cerebellar": "diamond",
+      mossy: "hexagon",
+      "granule-dentate": "circle",
+      msn: "diamond",
+      "alpha-motor": "trapezoid",
+      pseudounipolar: "circle",
+      "thalamic-relay": "hexagon",
+      rod: "rect-tall",
+      cone: "triangle-up",
+      "bipolar-retina": "rect-tall",
+      amacrine: "square",
+      "horizontal-retina": "rect-wide",
+      rgc: "circle",
+      mitral: "triangle-right",
+      tufted: "triangle-right",
+      dopaminergic: "parallelogram",
+      cholinergic: "trapezoid-inverted",
+      relay: "hexagon",
+      inhibitory: "square-rounded",
+      excitatory: "triangle-up",
+    };
+
     this.neurons = [];
     this.connections = [];
     this.voltageHistory = [];
@@ -682,6 +717,210 @@ class SNNVisualizer {
     );
   }
 
+  normalizeShapeKey(shapeKey) {
+    const key = (shapeKey || "").toLowerCase();
+    switch (key) {
+      case "triangle-up-bold":
+      case "triangle-up-narrow":
+      case "triangle-up-slim":
+        return "triangle-up";
+      case "triangle-right-small":
+        return "triangle-right";
+      case "diamond-rounded":
+        return "diamond";
+      case "circle-small":
+      case "circle-with-stem":
+        return "circle";
+      case "rect-tall-rounded":
+      case "pill-vertical":
+        return "rect-tall";
+      case "chevron-down":
+        return "triangle-down";
+      case "semicircle-up":
+        return "circle";
+      case "star-5":
+      case "pentagon":
+        return "hexagon";
+      case "donut":
+        return "circle";
+      default: {
+        const supported = new Set([
+          "triangle-up",
+          "triangle-down",
+          "diamond",
+          "square-rounded",
+          "rect-tall",
+          "hexagon",
+          "circle",
+          "square",
+          "rect-wide",
+          "trapezoid",
+          "trapezoid-inverted",
+          "parallelogram",
+          "triangle-right",
+        ]);
+        return supported.has(key) ? key : "circle";
+      }
+    }
+  }
+
+  resolveNeuronShapeKey(presetId, neuronType) {
+    const lookupKey = (presetId || "").toLowerCase();
+    if (lookupKey && this.NEURON_SHAPE_LOOKUP[lookupKey]) {
+      return this.normalizeShapeKey(this.NEURON_SHAPE_LOOKUP[lookupKey]);
+    }
+    if (lookupKey.includes("pyramidal")) return "triangle-up";
+    if (lookupKey.includes("basket")) return "square-rounded";
+    if (lookupKey.includes("chandelier")) return "rect-tall";
+    if (lookupKey.includes("relay")) return "hexagon";
+    if (lookupKey.includes("granule")) return "circle";
+    if (lookupKey.includes("stellate")) return "diamond";
+    if (lookupKey.includes("martinotti")) return "triangle-up";
+    if (lookupKey.includes("golgi")) return "hexagon";
+    if (lookupKey.includes("mossy")) return "hexagon";
+    const typeCode = (neuronType || "").toUpperCase();
+    if (typeCode === "I") return "square-rounded";
+    if (typeCode === "E") return "triangle-up";
+    return "circle";
+  }
+
+  buildNeuronShape(shapeKey, x, y, size) {
+    const key = this.normalizeShapeKey(shapeKey);
+    const path = new Path2D();
+    let halfWidth = size / 2;
+    let halfHeight = size / 2;
+
+    switch (key) {
+      case "triangle-up": {
+        halfWidth = size * 0.55;
+        halfHeight = size * 0.5;
+        path.moveTo(x, y - halfHeight);
+        path.lineTo(x - halfWidth, y + halfHeight);
+        path.lineTo(x + halfWidth, y + halfHeight);
+        path.closePath();
+        break;
+      }
+      case "triangle-down": {
+        halfWidth = size * 0.55;
+        halfHeight = size * 0.5;
+        path.moveTo(x - halfWidth, y - halfHeight);
+        path.lineTo(x + halfWidth, y - halfHeight);
+        path.lineTo(x, y + halfHeight);
+        path.closePath();
+        break;
+      }
+      case "diamond": {
+        halfWidth = size * 0.5;
+        halfHeight = size * 0.5;
+        path.moveTo(x, y - halfHeight);
+        path.lineTo(x + halfWidth, y);
+        path.lineTo(x, y + halfHeight);
+        path.lineTo(x - halfWidth, y);
+        path.closePath();
+        break;
+      }
+      case "square-rounded": {
+        halfWidth = size * 0.5;
+        halfHeight = size * 0.5;
+        const corner = size * 0.18;
+        path.moveTo(x - halfWidth + corner, y - halfHeight);
+        path.lineTo(x + halfWidth - corner, y - halfHeight);
+        path.quadraticCurveTo(x + halfWidth, y - halfHeight, x + halfWidth, y - halfHeight + corner);
+        path.lineTo(x + halfWidth, y + halfHeight - corner);
+        path.quadraticCurveTo(x + halfWidth, y + halfHeight, x + halfWidth - corner, y + halfHeight);
+        path.lineTo(x - halfWidth + corner, y + halfHeight);
+        path.quadraticCurveTo(x - halfWidth, y + halfHeight, x - halfWidth, y + halfHeight - corner);
+        path.lineTo(x - halfWidth, y - halfHeight + corner);
+        path.quadraticCurveTo(x - halfWidth, y - halfHeight, x - halfWidth + corner, y - halfHeight);
+        path.closePath();
+        break;
+      }
+      case "rect-tall": {
+        halfWidth = size * 0.35;
+        halfHeight = size * 0.6;
+        path.rect(x - halfWidth, y - halfHeight, halfWidth * 2, halfHeight * 2);
+        break;
+      }
+      case "hexagon": {
+        halfWidth = size * 0.55;
+        halfHeight = size * 0.55;
+        const points = 6;
+        for (let i = 0; i < points; i++) {
+          const angle = (Math.PI / 3) * i + Math.PI / 6;
+          const px = x + halfWidth * Math.cos(angle);
+          const py = y + halfHeight * Math.sin(angle);
+          if (i === 0) path.moveTo(px, py);
+          else path.lineTo(px, py);
+        }
+        path.closePath();
+        break;
+      }
+      case "square": {
+        halfWidth = size * 0.5;
+        halfHeight = size * 0.5;
+        path.rect(x - halfWidth, y - halfHeight, halfWidth * 2, halfHeight * 2);
+        break;
+      }
+      case "rect-wide": {
+        halfWidth = size * 0.6;
+        halfHeight = size * 0.35;
+        path.rect(x - halfWidth, y - halfHeight, halfWidth * 2, halfHeight * 2);
+        break;
+      }
+      case "trapezoid": {
+        halfWidth = size * 0.55;
+        halfHeight = size * 0.5;
+        path.moveTo(x - halfWidth * 0.6, y - halfHeight);
+        path.lineTo(x + halfWidth * 0.6, y - halfHeight);
+        path.lineTo(x + halfWidth, y + halfHeight);
+        path.lineTo(x - halfWidth, y + halfHeight);
+        path.closePath();
+        break;
+      }
+      case "trapezoid-inverted": {
+        halfWidth = size * 0.55;
+        halfHeight = size * 0.5;
+        path.moveTo(x - halfWidth, y - halfHeight);
+        path.lineTo(x + halfWidth, y - halfHeight);
+        path.lineTo(x + halfWidth * 0.6, y + halfHeight);
+        path.lineTo(x - halfWidth * 0.6, y + halfHeight);
+        path.closePath();
+        break;
+      }
+      case "parallelogram": {
+        halfWidth = size * 0.55;
+        halfHeight = size * 0.5;
+        const offset = halfWidth * 0.3;
+        path.moveTo(x - halfWidth + offset, y - halfHeight);
+        path.lineTo(x + halfWidth, y - halfHeight);
+        path.lineTo(x + halfWidth - offset, y + halfHeight);
+        path.lineTo(x - halfWidth, y + halfHeight);
+        path.closePath();
+        break;
+      }
+      case "triangle-right": {
+        halfWidth = size * 0.55;
+        halfHeight = size * 0.5;
+        path.moveTo(x - halfWidth, y - halfHeight);
+        path.lineTo(x + halfWidth, y);
+        path.lineTo(x - halfWidth, y + halfHeight);
+        path.closePath();
+        break;
+      }
+      case "circle":
+      default: {
+        const radius = size * 0.5;
+        path.moveTo(x + radius, y);
+        path.arc(x, y, radius, 0, Math.PI * 2);
+        halfWidth = radius;
+        halfHeight = radius;
+        break;
+      }
+    }
+
+    return { path, halfWidth, halfHeight, key };
+  }
+
   renderNeuronDetails(neuron) {
     if (!this.dom.neuronMeta) return;
     if (!neuron) {
@@ -710,6 +949,12 @@ class SNNVisualizer {
     const synapseType = bio.synapseType ? ` &bull; Synapse: ${bio.synapseType}` : "";
     const peerGroup =
       cluster.groups && neuron.groupPreset ? cluster.groups[neuron.groupPreset] : null;
+    const shapeKey = neuron.shapeKey || this.resolveNeuronShapeKey(neuron.groupPreset, neuron.type);
+    const shapeLabel = shapeKey ? this.formatLabel(shapeKey) : null;
+    const shapeBadge = shapeLabel
+      ? `<span class="neuron-shape-badge" title="Graph shape: ${shapeLabel}"><span class="neuron-shape-icon shape-${shapeKey}" aria-hidden="true"></span><span class="neuron-shape-label">${shapeLabel}</span></span>`
+      : "";
+    const shapeSegment = shapeBadge ? ` <span class="shape-separator">&bull;</span> ${shapeBadge}` : "";
 
     const intrinsicRows = [
       {
@@ -805,7 +1050,7 @@ class SNNVisualizer {
       <div class="meta-section">
         <div class="meta-heading">Neuron</div>
         <div class="meta-value">${groupLabel || excitStr}</div>
-        <div class="meta-note">Type: ${excitStr}${synapseType}</div>
+        <div class="meta-note meta-note-type">Type: ${excitStr}${synapseType}${shapeSegment}</div>
         ${
           connectionsGrid
             ? `<div class="meta-subheading">Connectivity</div>${connectionsGrid}`
@@ -1105,26 +1350,31 @@ class SNNVisualizer {
       }
 
       const depthFade = Math.min(1, 800 / Math.max(20, projected.depth));
-      const squareSize = radius * 2;
+      const shapeSize = radius * 2;
+      const shapeKey = neuron.shapeKey || this.resolveNeuronShapeKey(neuron.groupPreset, neuron.type);
+      if (!neuron.shapeKey) neuron.shapeKey = shapeKey;
+      const shapeData = this.buildNeuronShape(shapeKey, projected.x, projected.y, shapeSize);
+      const f = fogFactor(projected.depth);
+      let fillStyle;
       if (isActive) {
         const color = neuron.colors.primary;
-        const f = fogFactor(projected.depth);
-        this.ctx.fillStyle = `rgba(${Math.floor(color.r * 255 * depthFade)}, ${Math.floor(color.g * 255 * depthFade)}, ${Math.floor(color.b * 255 * depthFade)}, ${0.85 * f})`;
+        fillStyle = `rgba(${Math.floor(color.r * 255 * depthFade)}, ${Math.floor(color.g * 255 * depthFade)}, ${Math.floor(color.b * 255 * depthFade)}, ${0.85 * f})`;
       } else {
         const accent = this.hexToRgb(this.theme.accentSubtle);
-        const f = fogFactor(projected.depth);
-        this.ctx.fillStyle = `rgba(${Math.floor(accent.r * depthFade)}, ${Math.floor(accent.g * depthFade)}, ${Math.floor(accent.b * depthFade)}, ${0.45 * f})`;
+        fillStyle = `rgba(${Math.floor(accent.r * depthFade)}, ${Math.floor(accent.g * depthFade)}, ${Math.floor(accent.b * depthFade)}, ${0.45 * f})`;
       }
-      this.ctx.fillRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
+      this.ctx.fillStyle = fillStyle;
+      this.ctx.fill(shapeData.path);
+
       // Step 5: subtle inhibitory cue (small cyan dot at top-left)
       if (neuron.type === 'I') {
-        const dotR = Math.max(1.2, squareSize * 0.06);
+        const dotR = Math.max(1.2, shapeSize * 0.06);
         const glowAccent = this.hexToRgb(this.theme.accentGlow);
         this.ctx.fillStyle = `rgba(${glowAccent.r}, ${glowAccent.g}, ${glowAccent.b}, ${0.7 * depthFade})`;
         this.ctx.beginPath();
         this.ctx.arc(
-          projected.x - squareSize / 2 + dotR + 1,
-          projected.y - squareSize / 2 + dotR + 1,
+          projected.x - shapeData.halfWidth + dotR + 1,
+          projected.y - shapeData.halfHeight + dotR + 1,
           dotR,
           0,
           Math.PI * 2
@@ -1133,25 +1383,29 @@ class SNNVisualizer {
       }
 
       const f2 = fogFactor(projected.depth);
-      this.ctx.strokeStyle = isActive
+      const strokeStyle = isActive
         ? `rgba(${Math.floor(neuron.colors.glow.r * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.g * 255 * depthFade)}, ${Math.floor(neuron.colors.glow.b * 255 * depthFade)}, ${0.9 * f2})`
         : this.hexWithAlpha(this.theme.border, 0.7 * f2);
+      this.ctx.strokeStyle = strokeStyle;
       this.ctx.lineWidth = 1;
       this.ctx.setLineDash([]);
-      this.ctx.strokeRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
+      this.ctx.stroke(shapeData.path);
 
-      if (squareSize > 12) {
+      const labelScale = Math.min(shapeData.halfWidth, shapeData.halfHeight) * 2;
+      if (labelScale > 12) {
         this.ctx.fillStyle = this.hexWithAlpha(this.theme.text, 0.9 * depthFade);
-        this.ctx.font = `${Math.max(8, Math.min(12, squareSize * 0.4))}px Inter, monospace`;
+        this.ctx.font = `${Math.max(8, Math.min(12, labelScale * 0.4))}px Inter, monospace`;
         this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
         this.ctx.fillText(neuron.id.toString(), projected.x, projected.y);
       }
 
       if (neuron === this.state.selectedNeuron) {
+        this.ctx.save();
         this.ctx.strokeStyle = this.theme.accentPrimary;
-        this.ctx.lineWidth = Math.max(2, squareSize * 0.1);
-        this.ctx.strokeRect(projected.x - squareSize / 2, projected.y - squareSize / 2, squareSize, squareSize);
+        this.ctx.lineWidth = Math.max(2, shapeSize * 0.1);
+        this.ctx.stroke(shapeData.path);
+        this.ctx.restore();
       }
 
       if (this.state.showWeights && neuron.connections.length > 0 && radius > 8) {
@@ -1431,6 +1685,8 @@ class SNNVisualizer {
       const groupPreset = groupPresetId || (isExcitatory ? 'excitatory' : 'inhibitory');
       const groupLabel = this.formatLabel(groupPreset);
       const clusterMeta = clustersMeta[clusterId];
+      const neuronTypeCode = isExcitatory ? 'E' : 'I';
+      const shapeKey = this.resolveNeuronShapeKey(groupPreset, neuronTypeCode);
 
       this.neurons.push({
         id: i,
@@ -1443,7 +1699,7 @@ class SNNVisualizer {
         spikeHistory: [], // Recent spike timestamps
         inputAccum: 0,
         refractoryUntil: 0,
-        type: isExcitatory ? 'E' : 'I',
+        type: neuronTypeCode,
         // per-neuron overrides if provided by preset
         threshold: nType?.threshold,
         leak: nType?.leak,
@@ -1468,6 +1724,7 @@ class SNNVisualizer {
         neuronTypeId: groupPreset,
         neuronTypeLabel: groupLabel,
         bio: nType?.bio || null,
+        shapeKey,
       });
       const neuron = this.neurons[this.neurons.length - 1];
       clusterMeta.neurons.push(neuron);
@@ -1676,6 +1933,8 @@ class SNNVisualizer {
         const count = Math.max(0, group.count | 0);
         const typeDef = neuronTypes[presetId] || {};
         const groupLabel = this.formatLabel(presetId);
+        const neuronTypeCode = typeDef.type === 'inhibitory' ? 'I' : 'E';
+        const shapeKey = this.resolveNeuronShapeKey(presetId, neuronTypeCode);
         for (let n = 0; n < count; n++) {
           const r = radius * (0.4 + Math.random() * 0.6);
           const theta = Math.random() * Math.PI * 2;
@@ -1697,7 +1956,7 @@ class SNNVisualizer {
             spikeHistory: [],
             inputAccum: 0,
             refractoryUntil: 0,
-            type: typeDef.type === 'inhibitory' ? 'I' : 'E',
+            type: neuronTypeCode,
             threshold: typeDef.threshold,
             leak: typeDef.leak,
             refractoryMs: typeDef.refractoryMs,
@@ -1715,6 +1974,7 @@ class SNNVisualizer {
             regionId: regionInfo.id,
             regionName: regionInfo.name,
             regionMetadata: regionInfo.metadata || null,
+            shapeKey,
           };
 
           this.neurons.push(neuron);
