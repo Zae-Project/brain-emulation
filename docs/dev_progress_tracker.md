@@ -9,6 +9,7 @@
 - Added an expanded neuron detail inspector: clicking any neuron now surfaces region, cluster, cell-type, and biophysical parameters plus connectivity counts in the right-hand panel (sourced from template metadata).
 - Retired the persistent lesson card so lessons only open on demand, and returned the status bar to the bottom while keeping the preset controls docked at the top.
 - Curated additional atlas templates (M1, S1, V1/V2) under `data/brain_region_maps/` with a manifest-driven auto-loader and CLI helper to rebuild the manifest.
+- Applied neuron-type glyphs across the canvas (triangles, diamonds, hexagons, etc.) and mirrored the same icons in the inspector so morphology cues stay consistent.
 
 ## Technical Notes
 - Template connectivity respects global probability/weight sliders as scaling factors (baseline 0.3 intra / 0.2 inter) and jitters weights for variability.
@@ -34,6 +35,7 @@ euronGroups presets.
 - [ ] Export the active template and confirm the downloaded JSON validates and re-imports without errors.
 - [ ] Import an external template JSON and verify it appears in the preset dropdown and builds successfully.
 - [ ] Click neurons across presets to confirm the inspector reports correct region/cluster/type data and biophysical parameters.
+- [ ] Confirm each neuron type renders with the expected glyph on the canvas and the inspector badge matches.
 - [ ] Select lessons from the dropdown to ensure the modal opens (and no residual bottom card appears).
 - [ ] Run the atlas-import script on a sample JSON (Allen/siibra) and verify the generated template loads without schema errors.
 - [ ] Place a new template in `data/brain_region_maps/`, run the manifest refresh script, reload the app, and confirm the preset auto-registers.

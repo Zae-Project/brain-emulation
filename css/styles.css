@@ -250,6 +250,129 @@ input[type="range"]::-moz-range-thumb {
   margin-top: 2px;
 }
 
+.neuron-meta .meta-note.meta-note-type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.meta-note-type .shape-separator {
+  color: rgba(216, 155, 90, 0.55);
+  margin: 0 2px;
+}
+
+.neuron-shape-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(216, 155, 90, 0.12);
+  border: 1px solid rgba(216, 155, 90, 0.28);
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.neuron-shape-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.neuron-shape-icon::before {
+  content: "";
+  display: block;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, rgba(247, 196, 116, 0.9), rgba(210, 145, 78, 0.9));
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  border-radius: 4px;
+}
+
+.neuron-shape-icon.shape-triangle-up::before {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  border-radius: 0;
+}
+
+.neuron-shape-icon.shape-triangle-down::before {
+  clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+  border-radius: 0;
+}
+
+.neuron-shape-icon.shape-diamond::before {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  border-radius: 0;
+}
+
+.neuron-shape-icon.shape-square-rounded::before {
+  clip-path: none;
+  border-radius: 35%;
+}
+
+.neuron-shape-icon.shape-rect-tall::before {
+  width: 8px;
+  height: 16px;
+  border-radius: 3px;
+  clip-path: none;
+}
+
+.neuron-shape-icon.shape-hexagon::before {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  border-radius: 0;
+}
+
+.neuron-shape-icon.shape-circle::before {
+  clip-path: none;
+  border-radius: 50%;
+}
+
+.neuron-shape-icon.shape-square::before {
+  clip-path: none;
+  border-radius: 10%;
+}
+
+.neuron-shape-icon.shape-rect-wide::before {
+  width: 16px;
+  height: 8px;
+  border-radius: 3px;
+  clip-path: none;
+}
+
+.neuron-shape-icon.shape-trapezoid::before {
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+  border-radius: 0;
+}
+
+.neuron-shape-icon.shape-trapezoid-inverted::before {
+  clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+  border-radius: 0;
+}
+
+.neuron-shape-icon.shape-parallelogram::before {
+  clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
+  border-radius: 0;
+}
+
+.neuron-shape-icon.shape-triangle-right::before {
+  clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+  border-radius: 0;
+}
+
+.neuron-shape-label {
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .neuron-meta .meta-subheading {
   margin-top: 6px;
   margin-bottom: 4px;
