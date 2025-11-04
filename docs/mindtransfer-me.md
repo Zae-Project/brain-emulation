@@ -4,93 +4,70 @@ exported_at: 2025-11-04
 note: This file mirrors all visible text content from the homepage. Update this single file to edit copy across the site.
 ---
 
-# mindtransfer.me — Brain Emulation Project
+# mindtransfer.me — Human cognition, simulated
 
-An exploration into building faithful, biologically grounded neural simulations in the browser. Every iteration tightens the feedback loop between neuroscience research and interactive tooling, with the ambitious long‑term objective of understanding, and eventually preserving the computations that support human consciousness.
+Mindtransfer.me is an open, research-led effort to map living neurobiology into interactive software. Our goal is to make whole brain emulation and mind transfer a measurable engineering problem, not a slogan. We do that by combining peer-reviewed data, auditable models, and an explorable interface that anyone can launch in a browser.
 
-- **CTA:** First demo of the interface
-- **Contact:** Email (protected via Cloudflare)
-
----
-
-## Current Interface
-
-### Visualiser
-
-- Realtime 3D canvas renders a spiking network (orbit camera with mouse drag, zoom, WASD/QE).
-- Default network: 4 clusters × 30 neurons (120 neurons total) with excitatory/inhibitory mix.
-- Signals propagate along probabilistic synapses; colours reveal cluster boundaries and spike trails.
+- **Primary CTA:** Explore the live demo
+- **Contact:** Reach us via email (protected with Cloudflare)
 
 ---
 
-### Control Console (left sidebar)
+## What we are building
 
-- Play/Pause master toggle and simulation speed slider.
-- Sliders for:
-  - Network size, cluster count, and neurons per cluster.
-  - Intra-cluster connection probability and inter-cluster probability/weight scaling.
-  - Excitatory fraction (E/I balance), background firing rate, leak decay, spike threshold, depth fog.
-- Utility buttons: reset network, show weight magnitudes, pause spikes only, inject a spike.
+**Mind uploading through evidence.** Instead of speculative essays, we deliver a working spiking neural network environment that mirrors known brain architecture. Each release expands our ability to capture the computations that underwrite human memory, perception, and identity. When mind transfer becomes technically possible, it will rest on the kind of transparent, verifiable models we are assembling today.
 
 ---
 
-### Preset Loader (top centre)
+## Current capabilities
 
-- Dropdown selects pre‑configured brain‑region templates (`None`, `Frontal Cortex`, `Hippocampus`, `Amygdala`, `Thalamocortical Loop`).
-- Selecting a preset rebuilds the network using the region schema (cluster composition, connectivity, realistic delays).
-- Summary text shows active template makeup and estimated excitatory fraction.
+### Interactive brain emulation playground
 
----
+- Real-time 3D spiking neural network visualiser with orbit controls and smooth zooming.
+- Dynamic inspector that surfaces cluster context, neuron taxonomy, excitatory/inhibitory balance, and live voltage traces.
+- Cinematic yet accessible visual language: neuron glyphs convey cell type, warm desert palette highlights region provenance, and status telemetry keeps orientation effortless.
 
-### Lessons Panel (top left)
+### Scientifically grounded region templates
 
-- 12‑lesson curriculum, from membrane potential basics to ethical considerations of whole‑brain emulation.
-- Inline preview explains the concept; “View Full Lesson” opens the HTML lesson in a modal overlay.
+- Curated human brain maps sourced from the Allen Human Brain Atlas, the EBRAINS Julich-Brain project, and the BrainGlobe atlas ecosystem.
+- Layer-specific motor cortex, somatosensory barrel fields, occipital visual streams, and mediodorsal thalamic loops—each with realistic neuron ratios (≈80% excitatory, 20% inhibitory), delays, and projection targets backed by published literature.
+- Import/export pipeline for JSON templates so researchers can test their own atlases without rewriting code.
 
----
+### Guided documentation for every concept
 
-### Navigation Aids (bottom centre)
-
-- Status bar displays camera distance, zoom, and neuron count.
-- Hover/click the controller icon to view 3D navigation controls (FPS/Orbit, pan, fly, reset).
-
----
-
-### Developer Wiring
-
-- `js/templates/schema.js` defines neuron presets and region templates with anatomical annotations (L2/3 PFC microcolumn, hippocampal CA3→CA1 loop, mediodorsal thalamus ↔ PFC relay).
-- `js/templates/registry.js` consumes the schema for runtime use while preserving legacy archetypes (e.g. Amygdala CeA).
+- Twelve documentation chapters replace the old “lessons,” covering everything from the project vision to advanced configuration and troubleshooting.
+- Plain-language explanations ensure newcomers understand what mind uploading demands, while contributors get the detail needed to extend the simulator responsibly.
 
 ---
 
-## What You Can Explore
+## Scientific foundation
 
-- Watch emergent spiking patterns while tuning connection density and inhibitory ratios.
-- Compare different region presets to see how CA3 recurrent loops differ from cortical microcolumns or thalamic relay hubs.
-- Step through the lesson series to understand how plasticity, clustering, and large‑scale coordination emerge from simple neuron rules.
-- Inspect individual neurons for voltage traces, cluster membership, and preset data.
-
----
-
-## Why It Matters
-
-Organic brains degrade. Digital emulation offers a path, uncertain but compelling, to preserve identity beyond biological failure. Whether or not mind uploading proves possible, each refinement deepens our grasp of cognitive computation. This project is about honest, incremental progress: one neuron, one lesson, and one scientifically grounded preset at a time.
-
-> “Real neurons. Real learning. Real shot at digital immortality.”
+- **Neuron diversity:** Taxonomy aligns with transcriptomic and morphological datasets (pyramidal, basket, chandelier, medium spiny, thalamic relay, and more), each mapped to distinct visual glyphs.
+- **Connectivity realism:** Atlas templates respect reported projection probabilities, including dense CA3 recurrence and corticothalamic feedback. Probability sliders apply scaling factors without breaking biological proportions.
+- **Data provenance:** Every preset cites its source atlas, release date, and key references directly in the UI. Import scripts encourage researchers to attach DOIs and methodology notes.
 
 ---
 
-## Calls to Action & Media Placeholders
+## In active development
 
-- **Primary CTA:** First demo of the interface
-- **Contact:** Email (Cloudflare‑protected)
-- **Media:**
-  - Hero image/video placeholder
-  - Demo video placeholder
+- Automated atlas ingestion script to convert Allen and siibra data into ready-to-run templates.
+- Expanded analytic overlays (frequency spectra, spike synchrony) to measure mind-relevant signatures like oscillations and global workspace dynamics.
+- Preservation tooling: versioned exports, integrity checks, and reproducible manifests to support long-term mind transfer archives.
 
 ---
 
-## Notes for Future Edits (non‑public)
+## Why mindtransfer.me matters
 
-- If you add standalone lesson pages later, append new sections here with the lesson title and summary so we keep one‑file control of copy.
-- Replace the placeholders above with actual asset links or shortcodes used by your site generator if applicable.
+Mind uploading and whole brain emulation demand rigorous models, not marketing hype. By shipping a transparent simulator today—complete with verifiable data, intuitive controls, and documented assumptions—we advance the field toward a future where consciousness can be studied, preserved, and perhaps migrated with scientific confidence.
+
+> “Real neurons. Real research. A clear path toward digital continuity.”
+
+---
+
+## Explore + connect
+
+- **See it in action:** Launch the browser demo, tune neural parameters, and inspect how living brain data behaves in silico.
+- **Collaborate:** Share atlas templates, propose validation studies, or integrate new neuron datasets.
+- **Stay updated:** Contact us via the protected email link or follow project notes on the demo page.
+
+Mindtransfer.me exists for researchers, builders, and anyone who believes that understanding every spike brings us closer to true mind transfer. Welcome aboard.
