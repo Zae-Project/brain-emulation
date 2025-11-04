@@ -3,324 +3,248 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 6: Inhibition and Competition</title>
+    <title>Documentation 6 · Brain Regions & Template Library</title>
     <style>
+      :root {
+        --bg: #15100d;
+        --surface: #23170f;
+        --accent: #d89b5a;
+        --accent-soft: rgba(216, 155, 90, 0.18);
+        --text: #f8eddc;
+        --text-muted: #d8bc9b;
+        --border: rgba(216, 155, 90, 0.35);
+        --code-bg: #352114;
+      }
+
       body {
-        font-family: "Inter", sans-serif;
-        line-height: 1.6;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #0a0c12;
-        color: #e2e8f0;
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 980px;
+        margin-inline: auto;
       }
+
       h1,
-      h2 {
-        color: #374e84;
-        border-bottom: 2px solid #374e84;
-        padding-bottom: 10px;
-      }
+      h2,
       h3 {
-        color: #60a5fa;
-        margin-top: 30px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
-      .concept-box {
-        background: #1e293b;
-        border-left: 4px solid #374e84;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h1 {
+        font-size: 30px;
+        margin-bottom: 18px;
       }
-      .exercise {
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 14px;
       }
-      .key-insight {
-        background: #064e3b;
-        border-left: 4px solid #10b981;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
       }
-      .warning {
-        background: #7c2d12;
-        border-left: 4px solid #ea580c;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      p {
+        margin: 0 0 16px;
       }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0 32px;
+        border: 1px solid var(--border);
+      }
+
+      th,
+      td {
+        border: 1px solid rgba(216, 155, 90, 0.25);
+        padding: 12px 16px;
+        vertical-align: top;
+      }
+
+      th {
+        background: rgba(216, 155, 90, 0.12);
+        color: var(--accent);
+        letter-spacing: 0.04em;
+      }
+
       code {
-        background: #1e293b;
-        padding: 2px 6px;
-        border-radius: 3px;
-        color: #94a3b8;
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
       }
-      ul {
-        padding-left: 20px;
+
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+        color: var(--text-muted);
       }
-      li {
-        margin: 8px 0;
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+        margin: 24px 0 32px;
+      }
+
+      .grid-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 6: Inhibition and Competition</h1>
-
-    <div class="concept-box">
-      <h3>🧠 Core Question</h3>
-      <p>
-        How do neural networks make decisions? How does the brain select one
-        option from many competing alternatives?
-      </p>
-    </div>
-
-    <h2>Excitation vs. Inhibition</h2>
-
-    <h3>Two Types of Neurons</h3>
-    <p>Real brains contain two fundamental types of neurons:</p>
-    <ul>
-      <li>
-        <strong>Excitatory neurons (~80%)</strong>: Increase target neuron's
-        voltage (positive weights)
-      </li>
-      <li>
-        <strong>Inhibitory neurons (~20%)</strong>: Decrease target neuron's
-        voltage (negative weights)
-      </li>
-    </ul>
-
-    <div class="warning">
-      <h3>⚠️ Current Limitation</h3>
-      <p>
-        Our current visualizer simulates only excitatory connections. Future
-        versions will include dedicated inhibitory neurons for more realistic
-        dynamics.
-      </p>
-    </div>
-
-    <h3>Winner-Take-All Dynamics</h3>
-    <p>Inhibitory connections create competition between neurons:</p>
-    <ul>
-      <li>
-        <strong>Lateral inhibition</strong>: Active neurons suppress their
-        neighbors
-      </li>
-      <li>
-        <strong>Global inhibition</strong>: Overall network activity is
-        regulated
-      </li>
-      <li><strong>Selection</strong>: Only the strongest signals survive</li>
-      <li>
-        <strong>Amplification</strong>: Small differences become large decisions
-      </li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>💡 Key Insight</h3>
-      <p>
-        The balance between excitation and inhibition (E/I balance) is crucial
-        for stable, selective neural computation. Too much excitation leads to
-        seizures; too much inhibition leads to silence.
-      </p>
-    </div>
-
-    <h2>Competitive Mechanisms</h2>
-
-    <h3>Attention and Selection</h3>
-    <p>Competitive networks enable:</p>
-    <ul>
-      <li>
-        <strong>Attentional focus</strong>: Selecting relevant stimuli while
-        ignoring distractors
-      </li>
-      <li>
-        <strong>Decision making</strong>: Choosing between competing actions
-      </li>
-      <li>
-        <strong>Pattern completion</strong>: Filling in missing information
-      </li>
-      <li>
-        <strong>Noise reduction</strong>: Filtering out weak or inconsistent
-        signals
-      </li>
-    </ul>
-
-    <h2>Interactive Exploration</h2>
-
-    <div class="exercise">
-      <h3>🔬 Experiment 1: Cluster Competition</h3>
-      <p>
-        <strong>Goal:</strong> Observe competitive dynamics between clusters
-      </p>
-      <ol>
-        <li>Set firing rate to 0.0001 (very low background activity)</li>
-        <li>Inject multiple spikes rapidly to create cluster competition</li>
-        <li>Observe which clusters "win" and suppress others</li>
-        <li>Note how competition changes with different firing rates</li>
-      </ol>
-      <p>
-        <strong>Question:</strong> What determines which cluster wins the
-        competition?
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Experiment 2: Threshold Effects</h3>
-      <p><strong>Goal:</strong> Understand how thresholds affect competition</p>
-      <ol>
-        <li>Lower the threshold to 0.8 - observe increased activity</li>
-        <li>Raise the threshold to 1.2 - observe decreased activity</li>
-        <li>Find the threshold that creates stable, selective activation</li>
-        <li>Note how threshold affects the strength of competition</li>
-      </ol>
-      <p>
-        <strong>Question:</strong> How does threshold act like a "decision
-        criterion"?
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Experiment 3: Weight-Based Selection</h3>
-      <p>
-        <strong>Goal:</strong> See how connection strengths influence
-        competition
-      </p>
-      <ol>
-        <li>Enable "Show Weights" to see connection strengths</li>
-        <li>Observe which neurons have stronger connections</li>
-        <li>Predict which clusters will be more dominant</li>
-        <li>Test predictions by injecting spikes</li>
-      </ol>
-      <p>
-        <strong>Question:</strong> How do strong connections create "rich get
-        richer" dynamics?
-      </p>
-    </div>
-
-    <h2>Real-World Applications</h2>
-
-    <h3>Brain Functions Requiring Competition</h3>
-    <ul>
-      <li>
-        <strong>Visual attention</strong>: Focusing on one object while ignoring
-        others
-      </li>
-      <li>
-        <strong>Motor control</strong>: Selecting one movement while inhibiting
-        alternatives
-      </li>
-      <li>
-        <strong>Language</strong>: Choosing words from vocabulary during speech
-      </li>
-      <li>
-        <strong>Memory retrieval</strong>: Accessing specific memories from vast
-        storage
-      </li>
-    </ul>
-
-    <h3>Disorders of Competition</h3>
-    <ul>
-      <li>
-        <strong>ADHD</strong>: Impaired attentional competition and selection
-      </li>
-      <li>
-        <strong>Parkinson's</strong>: Reduced ability to select and initiate
-        movements
-      </li>
-      <li>
-        <strong>Schizophrenia</strong>: Disrupted competitive filtering of
-        sensory information
-      </li>
-      <li>
-        <strong>Epilepsy</strong>: Loss of inhibitory control leading to runaway
-        excitation
-      </li>
-    </ul>
-
-    <h2>Mathematical Foundation</h2>
-
-    <div class="concept-box">
-      <h3>📊 Competitive Dynamics</h3>
-      <p>In winner-take-all networks:</p>
-      <ul>
-        <li><strong>Input strength</strong>: Determines initial advantage</li>
-        <li>
-          <strong>Lateral inhibition</strong>: Amplifies differences between
-          competitors
-        </li>
-        <li>
-          <strong>Threshold nonlinearity</strong>: Creates sharp selection
-          boundaries
-        </li>
-        <li><strong>Feedback loops</strong>: Maintain stable winner states</li>
-      </ul>
-    </div>
-
-    <h2>Implications for Brain Emulation</h2>
-
-    <h3>Engineering Challenges</h3>
-    <ul>
-      <li>
-        <strong>Precise E/I balance</strong>: Must be maintained across brain
-        regions
-      </li>
-      <li>
-        <strong>Dynamic inhibition</strong>: Inhibitory strength must adapt to
-        context
-      </li>
-      <li>
-        <strong>Multi-scale competition</strong>: Selection occurs at multiple
-        levels simultaneously
-      </li>
-      <li>
-        <strong>Stability vs. flexibility</strong>: Decisions must be stable but
-        reversible
-      </li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>🔬 Research Note</h3>
-      <p>
-        Current brain emulation projects struggle with implementing realistic
-        inhibition. Getting the E/I balance right across different brain regions
-        and scales is one of the hardest challenges in whole brain emulation.
-      </p>
-    </div>
-
-    <h2>Key Takeaways</h2>
-    <ol>
-      <li>Inhibition is as important as excitation for neural computation</li>
-      <li>Competition creates selection and decision-making capabilities</li>
-      <li>E/I balance must be carefully tuned for stable operation</li>
-      <li>Many brain disorders involve disrupted competitive mechanisms</li>
-    </ol>
-
-    <h2>Reflection Questions</h2>
-    <ul>
-      <li>
-        How might artificial systems benefit from competitive neural mechanisms?
-      </li>
-      <li>
-        What would happen if we could selectively enhance or reduce competition
-        in specific brain areas?
-      </li>
-      <li>
-        How do competitive dynamics change during learning and development?
-      </li>
-      <li>
-        What role does competition play in creativity and problem-solving?
-      </li>
-    </ul>
-
-    <h2>Next Steps</h2>
+    <h1>Documentation 6 · Brain Regions &amp; Template Library</h1>
     <p>
-      In <strong>Lesson 7</strong>, we'll explore how multiple layers of
-      competitive networks can be organized hierarchically to create complex
-      feature extraction and pattern recognition systems, similar to the
-      cortical hierarchy in brains.
+      Each preset in the dropdown represents a curated brain-region template
+      encoded as JSON. These templates capture neuron populations, cluster
+      layouts, and synaptic connectivity derived from published atlases. This
+      chapter documents the structure of those files, how they are sourced, and
+      how to extend the library responsibly.
     </p>
+
+    <h2>Template Directory</h2>
+    <p>
+      All curated templates reside in <code>data/brain_region_maps/</code>.
+      Every file is a standalone configuration that adheres to the schema
+      enforced by <code>SNN_CONFIG_IO.normalizeTemplate</code>. A manifest file
+      (<code>manifest.json</code>) lists the templates to load at runtime.
+    </p>
+
+    <div class="callout">
+      <strong>Manifest Workflow</strong>
+      <ol>
+        <li>Place a JSON template in <code>data/brain_region_maps/</code>.</li>
+        <li>Run <code>node scripts/refresh_brain_region_manifest.mjs</code>.</li>
+        <li>Reload the app. The preset dropdown now includes the new region.</li>
+      </ol>
+    </div>
+
+    <h2>Schema Overview</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Description</th>
+          <th>Required</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>id</code></td>
+          <td>Stable key used internally (e.g., <code>Allen_Motor_Cortex</code>).</td>
+          <td>Optional (derived from <code>regionName</code> if omitted)</td>
+        </tr>
+        <tr>
+          <td><code>regionName</code></td>
+          <td>Human-readable label shown in the preset menu.</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>metadata</code></td>
+          <td>Object containing provenance, references, and notes.</td>
+          <td>Optional but strongly recommended</td>
+        </tr>
+        <tr>
+          <td><code>clusters</code></td>
+          <td>Array describing neuron groups and intra-cluster wiring.</td>
+          <td>Yes (≥ 1 entry)</td>
+        </tr>
+        <tr>
+          <td><code>connections</code></td>
+          <td>Array of inter-cluster edges with probability/weight rules.</td>
+          <td>Optional</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Current Library Highlights</h2>
+    <div class="grid">
+      <div class="grid-card">
+        <h3>Primary Motor Cortex (M1)</h3>
+        <ul>
+          <li>Source: Allen Human Brain Atlas (release 2023-10).</li>
+          <li>Clusters: L2/3, L5B, L6 with realistic excitatory/inhibitory ratios.</li>
+          <li>Connectivity: Intracortical feedforward + corticothalamic feedback.</li>
+        </ul>
+      </div>
+      <div class="grid-card">
+        <h3>Primary Somatosensory Cortex (S1)</h3>
+        <ul>
+          <li>Source: Allen Human Brain Atlas.</li>
+          <li>Emphasizes layer IV barrel circuitry and thalamic drive.</li>
+          <li>Includes dense inhibitory network to model sensory gating.</li>
+        </ul>
+      </div>
+      <div class="grid-card">
+        <h3>Occipital Visual Cortex (V1/V2)</h3>
+        <ul>
+          <li>Source: BrainGlobe Atlas API (MNI152).</li>
+          <li>Feedforward V1→V2 projections with feedback loops.</li>
+          <li>Voxel counts converted to neuron counts via density heuristics.</li>
+        </ul>
+      </div>
+      <div class="grid-card">
+        <h3>Mediodorsal Thalamocortical Loop</h3>
+        <ul>
+          <li>Source: EBRAINS Julich-Brain atlas via siibra.</li>
+          <li>Captures mediodorsal ↔ prefrontal cortex interactions.</li>
+          <li>Includes reticular inhibitory populations for gating.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>Provenance Requirements</h2>
+    <p>
+      Every template must include enough metadata for reviewers to track the
+      source. A minimal metadata block looks like:
+    </p>
+    <pre><code>"metadata": {
+  "atlas": "Allen Human Brain Atlas",
+  "release": "2023-10",
+  "references": [
+    "Gao et al., 2022, Cell Reports 41(9)"
+  ],
+  "notes": [
+    "Counts scaled to a 1 mm^2 cortical column."
+  ]
+}</code></pre>
+
+    <h2>Validation Checklist</h2>
+    <ul>
+      <li>Does the JSON load via <code>SNN_CONFIG_IO.deserializeTemplate</code> without errors?</li>
+      <li>Do neuron group <code>count</code> values sum to reasonable totals (&lt;= ~2,000)?</li>
+      <li>Are all <code>preset</code> names present in <code>docs/neuron_types.md</code>?</li>
+      <li>Do probability values stay within [0, 1]?</li>
+      <li>Have we documented the source (atlas, release date, DOI)?</li>
+    </ul>
+
+    <h2>Automating Template Generation</h2>
+    <p>
+      The repository ships with a stub script (<code>scripts/refresh_brain_region_manifest.mjs</code>)
+      for refreshing the manifest. Future work will extend this into a full
+      pipeline that fetches data from Allen/siibra APIs, aggregates neuron types,
+      and emits ready-to-import templates. Until then, templates are assembled by hand
+      with citations recorded in <code>docs/brain_regions_maps_json.md</code>.
+    </p>
+
+    <p>
+      Proceed to <em>Documentation 7 · Simulation Pipeline &amp; Runtime</em> to
+      learn how these templates flow into the renderer and the order in which
+      the engine constructs neurons, connections, and visual artifacts.</p>
   </body>
 </html>
