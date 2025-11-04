@@ -6,7 +6,7 @@ note: This file mirrors all visible text content from the homepage. Update this 
 
 # mindtransfer.me | Human cognition, simulated
 
-Mindtransfer.me is a small, research-led project that joins published brain data with an interactive neural network visualiser. We want to show what mind uploading and mind transfer might demand in the real world by documenting assumptions, citing sources, and keeping the work reproducible.
+Mindtransfer.me is a small, research led project that joins published brain data with an interactive neural network visualiser. We want to show what mind uploading and mind transfer might demand in the real world by documenting assumptions, citing sources, and keeping the work reproducible.
 
 - **Try the demo:** Launch the current interface
 - **Contact:** Email (protected with Cloudflare)
@@ -23,20 +23,20 @@ We are building an open toolkit for exploring whole brain emulation. Every chang
 
 ### Interactive brain emulation playground
 
-- Real-time 3D spiking neural network visualiser with orbit controls and smooth zooming.
+- Real time 3D spiking neural network visualiser with orbit controls and smooth zooming.
 - Inspector shows cluster context, neuron taxonomy, excitatory/inhibitory balance, and live voltage traces.
 - Consistent glyphs and warm desert palette keep clusters and cell types easy to read.
 
 ### Scientifically grounded region templates
 
-- Curated human brain maps sourced from the Allen Human Brain Atlas, the EBRAINS Julich-Brain project, and the BrainGlobe atlas ecosystem.
-- Layer-specific motor cortex, somatosensory barrel fields, occipital visual streams, and mediodorsal thalamic loops, each with realistic neuron ratios (≈80% excitatory, 20% inhibitory), delays, and projection targets backed by published literature.
+- Curated human brain maps sourced from the Allen Human Brain Atlas, the EBRAINS Julich Brain project, and the BrainGlobe atlas ecosystem.
+- Layer specific motor cortex, somatosensory barrel fields, occipital visual streams, and mediodorsal thalamic loops, each with realistic neuron ratios (≈80% excitatory, 20% inhibitory), delays, and projection targets backed by published literature.
 - Import/export pipeline for JSON templates so researchers can test their own atlases without rewriting code.
 
 ### Guided documentation for every concept
 
 - Twelve documentation chapters replace the old “lessons,” covering everything from the project vision to advanced configuration and troubleshooting.
-- Plain-language explanations help newcomers understand what mind uploading demands, while contributors get the detail needed to extend the simulator responsibly.
+- Plain language explanations help newcomers understand what mind uploading demands, while contributors get the detail needed to extend the simulator responsibly.
 
 ---
 
@@ -52,7 +52,7 @@ We are building an open toolkit for exploring whole brain emulation. Every chang
 
 - Automated atlas ingestion script to convert Allen and siibra data into ready to run templates.
 - Expanded analytic overlays (frequency spectra, spike synchrony) to measure mind relevant signatures like oscillations and global workspace dynamics.
-- Preservation tooling: versioned exports, integrity checks, and reproducible manifests to support long-term mind transfer archives.
+- Preservation tooling: versioned exports, integrity checks, and reproducible manifests to support longterm mind transfer archives.
 
 ---
 
