@@ -3,121 +3,316 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 2: Synaptic Transmission</title>
+    <title>Documentation 2 · Quick Start & Environment Setup</title>
     <style>
-      body {
-        font-family: Inter, system-ui, sans-serif;
-        background: #0f1419;
-        color: #e6e9ef;
-        margin: 0;
-        padding: 20px;
-        line-height: 1.6;
+      :root {
+        --bg: #12100c;
+        --surface: #1e160f;
+        --surface-alt: #251b11;
+        --accent: #d2b48c;
+        --accent-soft: rgba(210, 180, 140, 0.18);
+        --text: #f5ead8;
+        --text-muted: #cdb896;
+        --border: rgba(210, 180, 140, 0.35);
+        --code-bg: #2c2015;
       }
+
+      body {
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 960px;
+        margin-inline: auto;
+      }
+
       h1,
       h2,
       h3 {
-        color: #ff9bf0;
-        margin-top: 24px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
+
       h1 {
-        font-size: 28px;
-        margin-bottom: 16px;
+        font-size: 30px;
+        margin-bottom: 18px;
       }
+
       h2 {
-        font-size: 22px;
-        margin-bottom: 12px;
+        font-size: 24px;
+        margin-bottom: 14px;
       }
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      p {
+        margin: 0 0 16px 0;
+      }
+
       ul,
       ol {
-        margin-left: 20px;
+        margin: 12px 0 20px 24px;
+        padding: 0;
       }
+
       li {
         margin-bottom: 8px;
       }
-      strong {
-        color: #ff9bf0;
+
+      code {
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
       }
-      p {
-        margin-bottom: 12px;
+
+      pre {
+        background: var(--surface-alt);
+        color: var(--text);
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        overflow-x: auto;
+      }
+
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+      }
+
+      .step-list {
+        counter-reset: steps;
+        margin: 24px 0;
+      }
+
+      .step-list > li {
+        list-style: none;
+        position: relative;
+        margin: 0 0 24px;
+        padding-left: 44px;
+      }
+
+      .step-list > li::before {
+        counter-increment: steps;
+        content: counter(steps);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--surface-alt);
+        color: var(--accent);
+        display: grid;
+        place-items: center;
+        font-weight: 600;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid rgba(210, 180, 140, 0.15);
+      }
+
+      th {
+        background: var(--surface-alt);
+        color: var(--accent);
+        letter-spacing: 0.04em;
+        font-size: 0.95em;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 2: Synaptic Transmission</h1>
-
+    <h1>Documentation 2 · Quick Start & Environment Setup</h1>
     <p>
-      When a neuron fires, it sends spikes to all connected neurons through
-      synapses. These connections are the pathways that allow information to
-      flow through the neural network.
+      This chapter walks you through cloning the repository, installing
+      dependencies, launching the development server, and understanding the key
+      directories you will touch as a contributor. The goal is to get you from
+      zero to a running simulator in less than ten minutes, even if JavaScript
+      projects are new to you.
     </p>
 
-    <h2>Understanding Synapses</h2>
+    <div class="callout">
+      <strong>System Requirements</strong>
+      <ul>
+        <li>Node.js 18+ (LTS) and npm 9+ or pnpm 8+</li>
+        <li>Git command-line tools</li>
+        <li>Modern browser (Chromium, Firefox, or Safari)</li>
+        <li>Optional: Python 3.10+ if you plan to use the web server helpers</li>
+      </ul>
+    </div>
 
-    <h3>Synaptic Connections</h3>
+    <h2>1. Clone and Install</h2>
+    <ol class="step-list">
+      <li>
+        <strong>Clone the repository</strong>
+        <pre><code>git clone https://github.com/your-org/brain_emulation.git
+cd brain_emulation</code></pre>
+      </li>
+      <li>
+        <strong>Install dependencies</strong>
+        <p>You can use npm or pnpm. Choose the tool that matches your workflow.</p>
+        <pre><code># npm
+npm install
+
+# pnpm
+pnpm install</code></pre>
+      </li>
+      <li>
+        <strong>Start the dev server</strong>
+        <pre><code>npm run dev
+# or
+pnpm dev</code></pre>
+        <p>
+          The script launches <code>vite</code> on <code>http://localhost:5173</code> (default).
+          The console prints the exact URL. Open it in your browser to see the HUD, presets,
+          and canvas come alive.
+        </p>
+      </li>
+    </ol>
+
+    <h2>2. Repository Layout</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Path</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>js/app.js</code></td>
+          <td>Main visualizer: camera controls, neuron rendering, simulation loop.</td>
+        </tr>
+        <tr>
+          <td><code>js/templates/</code></td>
+          <td>Schema definitions, registry loader, and config IO helpers.</td>
+        </tr>
+        <tr>
+          <td><code>data/brain_region_maps/</code></td>
+          <td>Curated JSON templates plus <code>manifest.json</code> for auto-loading.</td>
+        </tr>
+        <tr>
+          <td><code>lessons/</code></td>
+          <td>Documentation chapters (this handbook) served in the lesson modal.</td>
+        </tr>
+        <tr>
+          <td><code>docs/</code></td>
+          <td>Extended markdown references, status trackers, and research notes.</td>
+        </tr>
+        <tr>
+          <td><code>scripts/</code></td>
+          <td>Utility scripts such as <code>refresh_brain_region_manifest.mjs</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3. Environment Variables</h2>
     <p>
-      In our visualization, you can see these as the grey lines connecting
-      neurons. Each connection represents a synapse where spikes travel from one
-      neuron to another.
+      The simulator ships without required secrets. Optional environment values
+      can be placed in <code>.env.local</code> to toggle advanced logging or
+      integrate external APIs.
+    </p>
+    <pre><code># .env.local sample
+VITE_ENABLE_DEBUG_OVERLAY=true
+VITE_DEFAULT_TEMPLATE=Allen_Motor_Cortex</code></pre>
+    <p>
+      All environment variables prefixed with <code>VITE_</code> are exposed to
+      the client via Vite's import meta env system.
     </p>
 
-    <h3>Synaptic Weights</h3>
-    <p>
-      The strength of each connection, shown in the weight panels when you
-      enable "Show Weights". Stronger connections (higher weights) have more
-      influence on the receiving neuron.
-    </p>
-
-    <h3>Signal Propagation</h3>
-    <p>
-      When a neuron fires, its spike travels along all its outgoing connections.
-      The receiving neurons add the connection weight to their membrane
-      potential.
-    </p>
-
-    <h2>Dynamic Connection Activity</h2>
-
-    <p>Watch for these visual cues:</p>
+    <h2>4. Launch Checklist</h2>
     <ul>
       <li>
-        <strong>Grey Connections:</strong> Inactive synapses (always visible)
+        <strong>Canvas visible?</strong> The orbit camera should show clusters
+        with warm desert hues. If you see a blank screen, check browser console
+        errors.
       </li>
       <li>
-        <strong>Colored Connections:</strong> Active synapses carrying spikes
+        <strong>Preset menu populated?</strong> The dropdown should include
+        builtin templates plus manifest entries (e.g., “Primary Motor Cortex
+        (M1)”). If the list is empty, confirm <code>data/brain_region_maps/manifest.json</code>
+        exists and is valid JSON.
       </li>
       <li>
-        <strong>Cluster Colors:</strong> Connections light up in the color of
-        the firing neuron cluster
-      </li>
-      <li>
-        <strong>Synchronous Activity:</strong> When neurons fire together, their
-        connections brighten
+        <strong>Import/Export buttons responsive?</strong> Click “Import” to
+        trigger the file dialog. If nothing happens, ensure your browser allows
+        file interaction from localhost.
       </li>
     </ul>
 
-    <h2>Weight Information Panels</h2>
-
-    <p>Enable "Show Weights" to see detailed information about each neuron:</p>
+    <h2>5. Verifying Your Setup</h2>
+    <p>
+      Run the smoke checklist from <code>docs/dev_progress_tracker.md</code>:
+    </p>
     <ul>
-      <li><strong>Neuron ID:</strong> Unique identifier</li>
-      <li><strong>Current Voltage:</strong> Real-time membrane potential</li>
+      <li>Select each preset and watch the console for errors.</li>
       <li>
-        <strong>Connection List:</strong> All outgoing connections with their
-        weights
+        Click a neuron; the inspector should display a taxonomy name (e.g.,
+        “Pyramidal neuron”) with a matching glyph badge.
       </li>
       <li>
-        <strong>Color Coding:</strong> Green (strong), Yellow (medium), Grey
-        (weak)
+        Export the active template—this downloads a JSON file that should round-trip
+        back into the Import dialog without validation warnings.
       </li>
     </ul>
 
-    <h2>Experimentation</h2>
+    <div class="callout">
+      <strong>Troubleshooting</strong>
+      <ul>
+        <li>
+          <em>npm ERR! node-gyp rebuild</em> &mdash; Install the “Build Tools for
+          Visual Studio” (Windows) or Xcode command line tools (macOS).
+        </li>
+        <li>
+          <em>Canvas flickers</em> &mdash; Disable browser extensions that inject
+          overlays; WebGL contexts can be sensitive to third-party scripts.
+        </li>
+        <li>
+          <em>Templates missing</em> &mdash; Run
+          <code>node scripts/refresh_brain_region_manifest.mjs</code> to rebuild
+          the manifest after adding new JSON files.
+        </li>
+      </ul>
+    </div>
 
-    <p>Try these experiments:</p>
-    <ul>
-      <li>Increase connection probability to see denser networks</li>
-      <li>Use "Inject Spike" to trigger cascading activity</li>
-      <li>Click on neurons to monitor their voltage traces</li>
-      <li>Watch how different clusters interact through their connections</li>
-    </ul>
+    <h2>Next Steps</h2>
+    <p>
+      With the project running locally, move on to
+      <em>Documentation 3 · Interface Tour</em> to understand every control,
+      panel, and HUD element you now see on screen.
+    </p>
   </body>
 </html>
