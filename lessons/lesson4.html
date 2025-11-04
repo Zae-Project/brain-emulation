@@ -3,183 +3,264 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 4: Pattern Recognition</title>
+    <title>Documentation 4 · Controls & Parameter Panel</title>
     <style>
-      body {
-        font-family: Inter, system-ui, sans-serif;
-        background: #0f1419;
-        color: #e6e9ef;
-        margin: 0;
-        padding: 20px;
-        line-height: 1.6;
+      :root {
+        --bg: #13100b;
+        --surface: #21170f;
+        --accent: #cc7722;
+        --accent-soft: rgba(204, 119, 34, 0.16);
+        --text: #f8eddc;
+        --text-muted: #d5b498;
+        --border: rgba(204, 119, 34, 0.35);
+        --code-bg: #301f12;
       }
+
+      body {
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 960px;
+        margin-inline: auto;
+      }
+
       h1,
       h2,
       h3 {
-        color: #ff9bf0;
-        margin-top: 24px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
+
       h1 {
-        font-size: 28px;
-        margin-bottom: 16px;
+        font-size: 30px;
+        margin-bottom: 18px;
       }
+
       h2 {
-        font-size: 22px;
-        margin-bottom: 12px;
+        font-size: 24px;
+        margin-bottom: 14px;
       }
-      ul,
-      ol {
-        margin-left: 20px;
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
       }
+
+      p {
+        margin: 0 0 16px 0;
+      }
+
+      ul {
+        margin: 14px 0 18px 24px;
+        padding: 0;
+      }
+
       li {
         margin-bottom: 8px;
       }
-      strong {
-        color: #ff9bf0;
+
+      code {
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
       }
-      p {
-        margin-bottom: 12px;
+
+      .slider-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 18px 0;
+      }
+
+      .slider-card h3 {
+        margin-top: 0;
+      }
+
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+
+      .table th,
+      .table td {
+        border: 1px solid var(--border);
+        padding: 12px 16px;
+        vertical-align: top;
+      }
+
+      .table th {
+        background: rgba(204, 119, 34, 0.12);
+        color: var(--accent);
+        letter-spacing: 0.04em;
+      }
+
+      .tip {
+        background: var(--accent-soft);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin: 20px 0;
+        color: var(--text-muted);
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 4: Pattern Recognition</h1>
-
+    <h1>Documentation 4 · Controls &amp; Parameter Panel</h1>
     <p>
-      Spiking Neural Networks excel at recognizing patterns in temporal data due
-      to their inherent time dynamics. Unlike traditional neural networks, SNNs
-      can process information as it arrives in real-time, making them ideal for
-      time-series analysis and event-driven processing.
+      The control stack on the left side of the interface drives every
+      high-level property of the simulation. This chapter explains how each
+      slider, toggle, and button maps to the underlying data model, so you can
+      tune the network with intention instead of guesswork.
     </p>
 
-    <h2>Temporal Coding</h2>
-
-    <h3>Spike Timing</h3>
-    <p>
-      Information is encoded not just in which neurons fire, but when they fire.
-      The precise timing of spikes carries meaning, allowing for much richer
-      information representation than simple rate-based coding.
-    </p>
-
-    <h3>Temporal Patterns</h3>
-    <p>
-      Sequences of spikes that represent specific inputs or states. In our
-      simulation, you can observe these as:
-    </p>
+    <h2>Understanding Control States</h2>
     <ul>
       <li>
-        <strong>Synchronous Bursts:</strong> Multiple neurons firing together
+        <strong>Unlocked (Procedural Mode)</strong> &mdash; When no template is
+        selected (<code>Preset: None</code>), structure sliders are editable and
+        the network is rebuilt procedurally from the slider values.
       </li>
       <li>
-        <strong>Sequential Activation:</strong> Spikes propagating through
-        neural chains
-      </li>
-      <li>
-        <strong>Oscillatory Patterns:</strong> Rhythmic firing that repeats over
-        time
+        <strong>Locked (Template Mode)</strong> &mdash; Selecting a template
+        disables cluster and ratio sliders to prevent accidental divergence from
+        curated data. Dynamics sliders remain editable.
       </li>
     </ul>
 
-    <h2>Recognition Mechanisms</h2>
+    <h2>Structural Controls</h2>
+    <div class="slider-card">
+      <h3>Network Size</h3>
+      <p>
+        Sets the total number of neurons created in procedural mode. The engine
+        splits this count into clusters based on <em>Cluster Count</em> and
+        <em>Cluster Size</em>. In template mode this value reflects the sum of
+        all neuron groups defined in the JSON.
+      </p>
+    </div>
+    <div class="slider-card">
+      <h3>Cluster Count / Cluster Size</h3>
+      <p>
+        Control how many clusters are created and how many neurons each
+        contains. Behind the scenes, the builder lays clusters in a grid and
+        assigns each neuron to one cluster ID. When a template is active, these
+        values mirror the template but cannot be edited from the UI.
+      </p>
+    </div>
+    <div class="slider-card">
+      <h3>Excitatory Ratio</h3>
+      <p>
+        Defines the fraction of neurons tagged as excitatory in procedural
+        mode. The default (0.78) mirrors human cortex statistics. Templates
+        ignore this slider and use explicit neuron group definitions instead.
+      </p>
+    </div>
 
-    <h3>Receptive Fields</h3>
-    <p>
-      Regions of the input space that activate specific neurons. Different
-      neurons respond to different patterns, creating a distributed
-      representation of information.
-    </p>
+    <h2>Connectivity Controls</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Control</th>
+          <th>Purpose</th>
+          <th>Template Interaction</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Connection Probability</strong></td>
+          <td>Baseline probability for connecting two neurons within the same cluster.</td>
+          <td>Scales probabilities defined in <code>internalConnectivity</code> rules.</td>
+        </tr>
+        <tr>
+          <td><strong>Inter Probability</strong></td>
+          <td>Multiplier for connections spanning different clusters.</td>
+          <td>Applied to <code>connections[*].connectivity</code> probabilities.</td>
+        </tr>
+        <tr>
+          <td><strong>Inter Weight</strong></td>
+          <td>Multiplier on cross-cluster synaptic weight magnitudes.</td>
+          <td>Used only when templates omit explicit weights.</td>
+        </tr>
+        <tr>
+          <td><strong>Show Weights</strong></td>
+          <td>Toggle floating panels listing outgoing weights per neuron.</td>
+          <td>Purely visual; safe to use in any mode.</td>
+        </tr>
+        <tr>
+          <td><strong>Pause Spikes</strong></td>
+          <td>Freeze spike propagation while keeping the orbit camera live.</td>
+          <td>Helpful for inspecting network structure mid-simulation.</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <h3>Winner-Take-All Competition</h3>
-    <p>
-      When multiple neurons compete to represent a pattern, the most strongly
-      activated neuron "wins" and suppresses others. This creates clear,
-      distinct responses to different inputs.
-    </p>
+    <h2>Dynamics Controls</h2>
+    <div class="slider-card">
+      <h3>Firing Rate</h3>
+      <p>
+        Adds background stochastic spikes to prevent the network from falling
+        completely silent. It scales the probability that each neuron receives a
+        small random input on each tick.
+      </p>
+    </div>
+    <div class="slider-card">
+      <h3>Pulse Decay</h3>
+      <p>
+        Visual-only control that affects how long the glow persists after a
+        neuron fires. Lower values create sharp flashes, higher values produce
+        lingering trails.</p>
+    </div>
+    <div class="slider-card">
+      <h3>Threshold</h3>
+      <p>
+        Sets the membrane potential level required to trigger a spike. In
+        template mode, per-neuron overrides from the preset metadata take
+        priority, but this slider still influences neurons without explicit
+        thresholds.</p>
+    </div>
+    <div class="slider-card">
+      <h3>Inject Spike</h3>
+      <p>
+        Randomly selects a neuron and forces it to fire. Useful for debugging
+        connectivity or kick-starting activity in a quiescent network.</p>
+    </div>
 
-    <h3>Feature Detection</h3>
-    <p>
-      Networks learn to detect specific features or patterns through experience.
-      Neurons become selective for particular combinations of inputs.
-    </p>
-
-    <h2>Network Dynamics in Pattern Recognition</h2>
-
-    <h3>Cluster Behavior</h3>
-    <p>
-      In our visualization, the four colored clusters represent different
-      pattern detectors:
-    </p>
+    <h2>Utility Buttons</h2>
     <ul>
-      <li><strong>Blue Cluster:</strong> Responds to one type of pattern</li>
-      <li><strong>Pink Cluster:</strong> Specialized for different features</li>
       <li>
-        <strong>Yellow Cluster:</strong> Detects unique temporal sequences
+        <strong>Reset Network</strong> &mdash; Rebuilds the current preset or procedural
+        configuration from scratch.
       </li>
       <li>
-        <strong>Orange Cluster:</strong> Integrates information from other
-        clusters
+        <strong>Inject Spike</strong> &mdash; Equivalent to the action button in the dynamics section.
       </li>
     </ul>
 
-    <h3>Information Flow</h3>
-    <p>Watch how information propagates through the network:</p>
-    <ul>
-      <li>Input signals trigger specific clusters</li>
-      <li>Active clusters influence connected regions</li>
-      <li>Competition between clusters determines the final output</li>
-      <li>Feedback connections refine the recognition process</li>
-    </ul>
+    <div class="tip">
+      <strong>Pro tip:</strong> Hold the <code>Shift</code> key while dragging any slider
+      to adjust in finer increments. Double-click the slider thumb to reset to its default.
+    </div>
 
-    <h2>Interactive Exploration</h2>
-
-    <p>Experiment with pattern recognition by:</p>
-    <ul>
-      <li>
-        <strong>Injecting Spikes:</strong> See how different starting points
-        create different patterns
-      </li>
-      <li>
-        <strong>Monitoring Voltage Traces:</strong> Click neurons to see their
-        response patterns
-      </li>
-      <li>
-        <strong>Adjusting Parameters:</strong> Change network properties to
-        affect recognition
-      </li>
-      <li>
-        <strong>3D Navigation:</strong> Fly through the network to see pattern
-        propagation from different angles
-      </li>
-    </ul>
-
-    <h2>Applications</h2>
-
-    <p>SNN pattern recognition is used in:</p>
-    <ul>
-      <li>
-        <strong>Computer Vision:</strong> Real-time object detection and
-        tracking
-      </li>
-      <li>
-        <strong>Speech Processing:</strong> Temporal pattern recognition in
-        audio signals
-      </li>
-      <li>
-        <strong>Sensor Networks:</strong> Event-driven processing of sensor data
-      </li>
-      <li>
-        <strong>Robotics:</strong> Real-time decision making and motor control
-      </li>
-      <li>
-        <strong>Brain-Computer Interfaces:</strong> Decoding neural signals for
-        prosthetic control
-      </li>
-    </ul>
+    <h2>Parameter Persistence</h2>
+    <p>
+      The simulator does not persist slider states between sessions by default,
+      keeping the experience deterministic for demos. If you want persistence,
+      hook into <code>localStorage</code> or extend <code>app.js</code> to save
+      <code>this.config</code> on teardown and restore it on init.
+    </p>
 
     <p>
-      The efficiency and biological realism of SNNs make them particularly
-      valuable for applications requiring low power consumption and real-time
-      processing.
+      You now understand how the control panel influences the simulation. In the
+      next chapter we document the <em>neuron taxonomy</em> and glyph system so
+      you can interpret the shapes and labels rendered across the canvas and inspector.
     </p>
   </body>
 </html>

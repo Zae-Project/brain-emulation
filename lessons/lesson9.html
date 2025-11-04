@@ -3,497 +3,163 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 9: Large-Scale Brain Networks</title>
+    <title>Documentation 9 · Neuron Inspector & Analytics</title>
     <style>
+      :root {
+        --bg: #18100c;
+        --surface: #2a1a10;
+        --accent: #b07d4f;
+        --accent-soft: rgba(176, 125, 79, 0.18);
+        --text: #f9eedc;
+        --text-muted: #dbc3a5;
+        --border: rgba(176, 125, 79, 0.35);
+        --code-bg: #3c2414;
+      }
+
       body {
-        font-family: "Inter", sans-serif;
-        line-height: 1.6;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #0a0c12;
-        color: #e2e8f0;
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 980px;
+        margin-inline: auto;
       }
+
       h1,
-      h2 {
-        color: #374e84;
-        border-bottom: 2px solid #374e84;
-        padding-bottom: 10px;
-      }
+      h2,
       h3 {
-        color: #60a5fa;
-        margin-top: 30px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
-      .concept-box {
-        background: #1e293b;
-        border-left: 4px solid #374e84;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h1 {
+        font-size: 30px;
+        margin-bottom: 18px;
       }
-      .exercise {
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 14px;
       }
-      .key-insight {
-        background: #064e3b;
-        border-left: 4px solid #10b981;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
       }
-      .network-type {
-        background: #1e1b4b;
-        border-left: 4px solid #6366f1;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      p {
+        margin: 0 0 16px 0;
       }
-      .consciousness {
-        background: #4c1d95;
-        border-left: 4px solid #8b5cf6;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
-      }
-      code {
-        background: #1e293b;
-        padding: 2px 6px;
-        border-radius: 3px;
-        color: #94a3b8;
-      }
+
       ul {
-        padding-left: 20px;
+        margin: 14px 0 18px 24px;
+        padding: 0;
       }
+
       li {
-        margin: 8px 0;
+        margin-bottom: 8px;
+      }
+
+      code {
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
+      }
+
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+        color: var(--text-muted);
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 9: Large-Scale Brain Networks</h1>
+    <h1>Documentation 9 · Neuron Inspector &amp; Analytics</h1>
+    <p>
+      The inspector panel is your microscope. It surfaces metadata for the
+      selected neuron, exposes connectivity statistics, and provides a live
+      voltage trace. This chapter unpacks each section so you can interpret the
+      numbers at a glance and extend the analytics with confidence.
+    </p>
 
-    <div class="concept-box">
-      <h3>🧠 Core Question</h3>
-      <p>
-        How does the brain integrate information across billions of neurons to
-        create unified experience? What makes consciousness possible?
-      </p>
-    </div>
-
-    <h2>Understanding Brain-Scale Organization</h2>
-
-    <h3>From Local to Global</h3>
-    <p>The brain operates across multiple scales simultaneously:</p>
-    <ul>
-      <li><strong>Microscale</strong>: Individual neurons and synapses</li>
-      <li><strong>Mesoscale</strong>: Local circuits and cortical columns</li>
-      <li>
-        <strong>Macroscale</strong>: Brain regions and large-scale networks
-      </li>
-      <li>
-        <strong>Global scale</strong>: Whole-brain integration and consciousness
-      </li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>💡 Emergence Principle</h3>
-      <p>
-        Consciousness and unified experience emerge from the complex
-        interactions between large-scale networks, not from any single brain
-        region or neuron type.
-      </p>
-    </div>
-
-    <h2>Major Brain Networks</h2>
-
-    <div class="network-type">
-      <h3>Default Mode Network (DMN)</h3>
-      <p>
-        <strong>Function:</strong> Self-referential thinking, mind-wandering,
-        autobiographical memory
-      </p>
-      <ul>
-        <li>
-          <strong>Key regions:</strong> Medial prefrontal cortex, posterior
-          cingulate, angular gyrus
-        </li>
-        <li>
-          <strong>Activity pattern:</strong> High during rest, low during
-          focused tasks
-        </li>
-        <li>
-          <strong>Clinical relevance:</strong> Altered in depression,
-          Alzheimer's, autism
-        </li>
-        <li><strong>Evolution:</strong> May be uniquely developed in humans</li>
-      </ul>
-    </div>
-
-    <div class="network-type">
-      <h3>Central Executive Network (CEN)</h3>
-      <p>
-        <strong>Function:</strong> Attention, working memory, cognitive control
-      </p>
-      <ul>
-        <li>
-          <strong>Key regions:</strong> Dorsolateral prefrontal cortex,
-          posterior parietal cortex
-        </li>
-        <li>
-          <strong>Activity pattern:</strong> High during demanding cognitive
-          tasks
-        </li>
-        <li><strong>Relationship:</strong> Often anti-correlated with DMN</li>
-        <li>
-          <strong>Development:</strong> Continues maturing into early adulthood
-        </li>
-      </ul>
-    </div>
-
-    <div class="network-type">
-      <h3>Salience Network</h3>
-      <p>
-        <strong>Function:</strong> Switching between networks, detecting
-        relevant stimuli
-      </p>
-      <ul>
-        <li>
-          <strong>Key regions:</strong> Anterior insula, dorsal anterior
-          cingulate
-        </li>
-        <li><strong>Role:</strong> "Circuit breaker" between DMN and CEN</li>
-        <li>
-          <strong>Timing:</strong> Activates before task-relevant networks
-        </li>
-        <li>
-          <strong>Disorders:</strong> Dysfunction linked to many psychiatric
-          conditions
-        </li>
-      </ul>
-    </div>
-
-    <h2>Global Workspace Theory</h2>
-
-    <h3>Conscious Access Model</h3>
-    <p>Bernard Baars' theory of how consciousness arises:</p>
-    <ul>
-      <li>
-        <strong>Global broadcasting</strong>: Conscious information becomes
-        available brain-wide
-      </li>
-      <li>
-        <strong>Competition</strong>: Multiple processes compete for conscious
-        access
-      </li>
-      <li>
-        <strong>Integration</strong>: Conscious contents are highly integrated
-      </li>
-      <li>
-        <strong>Limited capacity</strong>: Only one coherent experience at a
-        time
-      </li>
-    </ul>
-
-    <div class="consciousness">
-      <h3>🤔 Consciousness and Integration</h3>
-      <p>
-        Consciousness may emerge when information becomes globally accessible
-        across brain networks, creating a unified, coherent experience from
-        distributed processing.
-      </p>
-    </div>
-
-    <h3>Integrated Information Theory (IIT)</h3>
-    <p>Giulio Tononi's mathematical approach to consciousness:</p>
-    <ul>
-      <li>
-        <strong>Φ (Phi)</strong>: Measure of integrated information in a system
-      </li>
-      <li>
-        <strong>Exclusion</strong>: Conscious systems have definite boundaries
-      </li>
-      <li>
-        <strong>Intrinsic existence</strong>: Consciousness exists from system's
-        perspective
-      </li>
-      <li>
-        <strong>Structured experience</strong>: Consciousness has specific
-        content and structure
-      </li>
-    </ul>
-
-    <h2>Interactive Exploration</h2>
-
-    <div class="exercise">
-      <h3>🔬 Network Switching Simulation</h3>
-      <p>
-        <strong>Goal:</strong> Observe how activity switches between clusters
-      </p>
-      <ol>
-        <li>Watch the default pattern of cluster activation</li>
-        <li>Inject a strong spike to one cluster (simulating attention)</li>
-        <li>Observe how this disrupts the default pattern</li>
-        <li>Notice how activity reorganizes around the new input</li>
-      </ol>
-      <p>
-        <strong>Analogy:</strong> This simulates attention switching from
-        default mode to task-focused processing
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Global Broadcasting</h3>
-      <p><strong>Goal:</strong> See how information spreads brain-wide</p>
-      <ol>
-        <li>Inject multiple spikes rapidly to create strong activation</li>
-        <li>Watch how activity spreads to other clusters</li>
-        <li>Observe the timing and pattern of propagation</li>
-        <li>Consider how this might create "global availability"</li>
-      </ol>
-      <p>
-        <strong>Question:</strong> What determines which information becomes
-        globally broadcast?
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Integration Dynamics</h3>
-      <p><strong>Goal:</strong> Understand network integration</p>
-      <ol>
-        <li>Enable "Show Weights" to see inter-cluster connections</li>
-        <li>Notice how clusters are interconnected</li>
-        <li>Consider how information becomes integrated across the network</li>
-        <li>Think about what creates unified vs. fragmented processing</li>
-      </ol>
-      <p>
-        <strong>Concept:</strong> High integration may be necessary for
-        conscious experience
-      </p>
-    </div>
-
-    <h2>Brain States and Consciousness</h2>
-
-    <h3>Levels of Consciousness</h3>
-    <ul>
-      <li><strong>Wake</strong>: High integration, rich conscious content</li>
-      <li><strong>REM sleep</strong>: High activity but reduced integration</li>
-      <li><strong>Non-REM sleep</strong>: Reduced activity and integration</li>
-      <li><strong>Anesthesia</strong>: Disrupted network communication</li>
-      <li><strong>Coma</strong>: Severely impaired network function</li>
-    </ul>
-
-    <h3>Anesthesia and Consciousness</h3>
-    <p>How anesthetics reveal consciousness mechanisms:</p>
-    <ul>
-      <li>
-        <strong>Network fragmentation</strong>: Loss of communication between
-        regions
-      </li>
-      <li>
-        <strong>Reduced complexity</strong>: Simpler, more stereotyped activity
-        patterns
-      </li>
-      <li>
-        <strong>Impaired integration</strong>: Information remains local rather
-        than global
-      </li>
-      <li>
-        <strong>Gradual recovery</strong>: Consciousness returns as networks
-        reconnect
-      </li>
-    </ul>
-
-    <div class="concept-box">
-      <h3>🔬 Research Applications</h3>
-      <p>
-        Understanding anesthesia provides insights into consciousness mechanisms
-        and helps develop better methods for assessing consciousness in
-        unresponsive patients.
-      </p>
-    </div>
-
-    <h2>Criticality and Brain Dynamics</h2>
-
-    <h3>Critical Brain Hypothesis</h3>
-    <p>The brain operates at the "edge of chaos":</p>
-    <ul>
-      <li><strong>Criticality</strong>: Balanced between order and disorder</li>
-      <li>
-        <strong>Avalanche dynamics</strong>: Activity cascades of all sizes
-      </li>
-      <li>
-        <strong>Maximal information</strong>: Optimal information processing and
-        storage
-      </li>
-      <li>
-        <strong>Flexibility</strong>: Rapid adaptation to changing demands
-      </li>
-    </ul>
-
-    <h3>Scale-Free Networks</h3>
-    <p>Brain networks show power-law connectivity:</p>
-    <ul>
-      <li><strong>Hub nodes</strong>: Few highly connected regions</li>
-      <li>
-        <strong>Small-world properties</strong>: High clustering, short path
-        lengths
-      </li>
-      <li><strong>Robustness</strong>: Resilient to random damage</li>
-      <li><strong>Vulnerability</strong>: Sensitive to targeted hub damage</li>
-    </ul>
-
-    <h2>Development and Plasticity</h2>
-
-    <h3>Network Maturation</h3>
-    <ul>
-      <li><strong>Childhood</strong>: Local connections predominate</li>
-      <li><strong>Adolescence</strong>: Long-range connections strengthen</li>
-      <li><strong>Adulthood</strong>: Mature network organization</li>
-      <li><strong>Aging</strong>: Gradual decline in network efficiency</li>
-    </ul>
-
-    <h3>Experience-Dependent Changes</h3>
-    <ul>
-      <li><strong>Learning</strong>: Strengthens task-relevant connections</li>
-      <li><strong>Expertise</strong>: Creates specialized network patterns</li>
-      <li><strong>Meditation</strong>: Alters default mode network activity</li>
-      <li><strong>Trauma</strong>: Can disrupt normal network function</li>
-    </ul>
-
-    <h2>Clinical Applications</h2>
-
-    <h3>Neuropsychiatric Disorders</h3>
-    <ul>
-      <li><strong>Depression</strong>: Hyperactive default mode network</li>
-      <li><strong>Schizophrenia</strong>: Reduced global connectivity</li>
-      <li><strong>ADHD</strong>: Immature network organization</li>
-      <li>
-        <strong>Autism</strong>: Altered local vs. global processing balance
-      </li>
-    </ul>
-
-    <h3>Neurodegenerative Diseases</h3>
-    <ul>
-      <li><strong>Alzheimer's</strong>: Early targeting of hub regions</li>
-      <li>
-        <strong>Parkinson's</strong>: Disrupted motor network connectivity
-      </li>
-      <li><strong>ALS</strong>: Progressive motor network degeneration</li>
-      <li><strong>Huntington's</strong>: Striatal network breakdown</li>
-    </ul>
-
-    <h2>Implications for Brain Emulation</h2>
-
-    <h3>Technical Challenges</h3>
-    <ul>
-      <li>
-        <strong>Multi-scale modeling</strong>: Capturing dynamics from neurons
-        to networks
-      </li>
-      <li>
-        <strong>Real-time integration</strong>: Maintaining network coherence
-      </li>
-      <li>
-        <strong>State transitions</strong>: Implementing sleep/wake cycles
-      </li>
-      <li>
-        <strong>Consciousness detection</strong>: Knowing if emulation is
-        conscious
-      </li>
-    </ul>
-
-    <h3>Philosophical Implications</h3>
-    <ul>
-      <li><strong>Network identity</strong>: Are you your network patterns?</li>
-      <li>
-        <strong>Gradual replacement</strong>: Would network preservation
-        maintain identity?
-      </li>
-      <li>
-        <strong>Multiple copies</strong>: Could network patterns be duplicated?
-      </li>
-      <li>
-        <strong>Enhanced networks</strong>: What about improved connectivity?
-      </li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>🎯 Critical Insight</h3>
-      <p>
-        Brain emulation must capture not just individual neurons, but the
-        large-scale network dynamics that create integrated, conscious
-        experience. This may be the most challenging aspect of whole brain
-        emulation.
-      </p>
-    </div>
-
-    <h2>Future Research Directions</h2>
-
-    <h3>Emerging Technologies</h3>
-    <ul>
-      <li>
-        <strong>High-density recording</strong>: Simultaneous monitoring of
-        millions of neurons
-      </li>
-      <li>
-        <strong>Optogenetics</strong>: Precise control of neural network
-        activity
-      </li>
-      <li>
-        <strong>Brain stimulation</strong>: Causal testing of network functions
-      </li>
-      <li>
-        <strong>Computational models</strong>: Large-scale brain simulations
-      </li>
-    </ul>
-
-    <h3>Open Questions</h3>
-    <ul>
-      <li>How do large-scale networks give rise to consciousness?</li>
-      <li>What is the minimal network complexity for conscious experience?</li>
-      <li>How do networks maintain coherence across different brain states?</li>
-      <li>Can artificial networks achieve brain-like integration?</li>
-    </ul>
-
-    <h2>Key Takeaways</h2>
+    <h2>Accessing the Inspector</h2>
     <ol>
-      <li>
-        Large-scale networks integrate local processing into unified experience
-      </li>
-      <li>Multiple specialized networks serve different cognitive functions</li>
-      <li>Consciousness may emerge from global information integration</li>
-      <li>Critical dynamics optimize brain network performance</li>
-      <li>Network dysfunction underlies many brain disorders</li>
+      <li>Click any neuron on the canvas. The closest candidate within 30 pixels is selected.</li>
+      <li>The panel slides into view on the right-hand side.</li>
+      <li>The voltage trace resets and begins recording new samples from the selected neuron.</li>
     </ol>
 
-    <h2>Reflection Questions</h2>
+    <h2>Panel Sections</h2>
+    <h3>Region</h3>
+    <p>
+      Displays <code>regionName</code> from the active template, along with
+      provenance notes pulled from <code>metadata</code>. If the preset label
+      differs from the region name, both are shown.
+    </p>
+
+    <h3>Cluster</h3>
+    <p>
+      Shows the cluster label, descriptive notes, and a breakdown of peer
+      composition (e.g., “Pyramidal neuron: 120 · Basket cell: 30”). The counts
+      mirror <code>cluster.groupSummary</code> generated during network build.
+    </p>
+
+    <h3>Neuron</h3>
+    <ul>
+      <li><strong>Name</strong> &mdash; Display label from <code>neuron.neuronTypeName</code>.</li>
+      <li><strong>Type</strong> &mdash; Excitatory or inhibitory class, shown alongside the taxonomy name.</li>
+      <li><strong>Glyph Badge</strong> &mdash; Matches the canvas shape (see Documentation 5).</li>
+      <li><strong>Connectivity</strong> &mdash; Outgoing and incoming edge counts, cluster size, and peer total.</li>
+    </ul>
+
+    <h3>Biophysics</h3>
+    <p>
+      Lists intrinsic parameters such as threshold, leak, refractory period, and
+      synaptic constants. Values are either taken directly from the neuron type
+      preset or left blank (“—”) if undefined.
+    </p>
+
+    <h3>Voltage Trace</h3>
+    <p>
+      A rolling history of the selected neuron's membrane potential. The trace
+      updates each simulation tick and stores ~150 samples. Use it to confirm
+      firing threshold behavior or to diagnose runaway excitation.
+    </p>
+
+    <div class="callout">
+      <strong>Reading the Trace</strong>
+      <ul>
+        <li>Baseline noise corresponds to background firing probability.</li>
+        <li>Spikes appear as sharp rises to the threshold (default 1.0) followed by a reset.</li>
+        <li>Flattened traces indicate the neuron is in a refractory period or disconnected.</li>
+      </ul>
+    </div>
+
+    <h2>Extending the Inspector</h2>
     <ul>
       <li>
-        What makes some brain networks more important than others for
-        consciousness?
+        Add new metadata fields to templates (e.g., <code>metadata.receptors</code>) and display them in <code>renderNeuronDetails</code>.
       </li>
-      <li>How might artificial networks achieve brain-like integration?</li>
       <li>
-        What would it mean to "upload" network dynamics rather than individual
-        neurons?
+        Instrument the inspector with custom charts by tapping into <code>neuron.spikeHistory</code>.
       </li>
-      <li>How could we test if an emulated brain has conscious experience?</li>
       <li>
-        What are the implications of network-based identity for personal
-        continuity?
+        Use <code>this.state.selectedNeuron</code> to access the active neuron from other UI components.
       </li>
     </ul>
 
-    <h2>Next Steps</h2>
     <p>
-      In <strong>Lesson 10</strong>, we'll explore how neural oscillations and
-      rhythmic activity coordinate these large-scale networks, providing the
-      temporal scaffolding that enables complex brain functions and potentially
-      consciousness itself.
+      Next, explore <em>Documentation 10 · Advanced Configuration &amp; Manifest</em> to
+      learn how presets are auto-discovered and how you can customize the manifest-driven library.
     </p>
   </body>
 </html>

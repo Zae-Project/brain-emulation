@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documentation 3 · Interface Tour</title>
+    <style>
+      :root {
+        --bg: #12100c;
+        --surface: #20170f;
+        --accent: #b8860b;
+        --accent-soft: rgba(184, 134, 11, 0.18);
+        --text: #f6ead5;
+        --text-muted: #d4bc96;
+        --border: rgba(184, 134, 11, 0.35);
+        --code-bg: #2b1d11;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 960px;
+        margin-inline: auto;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
+      }
+
+      h1 {
+        font-size: 30px;
+        margin-bottom: 18px;
+      }
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 14px;
+      }
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      p {
+        margin: 0 0 16px 0;
+      }
+
+      ul {
+        margin: 14px 0 18px 24px;
+        padding: 0;
+      }
+
+      li {
+        margin-bottom: 8px;
+      }
+
+      code {
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+      }
+
+      .panel h3 {
+        margin-top: 0;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 0.85em;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+        margin: 20px 0 32px;
+      }
+
+      .grid-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Documentation 3 · Interface Tour</h1>
+    <p>
+      The visualizer is intentionally minimal: a cinematic canvas surrounded by
+      contextual controls. This chapter is a map of every interactive element,
+      organized by region. Keep it open the first few times you explore so that
+      icons and terms in later chapters make sense.
+    </p>
+
+    <div class="panel">
+      <span class="tag">Main Canvas</span>
+      <h3>1. Orbit Scene</h3>
+      <ul>
+        <li>
+          <strong>Clusters</strong> &mdash; Each cluster is rendered as a softly
+          glowing group of neurons. Colors track our desert palette, and the
+          hue is repeated on inspector headers.
+        </li>
+        <li>
+          <strong>Connections</strong> &mdash; Grey lines show resting synapses.
+          When a spike travels, the line flashes with the source cluster color.
+        </li>
+        <li>
+          <strong>Camera Controls</strong> &mdash; Left drag to orbit, right drag
+          to pan, mouse wheel to zoom. Press <code>Space</code> to reset view.
+        </li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <span class="tag">Top HUD Bar</span>
+      <h3>2. Global Controls</h3>
+      <ul>
+        <li>
+          <strong>Play / Pause</strong> toggles simulation stepping. The button
+          glows when the engine is active.
+        </li>
+        <li>
+          <strong>Speed Slider</strong> scales update frequency (0.1× to 4×).</li>
+        <li>
+          <strong>Preset Dropdown</strong> lists builtin plus manifest-driven templates.
+          Selecting a preset rebuilds the network using template data and locks the
+          structural sliders.
+        </li>
+        <li>
+          <strong>Import / Export</strong> allow round-tripping JSON templates. A
+          contextual info icon opens the schema reference modal.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <span class="tag">Preset Summary</span>
+      <h3>3. Active Template Capsule</h3>
+      <p>
+        A compact ribbon beneath the HUD summarises the current template: cluster
+        labels, neuron counts, and estimated excitatory fraction. This data is
+        pulled directly from <code>SNN_REGISTRY.deriveCounts</code> and
+        <code>estimateEI</code> so you can cross-check it against the template JSON.
+      </p>
+    </div>
+
+    <div class="panel">
+      <span class="tag">Left Control Stack</span>
+      <h3>4. Parameter Panels</h3>
+      <div class="grid">
+        <div class="grid-card">
+          <h3>Network Structure</h3>
+          <ul>
+            <li><strong>Network Size</strong> &mdash; Total neurons (E + I).</li>
+            <li><strong>Cluster Count / Size</strong> &mdash; Procedural mode only; locked when using templates.</li>
+            <li><strong>Excitatory Ratio</strong> &mdash; Fraction of neurons marked as E.</li>
+          </ul>
+        </div>
+        <div class="grid-card">
+          <h3>Connectivity</h3>
+          <ul>
+            <li><strong>Connection Probability</strong> &mdash; Intra-cluster baseline.</li>
+            <li><strong>Inter Probability / Weight</strong> &mdash; Cross-cluster scaling factors.</li>
+            <li><strong>Show Weights</strong> toggles floating edge tables.</li>
+          </ul>
+        </div>
+        <div class="grid-card">
+          <h3>Dynamics</h3>
+          <ul>
+            <li><strong>Firing Rate</strong> &mdash; Background stochastic spikes.</li>
+            <li><strong>Pulse Decay</strong> &mdash; Visual glow damping.</li>
+            <li><strong>Threshold</strong> &mdash; Global firing threshold.</li>
+            <li><strong>Inject Spike</strong> &mdash; Manual stimulation.</li>
+          </ul>
+        </div>
+      </div>
+      <p>
+        Every slider broadcasts immediate feedback in the inspector status bar so
+        you can see the numeric value as you drag. Tooltips (hover the dot icons)
+        mirror the inline documentation in <code>docs/brain_regions_maps_json.md</code>.
+      </p>
+    </div>
+
+    <div class="panel">
+      <span class="tag">Right Drawer</span>
+      <h3>5. Neuron Inspector</h3>
+      <ul>
+        <li>
+          <strong>Region Card</strong> &mdash; Displays template metadata, including source atlas.
+        </li>
+        <li>
+          <strong>Cluster Card</strong> &mdash; Shows cluster label, notes, and peer composition.
+        </li>
+        <li>
+          <strong>Neuron Card</strong> &mdash; Taxonomy name (e.g., “Basket cell (interneuron)”),
+          excitatory/inhibitory class, glyph badge, and connectivity stats.
+        </li>
+        <li>
+          <strong>Biophysics Section</strong> &mdash; Normalised parameters for the selected neuron.
+        </li>
+        <li>
+          <strong>Voltage Trace</strong> &mdash; Real-time membrane potential history for the selected neuron.
+        </li>
+      </ul>
+      <p>
+        Click any neuron in the scene to populate the inspector. The trace panel
+        resets on selection so you can capture clean time series plots.
+      </p>
+    </div>
+
+    <div class="panel">
+      <span class="tag">Status Bar</span>
+      <h3>6. Bottom Telemetry</h3>
+      <p>
+        The footer keeps critical readings in view: camera distance, zoom ratio,
+        neuron count, and any transient alerts (e.g., template import success).
+        Hovering the status bar reveals navigation hints for the orbit controls.
+      </p>
+    </div>
+
+    <h2>Keyboard Shortcuts</h2>
+    <ul>
+      <li><code>Space</code> &mdash; Reset camera to default orbit.</li>
+      <li><code>W/A/S/D</code> &mdash; Translate the camera target.</li>
+      <li><code>Q/E</code> &mdash; Move camera target vertically.</li>
+      <li><code>Shift</code> + drag &mdash; Fine control on sliders.</li>
+      <li><code>Esc</code> &mdash; Close modals (import help, lessons).</li>
+    </ul>
+
+    <h2>UI Consistency Guide</h2>
+    <p>
+      The interface follows consistent colors and iconography so you can read
+      intent without labels. Glyphs in the inspector match the canvas shapes,
+      while accent colors mirror the warm desert palette defined in
+      <code>css/styles.css</code>. When you add new components, reuse these tokens
+      to blend seamlessly with the HUD.
+    </p>
+
+    <p>
+      Next, jump to <em>Documentation 4 · Controls &amp; Parameter Panel</em> for
+      an in-depth explanation of every slider, toggle, and how they map to the
+      underlying simulation parameters.
+    </p>
+  </body>
+</html>
