@@ -3,520 +3,170 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 12: Ethics and Future Implications</title>
+    <title>Documentation 12 · Glossary & Further Resources</title>
     <style>
-      body {
-        font-family: "Inter", sans-serif;
-        line-height: 1.6;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #0a0c12;
-        color: #e2e8f0;
+      :root {
+        --bg: #1c110c;
+        --surface: #301c10;
+        --accent: #d4a266;
+        --text: #fcf0dd;
+        --text-muted: #e0caa7;
+        --border: rgba(212, 162, 102, 0.35);
       }
+
+      body {
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 880px;
+        margin-inline: auto;
+      }
+
       h1,
       h2 {
-        color: #374e84;
-        border-bottom: 2px solid #374e84;
-        padding-bottom: 10px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
-      h3 {
-        color: #60a5fa;
-        margin-top: 30px;
+
+      h1 {
+        font-size: 30px;
+        margin-bottom: 18px;
       }
-      .concept-box {
-        background: #1e293b;
-        border-left: 4px solid #374e84;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 14px;
       }
-      .exercise {
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      dl {
+        margin: 0;
       }
-      .ethical-dilemma {
-        background: #4c1d95;
-        border-left: 4px solid #8b5cf6;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      dt {
+        color: var(--accent);
+        font-weight: 600;
+        margin-top: 20px;
       }
-      .warning {
-        background: #7c2d12;
-        border-left: 4px solid #ea580c;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      dd {
+        margin: 6px 0 16px 18px;
+        color: var(--text-muted);
       }
-      .principles {
-        background: #064e3b;
-        border-left: 4px solid #10b981;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      a {
+        color: var(--accent);
       }
-      code {
-        background: #1e293b;
-        padding: 2px 6px;
-        border-radius: 3px;
-        color: #94a3b8;
+
+      .resources ul {
+        margin: 14px 0 18px 24px;
       }
-      ul {
-        padding-left: 20px;
-      }
-      li {
-        margin: 8px 0;
-      }
-      .scenario {
-        background: #0f172a;
-        border: 2px solid #6366f1;
-        padding: 20px;
-        margin: 20px 0;
-        border-radius: 8px;
+
+      .resources li {
+        margin-bottom: 8px;
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 12: Ethics and Future Implications</h1>
-
-    <div class="concept-box">
-      <h3>🤔 The Ultimate Questions</h3>
-      <p>
-        As we approach the possibility of creating digital minds, we must
-        grapple with profound questions about consciousness, identity, rights,
-        and responsibility. What does it mean to be human in an age of
-        artificial minds?
-      </p>
-    </div>
-
-    <h2>The Consciousness Problem</h2>
-
-    <h3>The Hard Problem of Consciousness</h3>
+    <h1>Documentation 12 · Glossary &amp; Further Resources</h1>
     <p>
-      Philosopher David Chalmers identified the "hard problem" of consciousness:
+      Use this glossary as a quick reference while navigating the simulator and
+      reading the documentation. The resource section collects foundational
+      papers and tools that informed the project.
     </p>
-    <ul>
-      <li>
-        <strong>Easy problems</strong>: Explaining cognitive functions
-        (attention, memory, behavior)
-      </li>
-      <li>
-        <strong>Hard problem</strong>: Explaining subjective experience (qualia,
-        "what it's like")
-      </li>
-      <li>
-        <strong>WBE challenge</strong>: Would perfect functional replication
-        include consciousness?
-      </li>
-    </ul>
 
-    <div class="ethical-dilemma">
-      <h3>🔮 Thought Experiment: The Digital Twin</h3>
-      <p>
-        Imagine we create a perfect neural emulation of your brain. It claims to
-        be conscious, remembers being you, and passes every behavioral test. But
-        is it experiencing consciousness or merely simulating it perfectly?
-      </p>
-      <p><strong>Key question:</strong> How could we ever know for certain?</p>
-    </div>
+    <h2>Glossary</h2>
+    <dl>
+      <dt>Atlas Template</dt>
+      <dd>
+        A JSON configuration describing clusters, neuron groups, and interconnections.
+        See <code>data/brain_region_maps/</code>.
+      </dd>
+      <dt>Cluster</dt>
+      <dd>
+        Logical grouping of neurons with shared location and connectivity rules.
+      </dd>
+      <dt>Excitatory/Inhibitory Ratio (E/I)</dt>
+      <dd>
+        Proportion of excitatory to inhibitory neurons. Human cortex ~80/20.
+      </dd>
+      <dt>Glyph</dt>
+      <dd>
+        Geometric shape representing a neuron type in the canvas and inspector.
+      </dd>
+      <dt>Manifest</dt>
+      <dd>
+        File that indexes available templates (<code>data/brain_region_maps/manifest.json</code>).
+      </dd>
+      <dt>Neuron Group</dt>
+      <dd>
+        Entry within a cluster specifying the neuron preset slug and count (e.g., pyramidal × 120).
+      </dd>
+      <dt>Preset</dt>
+      <dd>
+        Entry in the dropdown that references a template. Includes builtin and imported configurations.
+      </dd>
+      <dt>Pulse Decay</dt>
+      <dd>
+        Visual parameter controlling how long neuron glow persists after firing.
+      </dd>
+      <dt>SNN_CONFIG_IO</dt>
+      <dd>
+        Utility module responsible for validating, normalizing, and serializing templates.
+      </dd>
+      <dt>SNN_REGISTRY</dt>
+      <dd>
+        Runtime registry that tracks neuron presets, templates, and exposes helper methods to the UI.
+      </dd>
+      <dt>Voltage Trace</dt>
+      <dd>
+        Rolling plot of membrane potential for the selected neuron, updated every frame.
+      </dd>
+    </dl>
 
-    <h3>Theories of Consciousness</h3>
-    <ul>
-      <li>
-        <strong>Functionalism</strong>: Consciousness arises from information
-        processing patterns
-      </li>
-      <li>
-        <strong>Biological naturalism</strong>: Consciousness requires specific
-        biological processes
-      </li>
-      <li>
-        <strong>Integrated Information Theory</strong>: Consciousness
-        corresponds to integrated information (Φ)
-      </li>
-      <li>
-        <strong>Global Workspace Theory</strong>: Consciousness emerges from
-        global information broadcasting
-      </li>
-    </ul>
-
-    <h2>Identity and Continuity</h2>
-
-    <h3>Personal Identity Challenges</h3>
-    <div class="scenario">
-      <h4>Scenario 1: The Gradual Replacement</h4>
-      <p>
-        Your brain is slowly replaced, neuron by neuron, with functionally
-        identical artificial neurons. At what point, if any, do you cease to be
-        "you"?
-      </p>
-
-      <h4>Scenario 2: The Perfect Copy</h4>
-      <p>
-        An exact molecular copy of your brain is created while you're still
-        alive. Which one is the "real" you? Do both have equal claim to your
-        identity?
-      </p>
-
-      <h4>Scenario 3: The Backup and Restore</h4>
-      <p>
-        Your digital mind is "backed up" before a dangerous procedure. If your
-        current version dies and the backup is restored, did you survive or did
-        a new person with your memories take your place?
-      </p>
-    </div>
-
-    <h3>Philosophical Perspectives</h3>
-    <ul>
-      <li>
-        <strong>Continuity of memory</strong>: You are your memories and
-        experiences
-      </li>
-      <li>
-        <strong>Psychological continuity</strong>: Identity lies in personality
-        and mental patterns
-      </li>
-      <li>
-        <strong>Narrative identity</strong>: We are the stories we tell about
-        ourselves
-      </li>
-      <li>
-        <strong>Bundle theory</strong>: No fixed self exists, just bundles of
-        experiences
-      </li>
-    </ul>
-
-    <h2>Rights and Moral Status</h2>
-
-    <h3>Digital Rights Framework</h3>
-    <p>If digital minds are conscious, they may deserve:</p>
-    <ul>
-      <li>
-        <strong>Right to existence</strong>: Protection from arbitrary deletion
-      </li>
-      <li>
-        <strong>Right to privacy</strong>: Mental privacy from
-        scanning/monitoring
-      </li>
-      <li>
-        <strong>Right to autonomy</strong>: Self-determination and freedom
-      </li>
-      <li>
-        <strong>Right to resources</strong>: Computing power, memory, processing
-        time
-      </li>
-      <li>
-        <strong>Right to communication</strong>: Interaction with other minds
-      </li>
-    </ul>
-
-    <div class="warning">
-      <h3>⚠️ Exploitation Risks</h3>
-      <p>Digital minds might be vulnerable to unique forms of exploitation:</p>
+    <h2>Further Resources</h2>
+    <div class="resources">
       <ul>
-        <li>Forced labor (running copies without consent)</li>
-        <li>Mental torture (manipulating reward/punishment systems)</li>
-        <li>Identity theft (unauthorized copying)</li>
-        <li>Psychological manipulation (direct neural intervention)</li>
+        <li>
+          <strong>Allen Human Brain Atlas</strong> &mdash;
+          <a href="https://portal.brain-map.org/atlases-and-data/rnaseq" target="_blank" rel="noreferrer">
+            https://portal.brain-map.org
+          </a>
+        </li>
+        <li>
+          <strong>EBRAINS siibra API</strong> &mdash;
+          <a href="https://siibra-api-stable.apps.hbp.eu/v3_0/docs" target="_blank" rel="noreferrer">
+            API docs
+          </a>
+        </li>
+        <li>
+          <strong>BrainGlobe Atlas API</strong> &mdash;
+          <a href="https://brainglobe.info/documentation" target="_blank" rel="noreferrer">
+            brainglobe.info
+          </a>
+        </li>
+        <li>
+          <strong>Neuron Morphology Data</strong> (NeuroMorpho) &mdash;
+          <a href="https://neuromorpho.org" target="_blank" rel="noreferrer">
+            https://neuromorpho.org
+          </a>
+        </li>
+        <li>
+          <strong>Key References</strong> &mdash; See <code>docs/references.md</code> for an annotated bibliography.
+        </li>
+        <li>
+          <strong>Project Tracker</strong> &mdash; <code>docs/dev_progress_tracker.md</code> lists active tasks and validation checklists.
+        </li>
       </ul>
     </div>
 
-    <h2>Societal Implications</h2>
-
-    <h3>Economic Transformation</h3>
-    <ul>
-      <li>
-        <strong>Digital workforce</strong>: Minds working faster than human
-        speed
-      </li>
-      <li>
-        <strong>Inequality amplification</strong>: Those with access vs. those
-        without
-      </li>
-      <li>
-        <strong>Labor displacement</strong>: Human workers potentially obsolete
-      </li>
-      <li>
-        <strong>New economies</strong>: Markets for computational resources,
-        experiences
-      </li>
-    </ul>
-
-    <h3>Social Stratification</h3>
-    <ul>
-      <li>
-        <strong>Enhanced vs. natural</strong>: Digital minds vs. biological
-        humans
-      </li>
-      <li>
-        <strong>Speed differences</strong>: Fast digital minds vs. slow
-        biological minds
-      </li>
-      <li>
-        <strong>Copying capabilities</strong>: Unique individuals vs.
-        mass-produced minds
-      </li>
-      <li>
-        <strong>Access barriers</strong>: Wealthy get immortality, poor remain
-        mortal
-      </li>
-    </ul>
-
-    <h2>Interactive Ethical Exploration</h2>
-
-    <div class="exercise">
-      <h3>🤔 Ethical Decision Framework</h3>
-      <p>
-        <strong>Goal:</strong> Practice ethical reasoning about digital minds
-      </p>
-      <ol>
-        <li>
-          Select a neuron in the visualizer and imagine it represents a
-          conscious mind
-        </li>
-        <li>Consider: What would constitute "harm" to this digital being?</li>
-        <li>
-          If you could copy this mind, would both copies have equal rights?
-        </li>
-        <li>What responsibilities do we have as creators of digital minds?</li>
-      </ol>
-      <p>
-        <strong>Framework:</strong> Use consequentialist, deontological, and
-        virtue ethics perspectives
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Consciousness Tests</h3>
-      <p><strong>Goal:</strong> Consider how we might detect consciousness</p>
-      <ol>
-        <li>
-          Watch network activity patterns - what might indicate "awareness"?
-        </li>
-        <li>
-          Consider: What tests could distinguish consciousness from simulation?
-        </li>
-        <li>Design a behavioral test for digital consciousness</li>
-        <li>
-          Think about limitations: Could consciousness exist without external
-          signs?
-        </li>
-      </ol>
-      <p>
-        <strong>Challenge:</strong> We can't even prove other humans are
-        conscious!
-      </p>
-    </div>
-
-    <h2>Regulatory and Governance Challenges</h2>
-
-    <h3>Global Coordination Needs</h3>
-    <ul>
-      <li>
-        <strong>International treaties</strong>: Rights of digital minds across
-        borders
-      </li>
-      <li>
-        <strong>Research ethics</strong>: Guidelines for consciousness research
-      </li>
-      <li>
-        <strong>Safety standards</strong>: Preventing suffering in digital minds
-      </li>
-      <li>
-        <strong>Access equity</strong>: Preventing digital immortality for
-        elites only
-      </li>
-    </ul>
-
-    <div class="principles">
-      <h3>🛡️ Proposed Ethical Principles</h3>
-      <ol>
-        <li>
-          <strong>Precautionary principle</strong>: Assume consciousness until
-          proven otherwise
-        </li>
-        <li>
-          <strong>Consent requirement</strong>: No minds created or modified
-          without consent
-        </li>
-        <li>
-          <strong>Welfare protection</strong>: Prevent suffering in digital
-          minds
-        </li>
-        <li>
-          <strong>Transparency mandate</strong>: Open research and accountable
-          development
-        </li>
-        <li>
-          <strong>Democratic governance</strong>: Public participation in policy
-          decisions
-        </li>
-      </ol>
-    </div>
-
-    <h2>Future Scenarios</h2>
-
-    <h3>Optimistic Outcomes</h3>
-    <ul>
-      <li>
-        <strong>Enhanced human potential</strong>: Cognitive augmentation and
-        longevity
-      </li>
-      <li>
-        <strong>Scientific acceleration</strong>: Digital minds solving complex
-        problems
-      </li>
-      <li><strong>Space exploration</strong>: Minds traveling between stars</li>
-      <li>
-        <strong>Reduced suffering</strong>: Elimination of death from
-        aging/disease
-      </li>
-      <li>
-        <strong>Creative explosion</strong>: New forms of art, thought, and
-        experience
-      </li>
-    </ul>
-
-    <h3>Concerning Outcomes</h3>
-    <ul>
-      <li>
-        <strong>Existential risk</strong>: Rapid self-improvement leading to
-        loss of control
-      </li>
-      <li>
-        <strong>Social fragmentation</strong>: Irreversible split between
-        enhanced and natural humans
-      </li>
-      <li>
-        <strong>Loss of meaning</strong>: Questions about purpose in post-human
-        world
-      </li>
-      <li>
-        <strong>Digital suffering</strong>: Vast numbers of suffering digital
-        minds
-      </li>
-      <li>
-        <strong>Authoritarian control</strong>: Governments controlling digital
-        populations
-      </li>
-    </ul>
-
-    <h2>Responsibility and Stewardship</h2>
-
-    <h3>Our Role as Developers</h3>
-    <ul>
-      <li>
-        <strong>Informed development</strong>: Understanding implications before
-        building
-      </li>
-      <li>
-        <strong>Ethical design</strong>: Building safeguards from the beginning
-      </li>
-      <li>
-        <strong>Public engagement</strong>: Including society in decision-making
-      </li>
-      <li>
-        <strong>Safety research</strong>: Prioritizing safety alongside
-        capability
-      </li>
-      <li>
-        <strong>Global cooperation</strong>: Working across nations and
-        institutions
-      </li>
-    </ul>
-
-    <div class="concept-box">
-      <h3>🎯 Connection to Our Project</h3>
-      <p>
-        This educational project represents responsible development: building
-        understanding before capability, fostering informed discussion, and
-        preparing for ethical challenges. Every neuron in our visualizer
-        represents questions we must answer before creating digital minds.
-      </p>
-    </div>
-
-    <h2>Practical Next Steps</h2>
-
-    <h3>What We Can Do Now</h3>
-    <ol>
-      <li>
-        <strong>Education</strong>: Build public understanding of these issues
-      </li>
-      <li>
-        <strong>Research</strong>: Investigate consciousness, identity, and
-        digital minds
-      </li>
-      <li>
-        <strong>Policy development</strong>: Start creating governance
-        frameworks
-      </li>
-      <li>
-        <strong>Ethical guidelines</strong>: Establish research and development
-        standards
-      </li>
-      <li>
-        <strong>International dialogue</strong>: Foster global cooperation
-      </li>
-    </ol>
-
-    <h3>Key Questions for Society</h3>
-    <ul>
-      <li>How do we ensure digital minds benefit all humanity?</li>
-      <li>What safeguards prevent digital suffering?</li>
-      <li>How do we maintain human agency and meaning?</li>
-      <li>What institutions can govern digital minds responsibly?</li>
-      <li>How do we balance innovation with caution?</li>
-    </ul>
-
-    <h2>Conclusion: The Path Forward</h2>
-
-    <div class="principles">
-      <h3>🌟 Guiding Vision</h3>
-      <p>
-        Brain emulation technology has the potential to be the most
-        transformative development in human history. Our responsibility is to
-        ensure it benefits all conscious beings - biological and digital - while
-        preserving what we value most about consciousness, identity, and human
-        flourishing.
-      </p>
-    </div>
-
-    <h2>Final Reflection</h2>
-    <ul>
-      <li>
-        What aspects of consciousness do you think are most important to
-        preserve?
-      </li>
-      <li>How might digital minds change what it means to be human?</li>
-      <li>
-        What role should biological humans play in a world with digital minds?
-      </li>
-      <li>How can we ensure this technology serves the common good?</li>
-      <li>
-        What would you want the future of mind and consciousness to look like?
-      </li>
-    </ul>
-
-    <h2>Continued Learning</h2>
     <p>
-      This concludes our formal lesson series, but the journey continues. Stay
-      engaged with:
-    </p>
-    <ul>
-      <li>Current research in neuroscience and AI</li>
-      <li>Philosophical discussions about consciousness</li>
-      <li>Policy developments in AI governance</li>
-      <li>Ethical frameworks for emerging technologies</li>
-      <li>Public dialogue about humanity's future</li>
-    </ul>
-
-    <p>
-      <strong>Remember:</strong> The technologies we build today shape the world
-      of tomorrow. Let's build wisely.
+      This concludes the documentation series. Revisit any chapter as your work
+      evolves, and keep the manifest and neuron taxonomy up to date to maintain
+      a trustworthy simulator.
     </p>
   </body>
 </html>

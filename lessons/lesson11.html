@@ -3,472 +3,155 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 11: Whole Brain Emulation Theory</title>
+    <title>Documentation 11 · Troubleshooting & Verification</title>
     <style>
+      :root {
+        --bg: #1a100c;
+        --surface: #2e1b10;
+        --accent: #c27f4b;
+        --text: #fbefdc;
+        --text-muted: #dec8ab;
+        --border: rgba(194, 127, 75, 0.35);
+        --code-bg: #432512;
+      }
+
       body {
-        font-family: "Inter", sans-serif;
-        line-height: 1.6;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #0a0c12;
-        color: #e2e8f0;
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 960px;
+        margin-inline: auto;
       }
+
       h1,
-      h2 {
-        color: #374e84;
-        border-bottom: 2px solid #374e84;
-        padding-bottom: 10px;
-      }
+      h2,
       h3 {
-        color: #60a5fa;
-        margin-top: 30px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
-      .concept-box {
-        background: #1e293b;
-        border-left: 4px solid #374e84;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h1 {
+        font-size: 30px;
+        margin-bottom: 18px;
       }
-      .exercise {
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 14px;
       }
-      .key-insight {
-        background: #064e3b;
-        border-left: 4px solid #10b981;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
       }
-      .timeline {
-        background: #1e1b4b;
-        border-left: 4px solid #6366f1;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      p {
+        margin: 0 0 16px 0;
       }
-      .challenge {
-        background: #7c2d12;
-        border-left: 4px solid #ea580c;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
-      }
+
       code {
-        background: #1e293b;
-        padding: 2px 6px;
-        border-radius: 3px;
-        color: #94a3b8;
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
       }
+
       ul {
-        padding-left: 20px;
+        margin: 14px 0 18px 24px;
+        padding: 0;
       }
+
       li {
-        margin: 8px 0;
+        margin-bottom: 8px;
       }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        background: #1e293b;
-      }
-      th,
-      td {
-        border: 1px solid #374e84;
-        padding: 10px;
-        text-align: left;
-      }
-      th {
-        background: #374e84;
-        color: white;
+
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+        color: var(--text-muted);
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 11: Whole Brain Emulation Theory</h1>
-
-    <div class="concept-box">
-      <h3>🧠 The Ultimate Goal</h3>
-      <p>
-        Whole Brain Emulation (WBE) aims to create a functional copy of a
-        specific brain, capturing not just intelligence, but the memories,
-        personality, and consciousness of an individual.
-      </p>
-    </div>
-
-    <h2>What is Whole Brain Emulation?</h2>
-
-    <h3>Definition and Scope</h3>
-    <p>WBE involves:</p>
-    <ul>
-      <li>
-        <strong>Complete scanning</strong>: Mapping every neuron and connection
-        in a brain
-      </li>
-      <li>
-        <strong>Accurate modeling</strong>: Simulating the biological processes
-        computationally
-      </li>
-      <li>
-        <strong>Faithful reproduction</strong>: Preserving the original brain's
-        function and behavior
-      </li>
-      <li>
-        <strong>Real-time operation</strong>: Running at biological speeds or
-        faster
-      </li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>💡 Key Distinction</h3>
-      <p>
-        WBE differs from AI in that it aims to replicate a specific existing
-        brain, not create general intelligence from scratch. It's "mind
-        uploading" rather than "mind creation."
-      </p>
-    </div>
-
-    <h2>The WBE Roadmap</h2>
-
-    <h3>Three Essential Components</h3>
-    <table>
-      <tr>
-        <th>Component</th>
-        <th>Current Status</th>
-        <th>Major Challenges</th>
-      </tr>
-      <tr>
-        <td><strong>Scanning Technology</strong></td>
-        <td>Limited to small samples, not living brains</td>
-        <td>Resolution, speed, non-destructive methods</td>
-      </tr>
-      <tr>
-        <td><strong>Computational Modeling</strong></td>
-        <td>Simple organisms, brain regions</td>
-        <td>Biological accuracy, scale, efficiency</td>
-      </tr>
-      <tr>
-        <td><strong>Computing Hardware</strong></td>
-        <td>Insufficient for real-time brain simulation</td>
-        <td>Processing power, memory, energy consumption</td>
-      </tr>
-    </table>
-
-    <h2>Scanning and Reconstruction</h2>
-
-    <h3>Current Approaches</h3>
-    <ul>
-      <li>
-        <strong>Electron microscopy</strong>: Nanometer resolution but requires
-        tissue fixation
-      </li>
-      <li>
-        <strong>Light microscopy</strong>: Can work on living tissue but lower
-        resolution
-      </li>
-      <li>
-        <strong>Functional imaging</strong>: Shows activity but not detailed
-        structure
-      </li>
-      <li>
-        <strong>Multi-modal approaches</strong>: Combining multiple techniques
-      </li>
-    </ul>
-
-    <div class="challenge">
-      <h3>🚧 The Scanning Challenge</h3>
-      <p>
-        A human brain contains ~86 billion neurons and ~100 trillion synapses.
-        Current scanning rates would require thousands of years to map
-        completely. New breakthrough technologies are essential.
-      </p>
-    </div>
-
-    <h3>Scale Estimates</h3>
-    <p>Data requirements for human brain emulation:</p>
-    <ul>
-      <li>
-        <strong>Storage</strong>: 1-100 petabytes (depending on detail level)
-      </li>
-      <li><strong>Processing</strong>: 10^16 - 10^19 operations per second</li>
-      <li>
-        <strong>Memory bandwidth</strong>: Exabytes per second for real-time
-        operation
-      </li>
-      <li>
-        <strong>Energy</strong>: Currently would require gigawatts (vs. brain's
-        20 watts)
-      </li>
-    </ul>
-
-    <h2>Current Research Projects</h2>
-
-    <h3>Leading Initiatives</h3>
-    <ul>
-      <li>
-        <strong>Blue Brain Project</strong>: Detailed cortical column simulation
-      </li>
-      <li>
-        <strong>Human Brain Project</strong>: European whole-brain modeling
-        effort
-      </li>
-      <li>
-        <strong>BRAIN Initiative</strong>: US brain mapping and tool development
-      </li>
-      <li>
-        <strong>Connectome projects</strong>: Mapping neural wiring diagrams
-      </li>
-      <li><strong>OpenWorm</strong>: Complete simulation of C. elegans worm</li>
-    </ul>
-
-    <div class="timeline">
-      <h3>📅 Progress Timeline</h3>
-      <ul>
-        <li>
-          <strong>2000s</strong>: C. elegans connectome mapped (302 neurons)
-        </li>
-        <li>
-          <strong>2010s</strong>: Fruit fly brain regions, mouse brain mapping
-        </li>
-        <li>
-          <strong>2020s</strong>: Fruit fly whole brain connectome, AI-assisted
-          reconstruction
-        </li>
-        <li><strong>2030s?</strong>: Mouse brain emulation attempts</li>
-        <li>
-          <strong>2040s-2050s?</strong>: Primate/human brain emulation (highly
-          speculative)
-        </li>
-      </ul>
-    </div>
-
-    <h2>Interactive Exploration</h2>
-
-    <div class="exercise">
-      <h3>🔬 Scale Appreciation Exercise</h3>
-      <p><strong>Goal:</strong> Understand the enormous scale difference</p>
-      <ol>
-        <li>
-          Our visualizer shows 120 neurons - count how long it takes to track
-          them all
-        </li>
-        <li>A human brain has ~86 billion neurons (720 million times more)</li>
-        <li>
-          If each neuron took 1 second to examine, how many years would it take?
-        </li>
-        <li>Consider: each neuron has ~7,000 connections on average</li>
-      </ol>
-      <p>
-        <strong>Calculation:</strong> 86 billion seconds = ~2,700 years just to
-        count neurons!
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Complexity Simulation</h3>
-      <p><strong>Goal:</strong> Appreciate modeling challenges</p>
-      <ol>
-        <li>Increase network size to maximum (observe performance impact)</li>
-        <li>Enable "Show Weights" (notice information density)</li>
-        <li>
-          Consider: our simple model lacks ion channels, neurotransmitters,
-          glial cells
-        </li>
-        <li>Real neurons have 100+ different ion channel types</li>
-      </ol>
-      <p>
-        <strong>Question:</strong> How many more parameters would realistic
-        modeling require?
-      </p>
-    </div>
-
-    <h2>Technical Challenges</h2>
-
-    <h3>Biological Complexity</h3>
-    <ul>
-      <li>
-        <strong>Multiple neuron types</strong>: 100+ distinct cell types in
-        cortex
-      </li>
-      <li>
-        <strong>Subcellular detail</strong>: Ion channels, organelles, molecular
-        cascades
-      </li>
-      <li>
-        <strong>Glial cells</strong>: Support cells that affect neural function
-      </li>
-      <li>
-        <strong>Development and plasticity</strong>: Brains change constantly
-      </li>
-      <li>
-        <strong>Neuromodulation</strong>: Chemical signals affecting large brain
-        areas
-      </li>
-    </ul>
-
-    <h3>Computational Challenges</h3>
-    <ul>
-      <li>
-        <strong>Real-time constraint</strong>: Must run at biological speeds
-      </li>
-      <li>
-        <strong>Numerical precision</strong>: Biological accuracy requirements
-      </li>
-      <li>
-        <strong>Parallelization</strong>: Distributing computation efficiently
-      </li>
-      <li><strong>Memory hierarchy</strong>: Managing massive datasets</li>
-      <li>
-        <strong>Debugging</strong>: Identifying errors in billion-neuron models
-      </li>
-    </ul>
-
-    <div class="concept-box">
-      <h3>🔬 Research Directions</h3>
-      <p>Current WBE research focuses on:</p>
-      <ul>
-        <li>
-          <strong>Automated reconstruction</strong>: AI-assisted connectome
-          mapping
-        </li>
-        <li>
-          <strong>Multi-scale modeling</strong>: Bridging molecular to network
-          levels
-        </li>
-        <li>
-          <strong>Neuromorphic hardware</strong>: Brain-inspired computing
-          architectures
-        </li>
-        <li>
-          <strong>Theoretical frameworks</strong>: Understanding what level of
-          detail is necessary
-        </li>
-      </ul>
-    </div>
-
-    <h2>Philosophical Implications</h2>
-
-    <h3>Identity and Continuity</h3>
-    <ul>
-      <li>Would an emulated brain be the same person as the original?</li>
-      <li>What if multiple copies were made?</li>
-      <li>How much detail is needed to preserve "essential self"?</li>
-      <li>Could gradual replacement preserve continuity?</li>
-    </ul>
-
-    <h3>Consciousness and Experience</h3>
-    <ul>
-      <li>Would an emulated brain be conscious?</li>
-      <li>How could we verify subjective experience?</li>
-      <li>What rights would emulated minds have?</li>
-      <li>Could suffering exist in digital minds?</li>
-    </ul>
-
-    <h2>Potential Benefits and Risks</h2>
-
-    <h3>Transformative Potential</h3>
-    <ul>
-      <li>
-        <strong>Digital immortality</strong>: Preservation beyond biological
-        death
-      </li>
-      <li>
-        <strong>Enhanced cognition</strong>: Running faster than biological
-        speeds
-      </li>
-      <li>
-        <strong>Perfect copying</strong>: Backup and restoration capabilities
-      </li>
-      <li>
-        <strong>Space exploration</strong>: Minds traveling at light speed
-      </li>
-      <li>
-        <strong>Scientific acceleration</strong>: Thousands of researcher-minds
-        working in parallel
-      </li>
-    </ul>
-
-    <h3>Serious Risks</h3>
-    <ul>
-      <li><strong>Social inequality</strong>: Access limited to wealthy</li>
-      <li><strong>Identity crisis</strong>: Psychological impact of copies</li>
-      <li>
-        <strong>Surveillance concerns</strong>: Perfect monitoring of digital
-        minds
-      </li>
-      <li>
-        <strong>Existential risk</strong>: Rapidly self-improving digital
-        intelligences
-      </li>
-      <li>
-        <strong>Economic disruption</strong>: Massive unemployment from digital
-        workers
-      </li>
-    </ul>
-
-    <h2>Connection to Our Project</h2>
-
-    <div class="key-insight">
-      <h3>🎯 Educational Bridge</h3>
-      <p>
-        Our SNN visualizer demonstrates the fundamental principles that WBE must
-        scale up enormously. Every concept we've learned - spikes, synapses,
-        plasticity, networks - applies to brain emulation, just with billions of
-        times more complexity.
-      </p>
-    </div>
-
-    <h2>Key Takeaways</h2>
-    <ol>
-      <li>
-        WBE is technically challenging but potentially achievable this century
-      </li>
-      <li>
-        Success requires breakthroughs in scanning, modeling, and computing
-      </li>
-      <li>
-        The scale gap between current capabilities and requirements is enormous
-      </li>
-      <li>Success would have profound implications for humanity</li>
-      <li>
-        Careful ethical consideration is essential alongside technical
-        development
-      </li>
-    </ol>
-
-    <h2>Reflection Questions</h2>
-    <ul>
-      <li>
-        At what level of biological detail should WBE aim? Molecules? Neurons?
-        Networks?
-      </li>
-      <li>
-        How could we validate that a brain emulation is working correctly?
-      </li>
-      <li>What safeguards should be built into digital minds?</li>
-      <li>How might society need to change to accommodate digital minds?</li>
-      <li>Would you want your mind emulated? Why or why not?</li>
-    </ul>
-
-    <h2>Further Reading</h2>
-    <ul>
-      <li><em>Whole Brain Emulation: A Roadmap</em> by Anders Sandberg</li>
-      <li><em>The Age of Em</em> by Robin Hanson</li>
-      <li><em>Superintelligence</em> by Nick Bostrom</li>
-      <li>Papers from the Carboncopies Foundation</li>
-    </ul>
-
-    <h2>Next Steps</h2>
+    <h1>Documentation 11 · Troubleshooting &amp; Verification</h1>
     <p>
-      In <strong>Lesson 12</strong>, we'll explore the ethical implications of
-      brain emulation technology, examining questions of consciousness, rights,
-      identity, and the responsibility that comes with potentially creating
-      digital minds.
+      Even with a polished UI, complex simulations occasionally hit snags. This
+      chapter lists common issues, diagnostic techniques, and verification steps
+      to ensure your changes preserve expected behavior.
+    </p>
+
+    <h2>Quick Diagnostics</h2>
+    <ul>
+      <li>
+        <strong>Console Errors</strong> &mdash; Press <code>F12</code> or open developer tools.
+        Most configuration issues log descriptive errors (e.g., missing template fields).
+      </li>
+      <li>
+        <strong>Network Tab</strong> &mdash; Confirm <code>manifest.json</code> and template files load with HTTP 200.
+      </li>
+      <li>
+        <strong>Banner Notifications</strong> &mdash; Import/export actions display status banners at the bottom of the screen.
+      </li>
+    </ul>
+
+    <h2>Common Issues</h2>
+    <h3>No Neurons Rendered</h3>
+    <ul>
+      <li>Check that <code>networkSize</code> is &gt; 0 (procedural mode).</li>
+      <li>Ensure the selected template has at least one cluster and neuron group.</li>
+      <li>Look for JSON parse errors when loading templates.</li>
+    </ul>
+
+    <h3>Inspector Shows “—” for Values</h3>
+    <ul>
+      <li>Verify neuron presets include biophysical parameters (threshold, leak).</li>
+      <li>Ensure neuron types reference known slugs.</li>
+    </ul>
+
+    <h3>Import Fails</h3>
+    <ul>
+      <li>Run the template through <code>SNN_CONFIG_IO.deserializeTemplate</code> in the console to view validation errors.</li>
+      <li>Check for trailing commas or comments; JSON must be strict.</li>
+    </ul>
+
+    <h2>Verification Checklist</h2>
+    <p>Before committing changes, step through:</p>
+    <ul>
+      <li>Select each preset and ensure the canvas populates without errors.</li>
+      <li>Click multiple neurons; confirm taxonomy labels and glyphs align.</li>
+      <li>Export and re-import a template to test round-tripping.</li>
+      <li>Toggle all sliders and buttons to confirm UI bindings.</li>
+      <li>Run the manifest refresh script and reload to verify auto-discovery.</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Automated Checks (Roadmap)</strong>
+      <p>
+        Future scripts will validate template schema (<code>npm run test:templates</code>)
+        and run visual regression tests for the inspector. Track progress in
+        <code>docs/dev_progress_tracker.md</code>.
+      </p>
+    </div>
+
+    <h2>Reporting Bugs</h2>
+    <ul>
+      <li>Include template files if the issue arises after import.</li>
+      <li>Provide console logs and browser version.</li>
+      <li>Mention whether you modified <code>manifest.json</code> or core JS files.</li>
+    </ul>
+
+    <p>
+      Ready for final polish? Jump to <em>Documentation 12 · Glossary &amp;
+      Further Resources</em> for definitions and curated reading lists.
     </p>
   </body>
 </html>

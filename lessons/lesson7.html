@@ -3,394 +3,189 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 7: Multi-layer Processing</title>
+    <title>Documentation 7 · Simulation Pipeline & Runtime</title>
     <style>
+      :root {
+        --bg: #16100c;
+        --surface: #26190f;
+        --accent: #a67b5b;
+        --accent-soft: rgba(166, 123, 91, 0.18);
+        --text: #f7eddc;
+        --text-muted: #d3ba9e;
+        --border: rgba(166, 123, 91, 0.35);
+        --code-bg: #382414;
+      }
+
       body {
-        font-family: "Inter", sans-serif;
-        line-height: 1.6;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #0a0c12;
-        color: #e2e8f0;
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 960px;
+        margin-inline: auto;
       }
+
       h1,
-      h2 {
-        color: #374e84;
-        border-bottom: 2px solid #374e84;
-        padding-bottom: 10px;
-      }
+      h2,
       h3 {
-        color: #60a5fa;
-        margin-top: 30px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
-      .concept-box {
-        background: #1e293b;
-        border-left: 4px solid #374e84;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h1 {
+        font-size: 30px;
+        margin-bottom: 18px;
       }
-      .exercise {
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 14px;
       }
-      .key-insight {
-        background: #064e3b;
-        border-left: 4px solid #10b981;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
       }
-      .future-feature {
-        background: #4c1d95;
-        border-left: 4px solid #8b5cf6;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      p {
+        margin: 0 0 16px 0;
       }
+
       code {
-        background: #1e293b;
-        padding: 2px 6px;
-        border-radius: 3px;
-        color: #94a3b8;
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
       }
-      ul {
-        padding-left: 20px;
+
+      pre {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+        color: var(--text);
       }
-      li {
-        margin: 8px 0;
+
+      .step {
+        border-left: 3px solid var(--border);
+        padding-left: 16px;
+        margin: 18px 0;
+      }
+
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+        color: var(--text-muted);
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 7: Multi-layer Processing</h1>
-
-    <div class="concept-box">
-      <h3>🧠 Core Question</h3>
-      <p>
-        How do brains extract increasingly complex features from simple inputs?
-        How does the visual cortex go from detecting edges to recognizing faces?
-      </p>
-    </div>
-
-    <h2>Hierarchical Feature Extraction</h2>
-
-    <h3>The Cortical Hierarchy</h3>
-    <p>The brain's cortex is organized in layers and hierarchical levels:</p>
-    <ul>
-      <li>
-        <strong>Layer 1</strong>: Simple feature detection (edges, orientations)
-      </li>
-      <li><strong>Layer 2</strong>: Combinations of simple features</li>
-      <li><strong>Layer 3</strong>: Complex patterns and textures</li>
-      <li><strong>Layer 4</strong>: Object parts and shapes</li>
-      <li><strong>Higher levels</strong>: Complete objects, faces, concepts</li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>💡 Key Principle</h3>
-      <p>
-        Each layer builds on the previous layer's outputs, creating increasingly
-        abstract and complex representations. This is the foundation of deep
-        learning and cortical processing.
-      </p>
-    </div>
-
-    <h3>Feed-forward and Feedback</h3>
-    <p>Multi-layer processing involves bidirectional information flow:</p>
-    <ul>
-      <li>
-        <strong>Feed-forward</strong>: Bottom-up processing from sensory input
-        to high-level concepts
-      </li>
-      <li>
-        <strong>Feedback</strong>: Top-down influence from expectations and
-        context
-      </li>
-      <li>
-        <strong>Lateral connections</strong>: Communication within layers for
-        context integration
-      </li>
-      <li>
-        <strong>Attention modulation</strong>: Higher levels focusing
-        lower-level processing
-      </li>
-    </ul>
-
-    <h2>Visual Cortex Example</h2>
-
-    <h3>Processing Pipeline</h3>
-    <ol>
-      <li>
-        <strong>V1 (Primary Visual Cortex)</strong>: Edge and orientation
-        detection
-      </li>
-      <li>
-        <strong>V2</strong>: Complex patterns, textures, figure-ground
-        separation
-      </li>
-      <li><strong>V4</strong>: Shape and color processing</li>
-      <li><strong>IT (Inferotemporal Cortex)</strong>: Object recognition</li>
-      <li><strong>Fusiform Face Area</strong>: Specialized face processing</li>
-    </ol>
-
-    <div class="future-feature">
-      <h3>🚧 Future Implementation</h3>
-      <p>
-        This lesson will be fully interactive when multi-layer visualization is
-        implemented. You'll be able to:
-      </p>
-      <ul>
-        <li>See information flowing through processing layers</li>
-        <li>Observe feature detectors at different levels</li>
-        <li>Experiment with feed-forward vs. feedback processing</li>
-        <li>Test how attention affects layer interactions</li>
-      </ul>
-    </div>
-
-    <h2>Current Visualization Insights</h2>
-
-    <div class="exercise">
-      <h3>🔬 Observing Hierarchical-like Processing</h3>
-      <p>
-        <strong>Goal:</strong> Understand how our current clusters simulate
-        hierarchical processing
-      </p>
-      <ol>
-        <li>Think of each cluster as a different processing "layer"</li>
-        <li>Inject spikes and observe how activity spreads between clusters</li>
-        <li>Notice the delays between cluster activations</li>
-        <li>Consider how this represents feature extraction stages</li>
-      </ol>
-      <p>
-        <strong>Analogy:</strong> Cluster 1 = edge detection, Cluster 2 = shape
-        processing, etc.
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Connection Weights as Feature Detectors</h3>
-      <p>
-        <strong>Goal:</strong> See how connection patterns create feature
-        selectivity
-      </p>
-      <ol>
-        <li>Enable "Show Weights" to see connection strengths</li>
-        <li>Observe which neurons connect strongly to which others</li>
-        <li>Think of strong connections as "learned features"</li>
-        <li>
-          Consider how different patterns would activate different pathways
-        </li>
-      </ol>
-      <p>
-        <strong>Question:</strong> How might different input patterns create
-        different activation cascades?
-      </p>
-    </div>
-
-    <h2>Real-World Applications</h2>
-
-    <h3>Artificial Neural Networks</h3>
-    <p>Deep learning systems directly implement hierarchical processing:</p>
-    <ul>
-      <li>
-        <strong>Convolutional Neural Networks</strong>: Inspired by visual
-        cortex organization
-      </li>
-      <li>
-        <strong>Feature maps</strong>: Each layer detects different features
-      </li>
-      <li>
-        <strong>Pooling layers</strong>: Reduce spatial resolution while
-        preserving features
-      </li>
-      <li>
-        <strong>Skip connections</strong>: Allow direct communication between
-        distant layers
-      </li>
-    </ul>
-
-    <h3>Sensory Processing Disorders</h3>
-    <ul>
-      <li>
-        <strong>Agnosia</strong>: Inability to recognize objects despite intact
-        sensation
-      </li>
-      <li>
-        <strong>Prosopagnosia</strong>: Face blindness due to IT cortex damage
-      </li>
-      <li>
-        <strong>Cortical blindness</strong>: Loss of conscious vision with
-        intact reflexes
-      </li>
-      <li>
-        <strong>Autism spectrum</strong>: Altered hierarchical processing
-        patterns
-      </li>
-    </ul>
-
-    <h2>Computational Principles</h2>
-
-    <h3>Sparse Coding</h3>
-    <p>Efficient representation through sparse activation:</p>
-    <ul>
-      <li>
-        <strong>Few active neurons</strong>: Most neurons silent at any given
-        time
-      </li>
-      <li>
-        <strong>Distributed coding</strong>: Information spread across many
-        neurons
-      </li>
-      <li>
-        <strong>Overcomplete basis</strong>: More neurons than input dimensions
-      </li>
-      <li>
-        <strong>Energy efficiency</strong>: Minimal metabolic cost for
-        representation
-      </li>
-    </ul>
-
-    <div class="concept-box">
-      <h3>🔬 Research Connection</h3>
-      <p>
-        Current brain emulation projects struggle with implementing realistic
-        multi-layer dynamics. The Blue Brain Project focuses on detailed
-        cortical column modeling, which represents one small piece of this
-        hierarchical puzzle.
-      </p>
-    </div>
-
-    <h3>Predictive Coding</h3>
-    <p>The brain as a prediction machine:</p>
-    <ul>
-      <li>
-        <strong>Predictions</strong>: Higher layers predict lower-layer activity
-      </li>
-      <li>
-        <strong>Error signals</strong>: Differences between prediction and
-        reality
-      </li>
-      <li>
-        <strong>Learning</strong>: Updating predictions to minimize errors
-      </li>
-      <li>
-        <strong>Attention</strong>: Focusing on unpredicted (surprising) events
-      </li>
-    </ul>
-
-    <h2>Implementation Challenges</h2>
-
-    <h3>For Brain Emulation</h3>
-    <ul>
-      <li>
-        <strong>Layer boundaries</strong>: How to define discrete processing
-        levels
-      </li>
-      <li>
-        <strong>Timing coordination</strong>: Synchronizing processing across
-        layers
-      </li>
-      <li>
-        <strong>Plasticity rules</strong>: How connections change in
-        hierarchical systems
-      </li>
-      <li>
-        <strong>Attention mechanisms</strong>: Top-down control of processing
-      </li>
-      <li>
-        <strong>Context integration</strong>: Combining information across
-        scales
-      </li>
-    </ul>
-
-    <h3>Current Limitations</h3>
-    <ul>
-      <li>
-        <strong>Computational cost</strong>: Multi-layer processing requires
-        massive resources
-      </li>
-      <li>
-        <strong>Training time</strong>: Learning hierarchical features takes
-        extensive experience
-      </li>
-      <li>
-        <strong>Generalization</strong>: Ensuring features work across different
-        contexts
-      </li>
-      <li>
-        <strong>Interpretability</strong>: Understanding what each layer
-        represents
-      </li>
-    </ul>
-
-    <h2>Future Directions</h2>
-
-    <h3>Emerging Technologies</h3>
-    <ul>
-      <li>
-        <strong>Neuromorphic chips</strong>: Hardware implementing hierarchical
-        processing
-      </li>
-      <li>
-        <strong>Optical computing</strong>: Light-based processing for speed and
-        efficiency
-      </li>
-      <li>
-        <strong>Quantum neural networks</strong>: Quantum effects in
-        hierarchical computation
-      </li>
-      <li>
-        <strong>Bio-hybrid systems</strong>: Combining biological and artificial
-        layers
-      </li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>🎯 Learning Objective</h3>
-      <p>
-        Understand that intelligence emerges not from individual neurons, but
-        from hierarchical organization that transforms simple inputs into
-        complex, meaningful representations.
-      </p>
-    </div>
-
-    <h2>Key Takeaways</h2>
-    <ol>
-      <li>Hierarchical processing is fundamental to brain function and AI</li>
-      <li>Each layer builds increasingly complex features from simpler ones</li>
-      <li>Feed-forward and feedback processing work together</li>
-      <li>Sparse coding provides efficient representation</li>
-      <li>Predictive coding explains learning and attention</li>
-    </ol>
-
-    <h2>Reflection Questions</h2>
-    <ul>
-      <li>
-        How might different hierarchical organizations create different types of
-        intelligence?
-      </li>
-      <li>What role does attention play in multi-layer processing?</li>
-      <li>
-        How could we test if our brain emulation captures hierarchical
-        processing correctly?
-      </li>
-      <li>What are the trade-offs between processing depth and speed?</li>
-      <li>
-        How might consciousness emerge from hierarchical information
-        integration?
-      </li>
-    </ul>
-
-    <h2>Next Steps</h2>
+    <h1>Documentation 7 · Simulation Pipeline &amp; Runtime</h1>
     <p>
-      In <strong>Lesson 8</strong>, we'll explore how different types of memory
-      systems emerge from specialized network architectures, including working
-      memory, long-term storage, and the hippocampal memory formation system.
+      This chapter describes what happens when you click “Apply Preset” or
+      adjust the controls. Understanding the lifecycle of a network build helps
+      you trace issues, profile performance, and extend the engine responsibly.
+    </p>
+
+    <h2>High-Level Flow</h2>
+    <div class="step">
+      <h3>Step 1 · Template Resolution</h3>
+      <p>
+        When a preset is selected, <code>SNN_REGISTRY.getTemplateForPreset</code>
+        returns a normalized template object. This passes through
+        <code>SNN_CONFIG_IO.normalizeTemplate</code>, ensuring clusters and
+        connections have consistent structure.
+      </p>
+    </div>
+    <div class="step">
+      <h3>Step 2 · Cluster Metadata</h3>
+      <p>
+        <code>createNetworkFromTemplate</code> iterates over each cluster
+        definition, building metadata objects that store labels, neuron groups,
+        and references for the inspector. Cluster positions are arranged on a
+        grid using the orbit camera spacing constants.
+      </p>
+    </div>
+    <div class="step">
+      <h3>Step 3 · Neuron Construction</h3>
+      <p>
+        For every neuron group (e.g., <code>{ "preset": "pyramidal", "count": 120 }</code>),
+        the engine instantiates that many neuron objects with shared biophysical
+        defaults. Each neuron stores links to its cluster metadata, type labels,
+        glyph key, and connection list.
+      </p>
+    </div>
+    <div class="step">
+      <h3>Step 4 · Connectivity</h3>
+      <p>
+        Internal and inter-cluster connectivity rules are expanded into actual
+        edges. Probabilities are multiplied by UI slider scales, and weights are
+        jittered slightly to avoid total uniformity. Each edge holds references
+        to the source/target neuron and the computed weight.
+      </p>
+    </div>
+    <div class="step">
+      <h3>Step 5 · Simulation Loop</h3>
+      <p>
+        The animation loop (requestAnimationFrame) calls
+        <code>updateNetwork</code>, which steps the spiking simulation according
+        to <code>this.state.speed</code>. Neurons integrate inputs, apply leak,
+        test thresholds, and fire spikes that enqueue voltage updates for their
+        targets. Visual pulses and spike history arrays are updated here.
+      </p>
+    </div>
+
+    <h2>Key Functions</h2>
+    <ul>
+      <li><code>createNetwork</code> &mdash; Entry point when procedural sliders change.</li>
+      <li><code>createNetworkFromTemplate</code> &mdash; Builds networks from manifest templates.</li>
+      <li><code>updateNetwork</code> &mdash; Advances the simulation each frame.</li>
+      <li><code>render</code> (within <code>drawScene</code>) &mdash; Projects neurons to 2D and draws glyphs.</li>
+    </ul>
+
+    <h2>Determinism vs Randomness</h2>
+    <p>
+      Neuron placement, initial voltages, and jittered weights introduce randomness
+      for visual variety. For reproducible runs you can seed <code>Math.random</code>
+      at the top of <code>createNetworkFromTemplate</code>. This is useful when
+      capturing screenshots or running tests that compare network statistics.
+    </p>
+
+    <h2>Performance Notes</h2>
+    <ul>
+      <li>Networks over ~2,000 neurons can impact frame rate on integrated GPUs.</li>
+      <li>
+        Enabling “Show Weights” adds DOM nodes for each selected neuron; disable
+        it when profiling.
+      </li>
+      <li>
+        The simulation loop batches spikes per frame. Extreme firing rates may
+        saturate and appear continuous—adjust the threshold slider to compensate.
+      </li>
+    </ul>
+
+    <div class="callout">
+      <strong>Instrumenting the Loop</strong>
+      <p>
+        Enable the debug overlay via <code>VITE_ENABLE_DEBUG_OVERLAY=true</code> to
+        display frame timing, neuron counts, and spike statistics. The overlay
+        is lightweight and invaluable when extending the runtime.
+      </p>
+    </div>
+
+    <h2>Next Chapter</h2>
+    <p>
+      Continue to <em>Documentation 8 · Importing &amp; Exporting Atlas Data</em> to
+      learn how templates are validated, versioned, and round-tripped through the UI.
     </p>
   </body>
 </html>

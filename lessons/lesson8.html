@@ -3,449 +3,180 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 8: Memory and Learning Systems</title>
+    <title>Documentation 8 · Importing &amp; Exporting Atlas Data</title>
     <style>
+      :root {
+        --bg: #17100c;
+        --surface: #281a10;
+        --accent: #cc9f66;
+        --accent-soft: rgba(204, 159, 102, 0.18);
+        --text: #f9eedc;
+        --text-muted: #d9c19f;
+        --border: rgba(204, 159, 102, 0.32);
+        --code-bg: #3a2414;
+      }
+
       body {
-        font-family: "Inter", sans-serif;
-        line-height: 1.6;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #0a0c12;
-        color: #e2e8f0;
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 980px;
+        margin-inline: auto;
       }
+
       h1,
-      h2 {
-        color: #374e84;
-        border-bottom: 2px solid #374e84;
-        padding-bottom: 10px;
-      }
+      h2,
       h3 {
-        color: #60a5fa;
-        margin-top: 30px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
-      .concept-box {
-        background: #1e293b;
-        border-left: 4px solid #374e84;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h1 {
+        font-size: 30px;
+        margin-bottom: 18px;
       }
-      .exercise {
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 14px;
       }
-      .key-insight {
-        background: #064e3b;
-        border-left: 4px solid #10b981;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
       }
-      .memory-type {
-        background: #1e1b4b;
-        border-left: 4px solid #6366f1;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      p {
+        margin: 0 0 16px 0;
       }
+
       code {
-        background: #1e293b;
-        padding: 2px 6px;
-        border-radius: 3px;
-        color: #94a3b8;
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
       }
-      ul {
-        padding-left: 20px;
+
+      pre {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+        color: var(--text);
       }
+
+      ul,
+      ol {
+        margin: 14px 0 18px 24px;
+        padding: 0;
+      }
+
       li {
-        margin: 8px 0;
+        margin-bottom: 8px;
+      }
+
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+        color: var(--text-muted);
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 8: Memory and Learning Systems</h1>
+    <h1>Documentation 8 · Importing &amp; Exporting Atlas Data</h1>
+    <p>
+      Templates allow you to share or load precise anatomical circuits. This
+      chapter covers the import pipeline, schema validation, and how the export
+      button packages the current network for reuse.
+    </p>
 
-    <div class="concept-box">
-      <h3>🧠 Core Question</h3>
-      <p>
-        How does the brain store and retrieve information? What makes some
-        memories last a lifetime while others fade in seconds?
-      </p>
-    </div>
-
-    <h2>Types of Memory Systems</h2>
-
-    <div class="memory-type">
-      <h3>Working Memory</h3>
-      <p>
-        <strong>Function:</strong> Temporary storage and manipulation of
-        information
-      </p>
-      <ul>
-        <li><strong>Duration:</strong> Seconds to minutes</li>
-        <li><strong>Capacity:</strong> 7±2 items (Miller's Law)</li>
-        <li>
-          <strong>Mechanism:</strong> Persistent neural activity in prefrontal
-          cortex
-        </li>
-        <li>
-          <strong>Example:</strong> Remembering a phone number while dialing
-        </li>
-      </ul>
-    </div>
-
-    <div class="memory-type">
-      <h3>Long-term Memory</h3>
-      <p><strong>Function:</strong> Permanent storage of information</p>
-      <ul>
-        <li><strong>Duration:</strong> Minutes to lifetime</li>
-        <li><strong>Capacity:</strong> Virtually unlimited</li>
-        <li>
-          <strong>Mechanism:</strong> Synaptic weight changes and new
-          connections
-        </li>
-        <li>
-          <strong>Types:</strong> Declarative (explicit) and procedural
-          (implicit)
-        </li>
-      </ul>
-    </div>
-
-    <div class="memory-type">
-      <h3>Episodic Memory</h3>
-      <p>
-        <strong>Function:</strong> Memory for specific events and experiences
-      </p>
-      <ul>
-        <li><strong>Features:</strong> Time, place, context, emotions</li>
-        <li>
-          <strong>Brain region:</strong> Hippocampus and associated structures
-        </li>
-        <li>
-          <strong>Formation:</strong> Requires conscious attention and encoding
-        </li>
-        <li><strong>Example:</strong> Remembering your first day of school</li>
-      </ul>
-    </div>
-
-    <h2>Neural Mechanisms of Memory</h2>
-
-    <h3>Synaptic Plasticity</h3>
-    <p>The biological basis of learning and memory:</p>
-    <ul>
-      <li>
-        <strong>Long-term Potentiation (LTP)</strong>: Strengthening of synaptic
-        connections
-      </li>
-      <li>
-        <strong>Long-term Depression (LTD)</strong>: Weakening of synaptic
-        connections
-      </li>
-      <li>
-        <strong>Spike-timing Dependent Plasticity (STDP)</strong>: Timing-based
-        learning rules
-      </li>
-      <li>
-        <strong>Homeostatic plasticity</strong>: Maintaining overall network
-        stability
-      </li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>💡 Hebb's Rule</h3>
-      <p>
-        "Neurons that fire together, wire together." This principle, first
-        proposed by Donald Hebb, explains how associations are formed in neural
-        networks.
-      </p>
-    </div>
-
-    <h3>Memory Consolidation</h3>
-    <p>The process of converting temporary memories into permanent ones:</p>
-    <ul>
-      <li>
-        <strong>Initial encoding</strong>: Hippocampus rapidly binds information
-      </li>
-      <li>
-        <strong>Systems consolidation</strong>: Gradual transfer to cortical
-        areas
-      </li>
-      <li>
-        <strong>Reconsolidation</strong>: Memories become labile when recalled
-      </li>
-      <li><strong>Sleep role</strong>: Memory replay during slow-wave sleep</li>
-    </ul>
-
-    <h2>Interactive Exploration</h2>
-
-    <div class="exercise">
-      <h3>🔬 Working Memory Simulation</h3>
-      <p><strong>Goal:</strong> Observe persistent activity patterns</p>
-      <ol>
-        <li>Lower the pulse decay to 0.98 (longer persistence)</li>
-        <li>Inject a spike and watch how long activity persists</li>
-        <li>Try injecting multiple spikes to different clusters</li>
-        <li>Observe how activity "holds" information temporarily</li>
-      </ol>
-      <p>
-        <strong>Question:</strong> How does persistent activity relate to
-        working memory capacity?
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Plasticity Visualization</h3>
-      <p><strong>Goal:</strong> Understand how connections might strengthen</p>
-      <ol>
-        <li>Enable "Show Weights" to see connection strengths</li>
-        <li>Repeatedly inject spikes between two connected clusters</li>
-        <li>Imagine these connections getting stronger with use</li>
-        <li>Consider how this creates learned pathways</li>
-      </ol>
-      <p>
-        <strong>Concept:</strong> Frequently used pathways become
-        "superhighways" of information
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Pattern Association</h3>
-      <p><strong>Goal:</strong> See how different patterns could be linked</p>
-      <ol>
-        <li>Inject spikes in a specific sequence across clusters</li>
-        <li>Repeat the same sequence multiple times</li>
-        <li>Observe how the pattern propagates through the network</li>
-        <li>Consider how this might encode memories</li>
-      </ol>
-      <p>
-        <strong>Application:</strong> How might the brain link a smell to a
-        memory?
-      </p>
-    </div>
-
-    <h2>The Hippocampal Memory System</h2>
-
-    <h3>Structure and Function</h3>
-    <ul>
-      <li>
-        <strong>Dentate gyrus</strong>: Pattern separation for distinct memories
-      </li>
-      <li>
-        <strong>CA3 region</strong>: Associative network for pattern completion
-      </li>
-      <li><strong>CA1 region</strong>: Comparator and output to cortex</li>
-      <li>
-        <strong>Entorhinal cortex</strong>: Interface between hippocampus and
-        cortex
-      </li>
-    </ul>
-
-    <h3>Place Cells and Grid Cells</h3>
-    <p>Specialized neurons that encode spatial information:</p>
-    <ul>
-      <li>
-        <strong>Place cells</strong>: Fire when animal is in specific location
-      </li>
-      <li>
-        <strong>Grid cells</strong>: Create hexagonal firing patterns for
-        navigation
-      </li>
-      <li>
-        <strong>Border cells</strong>: Respond to environmental boundaries
-      </li>
-      <li>
-        <strong>Time cells</strong>: Encode temporal sequences and intervals
-      </li>
-    </ul>
-
-    <div class="concept-box">
-      <h3>🏆 Nobel Prize 2014</h3>
-      <p>
-        John O'Keefe, May-Britt Moser, and Edvard Moser won the Nobel Prize for
-        discovering place cells and grid cells, revealing how the brain creates
-        spatial memories and navigation systems.
-      </p>
-    </div>
-
-    <h2>Memory Disorders and Insights</h2>
-
-    <h3>Alzheimer's Disease</h3>
-    <ul>
-      <li>
-        <strong>Early symptoms</strong>: Hippocampal damage affects new memory
-        formation
-      </li>
-      <li>
-        <strong>Protein aggregation</strong>: Amyloid plaques and tau tangles
-        disrupt synapses
-      </li>
-      <li>
-        <strong>Network breakdown</strong>: Loss of connectivity between brain
-        regions
-      </li>
-      <li>
-        <strong>Research target</strong>: Understanding synaptic dysfunction
-      </li>
-    </ul>
-
-    <h3>Amnesia Studies</h3>
-    <ul>
-      <li>
-        <strong>H.M. (Henry Molaison)</strong>: Lost ability to form new
-        episodic memories
-      </li>
-      <li>
-        <strong>Anterograde amnesia</strong>: Cannot form new memories after
-        brain damage
-      </li>
-      <li>
-        <strong>Retrograde amnesia</strong>: Loss of memories before brain
-        damage
-      </li>
-      <li><strong>Preserved skills</strong>: Procedural memory often intact</li>
-    </ul>
-
-    <h2>Computational Models of Memory</h2>
-
-    <h3>Hopfield Networks</h3>
-    <p>Mathematical model of associative memory:</p>
-    <ul>
-      <li><strong>Attractor dynamics</strong>: Memories as stable states</li>
-      <li>
-        <strong>Pattern completion</strong>: Partial cues retrieve full memories
-      </li>
-      <li>
-        <strong>Capacity limits</strong>: Number of memories that can be stored
-      </li>
-      <li>
-        <strong>Spurious states</strong>: False memories from pattern
-        interference
-      </li>
-    </ul>
-
-    <h3>Temporal Difference Learning</h3>
-    <p>Algorithm for learning predictions and associations:</p>
-    <ul>
-      <li>
-        <strong>Prediction error</strong>: Difference between expected and
-        actual outcomes
-      </li>
-      <li>
-        <strong>Dopamine system</strong>: Implements prediction error signaling
-      </li>
-      <li>
-        <strong>Reinforcement learning</strong>: Learning from rewards and
-        punishments
-      </li>
-      <li><strong>Value functions</strong>: Estimating future rewards</li>
-    </ul>
-
-    <h2>Memory in Brain Emulation</h2>
-
-    <h3>Technical Challenges</h3>
-    <ul>
-      <li>
-        <strong>Multi-scale plasticity</strong>: From molecules to circuits
-      </li>
-      <li><strong>Timing precision</strong>: Millisecond-level dynamics</li>
-      <li><strong>State dependence</strong>: Memory affected by brain state</li>
-      <li>
-        <strong>Reconstruction fidelity</strong>: Preserving synaptic weights
-      </li>
-    </ul>
-
-    <h3>Philosophical Questions</h3>
-    <ul>
-      <li>
-        <strong>Memory identity</strong>: Are you the sum of your memories?
-      </li>
-      <li>
-        <strong>False memories</strong>: What if emulation includes false
-        memories?
-      </li>
-      <li>
-        <strong>Selective preservation</strong>: Which memories are essential?
-      </li>
-      <li>
-        <strong>Memory modification</strong>: Could traumatic memories be
-        edited?
-      </li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>🔬 Research Implications</h3>
-      <p>
-        Understanding memory systems is crucial for brain emulation. An emulated
-        brain without proper memory formation and retrieval would lack the
-        continuity and learning that define personal identity.
-      </p>
-    </div>
-
-    <h2>Learning Algorithms</h2>
-
-    <h3>Supervised Learning</h3>
-    <ul>
-      <li><strong>Error-driven</strong>: Learn from correct examples</li>
-      <li>
-        <strong>Backpropagation</strong>: Artificial version in deep learning
-      </li>
-      <li>
-        <strong>Teacher signal</strong>: External feedback guides learning
-      </li>
-      <li>
-        <strong>Generalization</strong>: Applying learning to new situations
-      </li>
-    </ul>
-
-    <h3>Unsupervised Learning</h3>
-    <ul>
-      <li>
-        <strong>Statistical learning</strong>: Discovering patterns in data
-      </li>
-      <li><strong>Hebbian plasticity</strong>: Correlation-based learning</li>
-      <li><strong>Sparse coding</strong>: Efficient representation learning</li>
-      <li><strong>Self-organization</strong>: Spontaneous pattern formation</li>
-    </ul>
-
-    <h2>Key Takeaways</h2>
+    <h2>Import Workflow</h2>
     <ol>
-      <li>Multiple memory systems serve different functions</li>
-      <li>Synaptic plasticity is the biological basis of learning</li>
-      <li>The hippocampus is crucial for episodic memory formation</li>
       <li>
-        Memory consolidation transfers information from temporary to permanent
-        storage
+        Click <strong>Import</strong> in the HUD. Choose a JSON file that obeys
+        the template schema documented earlier.
       </li>
-      <li>Understanding memory is essential for brain emulation</li>
+      <li>
+        The file is read via <code>FileReader</code> and passed to
+        <code>SNN_CONFIG_IO.deserializeTemplate</code>. If validation fails, a
+        banner displays the error message.
+      </li>
+      <li>
+        A unique template ID is generated (based on <code>template.id</code> or
+        <code>regionName</code>). <code>SNN_REGISTRY.registerTemplate</code>
+        stores it as a “library” template so you can differentiate imported vs.
+        builtin presets.
+      </li>
+      <li>
+        The preset dropdown updates in-place and auto-selects the new template,
+        rebuilding the network immediately.
+      </li>
     </ol>
 
-    <h2>Reflection Questions</h2>
+    <div class="callout">
+      <strong>Import Tips</strong>
+      <ul>
+        <li>
+          Keep file names descriptive (e.g., <code>allen_temporal_cortex.json</code>).
+        </li>
+        <li>
+          Include <code>metadata.source</code> so the inspector can show provenance.
+        </li>
+        <li>
+          Validate JSON with <code>npm run lint:templates</code> (coming soon) or
+          use online JSON schema tools pointing at <code>docs/brain_regions_maps_json.md</code>.
+        </li>
+      </ul>
+    </div>
+
+    <h2>Export Workflow</h2>
+    <p>
+      When you click <strong>Export</strong>, the app serializes the active
+      template (not the ad-hoc procedural configuration). The resulting file is
+      identical to the manifest entry and includes metadata, neuron groups, and
+      connectivity rules. This ensures round-tripping preserves structure.
+    </p>
+
+    <pre><code>// Pseudocode from js/app.js
+const json = SNN_REGISTRY.exportTemplateConfig(presetId, 2);
+const blob = new Blob([json], { type: "application/json" });
+download(blob, `${label}.json`);</code></pre>
+
+    <h2>Schema Errors &amp; Troubleshooting</h2>
     <ul>
       <li>
-        How might different types of plasticity create different types of
-        memory?
+        <strong>Missing preset IDs</strong> &mdash; Ensure every neuron group references a slug defined in
+        <code>docs/neuron_types.md</code>.
       </li>
       <li>
-        What would happen if we could selectively enhance or impair specific
-        memories?
+        <strong>Probability out of range</strong> &mdash; Keep values between 0 and 1. The validator clamps negative values to 0, but numbers above 1 throw.
       </li>
-      <li>How do emotions affect memory formation and retrieval?</li>
       <li>
-        What are the trade-offs between memory capacity and processing speed?
+        <strong>Duplicate IDs</strong> &mdash; Cluster IDs must be unique. The importer appends suffixes for conflicting template IDs but not for cluster IDs.
       </li>
-      <li>How might artificial memory systems differ from biological ones?</li>
     </ul>
 
-    <h2>Next Steps</h2>
+    <h2>Version Control Strategy</h2>
     <p>
-      In <strong>Lesson 9</strong>, we'll explore how these local memory and
-      processing systems integrate into large-scale brain networks that
-      coordinate information across the entire brain, potentially giving rise to
-      consciousness and unified experience.
+      Store curated templates in the repository so they benefit from review and
+      history. For experimental imports, keep them outside version control and
+      share via export files. Always document the data source in commit messages
+      when adding new atlas templates.
     </p>
+
+    <p>
+      With import/export mastered, move to <em>Documentation 9 · Neuron Inspector
+      &amp; Analytics</em> to learn how to interpret and extend the rich metadata
+      shown when inspecting individual neurons.</p>
   </body>
 </html>

@@ -3,227 +3,345 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 5: Network Topology and Clustering</title>
+    <title>Documentation 5 · Neuron Taxonomy & Glyph Dictionary</title>
     <style>
+      :root {
+        --bg: #14100d;
+        --surface: #22170f;
+        --accent: #c19a6b;
+        --text: #f6eddc;
+        --text-muted: #cfb79a;
+        --border: rgba(193, 154, 107, 0.35);
+        --code-bg: #312114;
+      }
+
       body {
-        font-family: "Inter", sans-serif;
-        line-height: 1.6;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #0a0c12;
-        color: #e2e8f0;
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 960px;
+        margin-inline: auto;
       }
+
       h1,
-      h2 {
-        color: #374e84;
-        border-bottom: 2px solid #374e84;
-        padding-bottom: 10px;
-      }
+      h2,
       h3 {
-        color: #60a5fa;
-        margin-top: 30px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
-      .concept-box {
-        background: #1e293b;
-        border-left: 4px solid #374e84;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h1 {
+        font-size: 30px;
+        margin-bottom: 18px;
       }
-      .exercise {
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 14px;
       }
-      .key-insight {
-        background: #064e3b;
-        border-left: 4px solid #10b981;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
       }
+
+      p {
+        margin: 0 0 16px 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0 32px;
+        border: 1px solid var(--border);
+      }
+
+      th,
+      td {
+        border: 1px solid rgba(193, 154, 107, 0.25);
+        padding: 12px 16px;
+        vertical-align: top;
+      }
+
+      th {
+        background: rgba(193, 154, 107, 0.12);
+        color: var(--accent);
+        letter-spacing: 0.04em;
+      }
+
       code {
-        background: #1e293b;
-        padding: 2px 6px;
-        border-radius: 3px;
-        color: #94a3b8;
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
       }
-      ul {
-        padding-left: 20px;
+
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+        color: var(--text-muted);
       }
-      li {
-        margin: 8px 0;
+
+      .glyph {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        margin: 4px 0;
+        background: rgba(193, 154, 107, 0.12);
+      }
+
+      .glyph::before {
+        content: "";
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        background: var(--accent);
+        mask-size: contain;
+        mask-repeat: no-repeat;
+      }
+
+      .glyph.triangle-up::before {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='12 4 4 20 20 20'/%3E%3C/svg%3E");
+      }
+
+      .glyph.triangle-down::before {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='4 4 20 4 12 20'/%3E%3C/svg%3E");
+      }
+
+      .glyph.diamond::before {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='12 2 22 12 12 22 2 12'/%3E%3C/svg%3E");
+      }
+
+      .glyph.square::before {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='4' y='4' width='16' height='16'/%3E%3C/svg%3E");
+      }
+
+      .glyph.hexagon::before {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='7 4 17 4 22 12 17 20 7 20 2 12'/%3E%3C/svg%3E");
+      }
+
+      .glyph.rect-tall::before {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='9' y='3' width='6' height='18' rx='2'/%3E%3C/svg%3E");
+      }
+
+      .glyph.parallelogram::before {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='6 4 20 4 18 20 4 20'/%3E%3C/svg%3E");
+      }
+
+      .glyph.triangle-right::before {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='6 4 20 12 6 20'/%3E%3C/svg%3E");
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 5: Network Topology and Clustering</h1>
+    <h1>Documentation 5 · Neuron Taxonomy &amp; Glyph Dictionary</h1>
+    <p>
+      Every neuron rendered in the simulator is tagged with a taxonomy slug,
+      human-readable label, and glyph shape. This chapter documents those
+      mappings, the data sources behind them, and how they are used across the
+      interface.
+    </p>
 
-    <div class="concept-box">
-      <h3>🧠 Core Question</h3>
+    <h2>Why Shapes Matter</h2>
+    <p>
+      The canvas uses geometric glyphs to differentiate neuron classes without
+      relying solely on color. When you select a neuron, the inspector shows the
+      same glyph next to its name. This visual redundancy makes the interface
+      accessible for users with color-vision deficiencies and speeds up pattern
+      recognition when scanning dense clusters.
+    </p>
+
+    <div class="callout">
+      <strong>Source of Truth</strong>
       <p>
-        How does the structure of connections in a neural network affect its
-        function? Why do brains organize into clusters and modules?
+        The canonical list lives in <code>docs/neuron_types.md</code>. The
+        runtime lookup is generated in <code>js/app.js</code> (see
+        <code>this.NEURON_TYPE_META</code>). If you add a new neuron type, update
+        both locations to keep the documentation and renderer in sync.
       </p>
     </div>
 
-    <h2>Understanding Network Architecture</h2>
+    <h2>Core Cortical Types</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Slug</th>
+          <th>Display Name</th>
+          <th>Glyph</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>pyramidal</code></td>
+          <td>Pyramidal neuron</td>
+          <td><span class="glyph triangle-up">Triangle Up</span></td>
+          <td>Primary excitatory neuron in cortex; default excitatory preset.</td>
+        </tr>
+        <tr>
+          <td><code>pyramidal-l6</code></td>
+          <td>Corticothalamic pyramidal (L6)</td>
+          <td><span class="glyph triangle-down">Triangle Down</span></td>
+          <td>Layer 6 projection neurons sending feedback to thalamus.</td>
+        </tr>
+        <tr>
+          <td><code>basket</code></td>
+          <td>Basket cell (interneuron)</td>
+          <td><span class="glyph square">Square</span></td>
+          <td>Fast-spiking inhibitory interneurons targeting soma/proximal dendrites.</td>
+        </tr>
+        <tr>
+          <td><code>chandelier</code></td>
+          <td>Chandelier / axo-axonic</td>
+          <td><span class="glyph rect-tall">Tall Rectangle</span></td>
+          <td>Specialized interneurons that synapse on axon initial segments.</td>
+        </tr>
+        <tr>
+          <td><code>martinotti</code></td>
+          <td>Martinotti</td>
+          <td><span class="glyph triangle-up">Triangle Up</span></td>
+          <td>Inhibitory interneurons targeting distal dendrites in layer I.</td>
+        </tr>
+        <tr>
+          <td><code>spiny-stellate</code></td>
+          <td>Spiny stellate (cortex)</td>
+          <td><span class="glyph diamond">Diamond</span></td>
+          <td>Layer 4 excitatory neurons receiving thalamic input.</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <h3>Small-World Networks</h3>
-    <p>Real brains exhibit "small-world" properties - they have:</p>
-    <ul>
-      <li>
-        <strong>High clustering</strong>: Neurons connect densely within local
-        groups
-      </li>
-      <li>
-        <strong>Short path lengths</strong>: Any neuron can reach any other
-        through few connections
-      </li>
-      <li>
-        <strong>Hub nodes</strong>: Some neurons have many more connections than
-        others
-      </li>
-    </ul>
+    <h2>Subcortical &amp; Specialized Types</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Slug</th>
+          <th>Display Name</th>
+          <th>Glyph</th>
+          <th>Region Examples</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>msn</code></td>
+          <td>Medium spiny neuron (striatum)</td>
+          <td><span class="glyph diamond">Diamond</span></td>
+          <td>Basal ganglia (caudate/putamen).</td>
+        </tr>
+        <tr>
+          <td><code>mossy</code></td>
+          <td>Mossy cell (hippocampus)</td>
+          <td><span class="glyph hexagon">Hexagon</span></td>
+          <td>Dentate hilus integrating entorhinal inputs.</td>
+        </tr>
+        <tr>
+          <td><code>granule-dentate</code></td>
+          <td>Dentate granule (hippocampus)</td>
+          <td><span class="glyph square">Square</span></td>
+          <td>Input layer of hippocampal trisynaptic circuit.</td>
+        </tr>
+        <tr>
+          <td><code>alpha-motor</code></td>
+          <td>Alpha motor neuron (spinal)</td>
+          <td><span class="glyph parallelogram">Parallelogram</span></td>
+          <td>Anterior horn of spinal cord controlling skeletal muscles.</td>
+        </tr>
+        <tr>
+          <td><code>thalamic-relay</code></td>
+          <td>Thalamocortical relay</td>
+          <td><span class="glyph hexagon">Hexagon</span></td>
+          <td>Mediodorsal, ventrobasal, or lateral geniculate nuclei.</td>
+        </tr>
+        <tr>
+          <td><code>dopaminergic</code></td>
+          <td>Dopaminergic (SNc/VTA)</td>
+          <td><span class="glyph parallelogram">Parallelogram</span></td>
+          <td>Substantia nigra pars compacta, ventral tegmental area.</td>
+        </tr>
+        <tr>
+          <td><code>cholinergic</code></td>
+          <td>Cholinergic (basal forebrain)</td>
+          <td><span class="glyph triangle-down">Triangle Down</span></td>
+          <td>Nucleus basalis, medial septum.</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <div class="key-insight">
-      <h3>💡 Key Insight</h3>
-      <p>
-        Small-world topology enables both specialized local processing AND
-        efficient global communication - crucial for brain function.
-      </p>
-    </div>
+    <h2>Retinal Types</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Slug</th>
+          <th>Display Name</th>
+          <th>Glyph</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>rod</code></td>
+          <td>Retinal rod</td>
+          <td><span class="glyph rect-tall">Tall Capsule</span></td>
+          <td>Low-light photoreceptor.</td>
+        </tr>
+        <tr>
+          <td><code>cone</code></td>
+          <td>Retinal cone</td>
+          <td><span class="glyph triangle-up">Triangle Up</span></td>
+          <td>Color-sensitive photoreceptor.</td>
+        </tr>
+        <tr>
+          <td><code>bipolar-retina</code></td>
+          <td>Retinal bipolar</td>
+          <td><span class="glyph rect-tall">Tall Capsule</span></td>
+          <td>Intermediate signal relay.</td>
+        </tr>
+        <tr>
+          <td><code>amacrine</code></td>
+          <td>Amacrine</td>
+          <td><span class="glyph square">Square</span></td>
+          <td>Temporal processing and modulation.</td>
+        </tr>
+        <tr>
+          <td><code>horizontal-retina</code></td>
+          <td>Horizontal (retina)</td>
+          <td><span class="glyph parallelogram">Parallelogram</span></td>
+          <td>Lateral inhibition between photoreceptors.</td>
+        </tr>
+        <tr>
+          <td><code>rgc</code></td>
+          <td>Retinal ganglion cell</td>
+          <td><span class="glyph hexagon">Hexagon</span></td>
+          <td>Output neurons sending axons to the optic nerve.</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <h3>Clustering and Modularity</h3>
-    <p>Neural clusters are groups of neurons that:</p>
-    <ul>
-      <li>Fire together frequently (temporal correlation)</li>
-      <li>Share similar connection patterns</li>
-      <li>Often process related information</li>
-      <li>Can operate semi-independently</li>
-    </ul>
-
-    <h2>Interactive Exploration</h2>
-
-    <div class="exercise">
-      <h3>🔬 Experiment 1: Cluster Formation</h3>
-      <p>
-        <strong>Goal:</strong> Observe how network structure affects spike
-        propagation
-      </p>
-      <ol>
-        <li>Set network size to 120 neurons (default)</li>
-        <li>Adjust connection probability to 0.3</li>
-        <li>Watch how spikes propagate in clusters</li>
-        <li>Try increasing connection probability to 0.6 - what changes?</li>
-      </ol>
-      <p>
-        <strong>Question:</strong> How does connection density affect cluster
-        behavior?
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Experiment 2: Inter-cluster Communication</h3>
-      <p>
-        <strong>Goal:</strong> Understand how information flows between clusters
-      </p>
-      <ol>
-        <li>Enable "Show Weights" to see connection strengths</li>
-        <li>Inject a spike into one cluster</li>
-        <li>Observe how the activity spreads to other clusters</li>
-        <li>Note the delay between cluster activations</li>
-      </ol>
-      <p>
-        <strong>Question:</strong> Why might delayed inter-cluster communication
-        be beneficial?
-      </p>
-    </div>
-
-    <h2>Real-World Connections</h2>
-
-    <h3>Brain Regions as Clusters</h3>
-    <p>In the human brain:</p>
-    <ul>
-      <li>
-        <strong>Visual cortex</strong>: Processes different aspects of vision
-        (motion, color, faces)
-      </li>
-      <li><strong>Motor cortex</strong>: Controls different body parts</li>
-      <li>
-        <strong>Language areas</strong>: Handle speech production and
-        comprehension
-      </li>
-      <li>
-        <strong>Default mode network</strong>: Active during rest and
-        introspection
-      </li>
-    </ul>
-
-    <h3>Network Disorders</h3>
-    <p>Many brain disorders involve disrupted network topology:</p>
-    <ul>
-      <li>
-        <strong>Autism</strong>: Altered local vs. global connectivity patterns
-      </li>
-      <li><strong>Schizophrenia</strong>: Reduced small-world properties</li>
-      <li>
-        <strong>Alzheimer's</strong>: Progressive breakdown of network hubs
-      </li>
-      <li>
-        <strong>Epilepsy</strong>: Excessive local clustering leading to
-        seizures
-      </li>
-    </ul>
-
-    <div class="concept-box">
-      <h3>🔬 Research Connection</h3>
-      <p>
-        Current brain emulation projects like the Blue Brain Project map
-        detailed connectivity patterns to understand how network structure
-        creates function. This lesson's clustering visualization demonstrates
-        these principles at a simplified scale.
-      </p>
-    </div>
-
-    <h2>Key Takeaways</h2>
+    <h2>Adding a New Neuron Type</h2>
     <ol>
-      <li>Network topology is as important as individual neuron properties</li>
-      <li>
-        Clustering enables specialized processing while maintaining global
-        coordination
-      </li>
-      <li>Small-world networks optimize both efficiency and robustness</li>
-      <li>
-        Understanding connectivity patterns is crucial for brain emulation
-      </li>
+      <li>Append an entry to <code>docs/neuron_types.md</code> with <em>type</em>, <em>slug</em>, and <em>shape</em>.</li>
+      <li>Add the same slug to <code>this.NEURON_TYPE_META</code> in <code>js/app.js</code>.</li>
+      <li>Update <code>NEURON_SHAPE_LOOKUP</code> or the shape normaliser if a new glyph is required.</li>
+      <li>Create or update CSS for modal glyph icons if you add a new shape class.</li>
+      <li>Reference the slug inside templates or procedural presets where the neuron appears.</li>
     </ol>
 
-    <h2>Reflection Questions</h2>
-    <ul>
-      <li>
-        How might different connection patterns create different types of
-        intelligence?
-      </li>
-      <li>
-        What are the trade-offs between local clustering and global
-        connectivity?
-      </li>
-      <li>How could we measure the "intelligence" of a network topology?</li>
-      <li>
-        What challenges would arise when scaling this to brain-sized networks?
-      </li>
-    </ul>
-
-    <h2>Next Steps</h2>
     <p>
-      In <strong>Lesson 6</strong>, we'll explore how inhibitory neurons create
-      competition and selection mechanisms within these clustered networks,
-      enabling winner-take-all dynamics crucial for decision-making and
-      attention.
+      With the taxonomy in mind, continue to <em>Documentation 6 · Brain Regions
+      &amp; Template Library</em> to see how these neuron types populate specific
+      anatomical circuits.
     </p>
   </body>
 </html>

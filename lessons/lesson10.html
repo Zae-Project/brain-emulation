@@ -3,613 +3,191 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lesson 10: Neural Oscillations and Synchrony</title>
+    <title>Documentation 10 · Advanced Configuration & Manifest</title>
     <style>
+      :root {
+        --bg: #19100b;
+        --surface: #2c1b10;
+        --accent: #b98e5c;
+        --text: #faeedc;
+        --text-muted: #dac4a5;
+        --border: rgba(185, 142, 92, 0.35);
+        --code-bg: #402614;
+      }
+
       body {
-        font-family: "Inter", sans-serif;
-        line-height: 1.6;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #0a0c12;
-        color: #e2e8f0;
+        margin: 0;
+        padding: 32px 20px 56px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        line-height: 1.65;
+        max-width: 980px;
+        margin-inline: auto;
       }
+
       h1,
-      h2 {
-        color: #374e84;
-        border-bottom: 2px solid #374e84;
-        padding-bottom: 10px;
-      }
+      h2,
       h3 {
-        color: #60a5fa;
-        margin-top: 30px;
+        color: var(--accent);
+        letter-spacing: 0.02em;
+        margin-top: 32px;
       }
-      .concept-box {
-        background: #1e293b;
-        border-left: 4px solid #374e84;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h1 {
+        font-size: 30px;
+        margin-bottom: 18px;
       }
-      .exercise {
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h2 {
+        font-size: 24px;
+        margin-bottom: 14px;
       }
-      .key-insight {
-        background: #064e3b;
-        border-left: 4px solid #10b981;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
       }
-      .rhythm-type {
-        background: #1e1b4b;
-        border-left: 4px solid #6366f1;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
+
+      p {
+        margin: 0 0 16px 0;
       }
-      .clinical {
-        background: #7c2d12;
-        border-left: 4px solid #ea580c;
-        padding: 15px;
-        margin: 20px 0;
-        border-radius: 5px;
-      }
+
       code {
-        background: #1e293b;
-        padding: 2px 6px;
-        border-radius: 3px;
-        color: #94a3b8;
+        background: var(--code-bg);
+        color: var(--accent);
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.95em;
       }
+
+      pre {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        overflow-x: auto;
+        color: var(--text);
+      }
+
       ul {
-        padding-left: 20px;
+        margin: 14px 0 18px 24px;
+        padding: 0;
       }
+
       li {
-        margin: 8px 0;
+        margin-bottom: 8px;
       }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        background: #1e293b;
-      }
-      th,
-      td {
-        border: 1px solid #374e84;
-        padding: 8px;
-        text-align: left;
-      }
-      th {
-        background: #374e84;
-        color: white;
+
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin: 24px 0;
+        color: var(--text-muted);
       }
     </style>
   </head>
   <body>
-    <h1>Lesson 10: Neural Oscillations and Synchrony</h1>
+    <h1>Documentation 10 · Advanced Configuration &amp; Manifest</h1>
+    <p>
+      Beyond the GUI, the simulator exposes hooks for auto-discovering templates,
+      customizing defaults, and enabling experimental overlays. This chapter
+      explains the manifest loader, environment toggles, and how to add build-time
+      logic without forking the core engine.
+    </p>
 
-    <div class="concept-box">
-      <h3>🧠 Core Question</h3>
+    <h2>Manifest Anatomy</h2>
+    <p>
+      <code>data/brain_region_maps/manifest.json</code> describes the templates
+      available in the UI. Each entry includes <code>id</code>, <code>file</code>,
+      <code>label</code>, <code>source</code>, and optional metadata like
+      <code>description</code> and <code>regions</code>.
+    </p>
+
+    <pre><code>{
+  "id": "Allen_Motor_Cortex",
+  "file": "allen_motor_cortex.json",
+  "label": "Primary Motor Cortex (M1)",
+  "source": "Allen Human Brain Atlas",
+  "description": "Layer-specific M1 circuit with corticospinal neurons.",
+  "regions": ["BA4"]
+}</code></pre>
+
+    <h2>Bootstrap Logic</h2>
+    <p>
+      The app loads the manifest during initialization:
+    </p>
+    <pre><code>fetch('data/brain_region_maps/manifest.json')
+  .then(res =&gt; res.json())
+  .then(manifest =&gt; {
+    manifest.templates.forEach(entry =&gt; {
+      const template = await loadTemplateFromUrl(entry.file);
+      SNN_REGISTRY.registerTemplate(entry.id, template, 'library');
+    });
+  });</code></pre>
+    <p>
+      Additional metadata from the manifest (e.g., <code>description</code>) is
+      merged into the template's <code>metadata</code> before registration, so it
+      appears in the inspector.
+    </p>
+
+    <h2>Custom Defaults</h2>
+    <ul>
+      <li>
+        <strong>Default Preset</strong> &mdash; Set <code>VITE_DEFAULT_TEMPLATE</code>
+        in <code>.env.local</code> to auto-select a preset on load.
+      </li>
+      <li>
+        <strong>Debug Overlay</strong> &mdash; Enable <code>VITE_ENABLE_DEBUG_OVERLAY</code>
+        to show frame timing and shader diagnostics.
+      </li>
+      <li>
+        <strong>Alternate Theme</strong> &mdash; Override CSS variables in
+        <code>css/styles.css</code> or use the <code>applyThemeColorsToMarkup</code>
+        helper for modal content.
+      </li>
+    </ul>
+
+    <div class="callout">
+      <strong>Extending the Manifest</strong>
       <p>
-        How does the brain coordinate billions of neurons in time? What role do
-        brain rhythms play in consciousness, memory, and perception?
+        You can add arbitrary keys to manifest entries (e.g., <code>license</code>,
+        <code>doi</code>). They are preserved in the template metadata and thus
+        available to UI extensions. Use this to track DOIs or release versions.
       </p>
     </div>
 
-    <h2>Understanding Brain Rhythms</h2>
-
-    <h3>What Are Neural Oscillations?</h3>
+    <h2>Programmatic Registration</h2>
     <p>
-      Neural oscillations are rhythmic patterns of electrical activity in the
-      brain:
+      If you need to register templates dynamically (e.g., fetch from an API),
+      call <code>SNN_REGISTRY.registerTemplate</code> with a unique ID and
+      template object. Remember to refresh the preset dropdown:
+    </p>
+    <pre><code>const template = await fetchRemoteAtlas();
+const key = 'Custom_API_Template';
+SNN_REGISTRY.registerTemplate(key, template, 'runtime');
+snnVisualizer.refreshPresetOptions(key);</code></pre>
+
+    <h2>When to Fork vs. Configure</h2>
+    <p>
+      Use configuration hooks for:
     </p>
     <ul>
-      <li><strong>Frequency</strong>: Measured in Hertz (cycles per second)</li>
-      <li><strong>Amplitude</strong>: Strength of the oscillation</li>
-      <li><strong>Phase</strong>: Timing relationship between oscillations</li>
-      <li><strong>Coherence</strong>: Consistency of phase relationships</li>
+      <li>Adding new templates or tweaking defaults.</li>
+      <li>Enabling debug overlays or alternative data sources.</li>
+      <li>Experimenting with runtime validators or additional metadata fields.</li>
     </ul>
-
-    <div class="key-insight">
-      <h3>⏰ Temporal Coordination</h3>
-      <p>
-        Brain oscillations act like a temporal scaffolding, organizing neural
-        activity in time and enabling complex computations that require precise
-        timing coordination.
-      </p>
-    </div>
-
-    <h2>Major Brain Rhythms</h2>
-
-    <table>
-      <tr>
-        <th>Frequency Band</th>
-        <th>Range (Hz)</th>
-        <th>Primary Functions</th>
-        <th>Brain States</th>
-      </tr>
-      <tr>
-        <td><strong>Delta (δ)</strong></td>
-        <td>0.5-4</td>
-        <td>Deep sleep, unconsciousness</td>
-        <td>Slow-wave sleep, anesthesia</td>
-      </tr>
-      <tr>
-        <td><strong>Theta (θ)</strong></td>
-        <td>4-8</td>
-        <td>Memory, navigation, REM sleep</td>
-        <td>Hippocampal activity, meditation</td>
-      </tr>
-      <tr>
-        <td><strong>Alpha (α)</strong></td>
-        <td>8-13</td>
-        <td>Relaxed awareness, inhibition</td>
-        <td>Eyes closed, calm attention</td>
-      </tr>
-      <tr>
-        <td><strong>Beta (β)</strong></td>
-        <td>13-30</td>
-        <td>Active concentration, motor control</td>
-        <td>Alert, focused cognitive states</td>
-      </tr>
-      <tr>
-        <td><strong>Gamma (γ)</strong></td>
-        <td>30-100</td>
-        <td>Consciousness, binding, attention</td>
-        <td>Conscious perception, high attention</td>
-      </tr>
-    </table>
-
-    <div class="rhythm-type">
-      <h3>Gamma Oscillations: The Consciousness Rhythm</h3>
-      <p>
-        Gamma waves (30-100 Hz) are particularly important for consciousness:
-      </p>
-      <ul>
-        <li>
-          <strong>Binding</strong>: Integrating features into unified percepts
-        </li>
-        <li><strong>Attention</strong>: Marking attended information</li>
-        <li>
-          <strong>Working memory</strong>: Maintaining information in awareness
-        </li>
-        <li>
-          <strong>Cross-frequency coupling</strong>: Coordinating with other
-          rhythms
-        </li>
-      </ul>
-    </div>
-
-    <div class="rhythm-type">
-      <h3>Theta Oscillations: The Memory Rhythm</h3>
-      <p>Theta waves (4-8 Hz) are crucial for memory and navigation:</p>
-      <ul>
-        <li>
-          <strong>Hippocampal theta</strong>: Generated during exploration and
-          REM sleep
-        </li>
-        <li>
-          <strong>Memory encoding</strong>: Optimal timing for synaptic
-          plasticity
-        </li>
-        <li>
-          <strong>Phase precession</strong>: Place cells fire at progressively
-          earlier phases
-        </li>
-        <li>
-          <strong>Cross-regional coordination</strong>: Synchronizing distant
-          brain areas
-        </li>
-      </ul>
-    </div>
-
-    <h2>Mechanisms of Oscillation Generation</h2>
-
-    <h3>Pacemaker Circuits</h3>
-    <p>Some oscillations arise from specialized pacemaker neurons:</p>
-    <ul>
-      <li>
-        <strong>Thalamic pacemakers</strong>: Generate sleep spindles and delta
-        waves
-      </li>
-      <li>
-        <strong>Intrinsic properties</strong>: Ion channels create rhythmic
-        firing
-      </li>
-      <li>
-        <strong>Network resonance</strong>: Circuits amplify specific
-        frequencies
-      </li>
-      <li>
-        <strong>Neuromodulation</strong>: Chemicals alter oscillation properties
-      </li>
-    </ul>
-
-    <h3>Network Oscillations</h3>
-    <p>Many rhythms emerge from network interactions:</p>
-    <ul>
-      <li>
-        <strong>Excitatory-inhibitory loops</strong>: Balance creates rhythmic
-        activity
-      </li>
-      <li>
-        <strong>Feedback circuits</strong>: Self-sustaining oscillatory loops
-      </li>
-      <li>
-        <strong>Synchronization</strong>: Coupled oscillators entrain each other
-      </li>
-      <li>
-        <strong>Criticality</strong>: Edge-of-chaos dynamics generate complex
-        rhythms
-      </li>
-    </ul>
-
-    <h2>Interactive Exploration</h2>
-
-    <div class="exercise">
-      <h3>🔬 Observing Rhythmic Patterns</h3>
-      <p>
-        <strong>Goal:</strong> Look for oscillatory-like behavior in our network
-      </p>
-      <ol>
-        <li>Watch the selected neuron's voltage trace for rhythmic patterns</li>
-        <li>Adjust the firing rate to see different activity levels</li>
-        <li>Look for periods of synchronized cluster activity</li>
-        <li>Notice how pulse decay affects rhythmic properties</li>
-      </ol>
-      <p>
-        <strong>Question:</strong> What network parameters create more rhythmic
-        activity?
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Synchronization Simulation</h3>
-      <p><strong>Goal:</strong> Observe synchronization between clusters</p>
-      <ol>
-        <li>Inject spikes to multiple clusters simultaneously</li>
-        <li>Watch how they influence each other's activity</li>
-        <li>Try creating regular, rhythmic spike injections</li>
-        <li>Observe how the network responds to rhythmic input</li>
-      </ol>
-      <p>
-        <strong>Concept:</strong> This simulates how external rhythms can
-        entrain brain networks
-      </p>
-    </div>
-
-    <div class="exercise">
-      <h3>🔬 Phase Relationships</h3>
-      <p><strong>Goal:</strong> Understand phase relationships between areas</p>
-      <ol>
-        <li>Select neurons from different clusters</li>
-        <li>Compare their voltage traces</li>
-        <li>Look for timing relationships in their activity</li>
-        <li>Consider how timing differences affect information flow</li>
-      </ol>
-      <p>
-        <strong>Application:</strong> Phase relationships determine information
-        transfer direction
-      </p>
-    </div>
-
-    <h2>Functions of Neural Oscillations</h2>
-
-    <h3>Binding and Integration</h3>
     <p>
-      Oscillations bind distributed information into unified representations:
+      Fork the engine if you need changes to the simulation loop, rendering
+      pipeline, or UI layout. Document any forks in <code>docs/dev_progress_tracker.md</code>
+      so future contributors can reconcile differences.
     </p>
-    <ul>
-      <li>
-        <strong>Feature binding</strong>: Gamma oscillations link color, shape,
-        motion
-      </li>
-      <li><strong>Cross-modal binding</strong>: Linking sight, sound, touch</li>
-      <li><strong>Temporal binding</strong>: Creating coherent sequences</li>
-      <li>
-        <strong>Global workspace</strong>: Synchronization creates conscious
-        access
-      </li>
-    </ul>
 
-    <h3>Communication Through Coherence</h3>
-    <p>Oscillations enable selective communication between brain areas:</p>
-    <ul>
-      <li>
-        <strong>Phase locking</strong>: Synchronized areas communicate
-        effectively
-      </li>
-      <li>
-        <strong>Communication windows</strong>: Optimal phases for information
-        transfer
-      </li>
-      <li>
-        <strong>Routing</strong>: Dynamic connectivity through synchronization
-      </li>
-      <li>
-        <strong>Attention</strong>: Synchronization selects relevant information
-      </li>
-    </ul>
-
-    <div class="concept-box">
-      <h3>🎵 The "Conductor" Metaphor</h3>
-      <p>
-        Like a conductor coordinating an orchestra, brain oscillations
-        coordinate the timing of neural activity across different brain regions,
-        creating harmony from complexity.
-      </p>
-    </div>
-
-    <h3>Memory and Learning</h3>
-    <p>Specific rhythms facilitate different memory processes:</p>
-    <ul>
-      <li><strong>Theta-gamma coupling</strong>: Encoding new information</li>
-      <li>
-        <strong>Sharp wave-ripples</strong>: Memory consolidation during sleep
-      </li>
-      <li>
-        <strong>Alpha suppression</strong>: Inhibiting irrelevant information
-      </li>
-      <li>
-        <strong>Sleep spindles</strong>: Protecting sleep from external
-        disturbances
-      </li>
-    </ul>
-
-    <h2>Cross-Frequency Coupling</h2>
-
-    <h3>Phase-Amplitude Coupling</h3>
-    <p>Nested oscillations create complex temporal organization:</p>
-    <ul>
-      <li>
-        <strong>Theta-gamma coupling</strong>: Gamma bursts occur at specific
-        theta phases
-      </li>
-      <li>
-        <strong>Functional significance</strong>: Multiple timescales of
-        organization
-      </li>
-      <li>
-        <strong>Information capacity</strong>: Increased computational power
-      </li>
-      <li><strong>Clinical relevance</strong>: Disrupted in many disorders</li>
-    </ul>
-
-    <h3>Phase-Phase Coupling</h3>
-    <p>Synchronization across multiple frequency bands:</p>
-    <ul>
-      <li><strong>1:1 coupling</strong>: Direct synchronization</li>
-      <li><strong>n:m coupling</strong>: Harmonic relationships</li>
-      <li>
-        <strong>Network coordination</strong>: Multiple rhythms working together
-      </li>
-      <li><strong>State transitions</strong>: Changes in coupling patterns</li>
-    </ul>
-
-    <h2>Clinical Applications</h2>
-
-    <div class="clinical">
-      <h3>⚠️ Oscillations in Disease</h3>
-      <p>
-        Many neurological and psychiatric disorders involve disrupted
-        oscillations:
-      </p>
-      <ul>
-        <li><strong>Epilepsy</strong>: Pathological hypersynchronization</li>
-        <li>
-          <strong>Parkinson's</strong>: Excessive beta oscillations in motor
-          circuits
-        </li>
-        <li><strong>Schizophrenia</strong>: Reduced gamma oscillations</li>
-        <li>
-          <strong>Alzheimer's</strong>: Disrupted gamma rhythms and memory
-        </li>
-        <li><strong>Depression</strong>: Altered sleep oscillations</li>
-      </ul>
-    </div>
-
-    <h3>Therapeutic Interventions</h3>
-    <p>Targeting oscillations for treatment:</p>
-    <ul>
-      <li>
-        <strong>Deep brain stimulation</strong>: Disrupting pathological rhythms
-      </li>
-      <li>
-        <strong>Transcranial stimulation</strong>: Non-invasive rhythm
-        modulation
-      </li>
-      <li>
-        <strong>Optogenetics</strong>: Precise optical control of oscillations
-      </li>
-      <li>
-        <strong>Pharmacological</strong>: Drugs targeting specific rhythm
-        mechanisms
-      </li>
-      <li>
-        <strong>Neurofeedback</strong>: Training patients to control their brain
-        rhythms
-      </li>
-    </ul>
-
-    <h2>Sleep and Oscillations</h2>
-
-    <h3>Sleep Architecture</h3>
-    <p>Different sleep stages show distinct oscillatory patterns:</p>
-    <ul>
-      <li><strong>Stage 1</strong>: Alpha waves fade, theta emerges</li>
-      <li><strong>Stage 2</strong>: Sleep spindles and K-complexes</li>
-      <li><strong>Stage 3/4</strong>: Slow delta waves dominate</li>
-      <li><strong>REM sleep</strong>: Fast, wake-like activity with theta</li>
-    </ul>
-
-    <h3>Sleep Functions</h3>
-    <p>Oscillations during sleep serve crucial functions:</p>
-    <ul>
-      <li><strong>Memory consolidation</strong>: Replay and strengthening</li>
-      <li>
-        <strong>Synaptic homeostasis</strong>: Scaling down synaptic weights
-      </li>
-      <li>
-        <strong>Waste clearance</strong>: Brain's glymphatic system activation
-      </li>
-      <li>
-        <strong>Dream generation</strong>: REM oscillations create dream content
-      </li>
-    </ul>
-
-    <h2>Implications for Brain Emulation</h2>
-
-    <h3>Technical Challenges</h3>
-    <ul>
-      <li>
-        <strong>Multi-scale modeling</strong>: From single spikes to population
-        rhythms
-      </li>
-      <li>
-        <strong>Real-time dynamics</strong>: Maintaining proper timing
-        relationships
-      </li>
-      <li>
-        <strong>State transitions</strong>: Implementing sleep-wake cycles
-      </li>
-      <li>
-        <strong>Plasticity during oscillations</strong>: Learning during
-        different brain states
-      </li>
-    </ul>
-
-    <h3>Consciousness Implications</h3>
-    <ul>
-      <li>
-        <strong>Gamma synchrony</strong>: May be necessary for conscious
-        experience
-      </li>
-      <li>
-        <strong>Binding problem</strong>: How oscillations create unified
-        perception
-      </li>
-      <li>
-        <strong>Anesthesia mechanisms</strong>: How rhythm disruption eliminates
-        consciousness
-      </li>
-      <li>
-        <strong>Awareness detection</strong>: Using oscillations to assess
-        consciousness
-      </li>
-    </ul>
-
-    <div class="key-insight">
-      <h3>🎯 Critical Consideration</h3>
-      <p>
-        A brain emulation without proper oscillatory dynamics might process
-        information but lack the temporal coordination necessary for
-        consciousness and unified experience.
-      </p>
-    </div>
-
-    <h2>Artificial Neural Oscillations</h2>
-
-    <h3>Implementing Rhythms in Machines</h3>
-    <ul>
-      <li>
-        <strong>Recurrent networks</strong>: Creating self-sustaining
-        oscillations
-      </li>
-      <li>
-        <strong>Reservoir computing</strong>: Using network dynamics for
-        computation
-      </li>
-      <li>
-        <strong>Spiking neural networks</strong>: Inherent temporal dynamics
-      </li>
-      <li>
-        <strong>Neuromorphic hardware</strong>: Hardware implementing
-        oscillatory circuits
-      </li>
-    </ul>
-
-    <h3>Benefits of Oscillatory Computing</h3>
-    <ul>
-      <li>
-        <strong>Temporal binding</strong>: Coordinating distributed processing
-      </li>
-      <li><strong>Dynamic routing</strong>: Flexible information pathways</li>
-      <li>
-        <strong>Memory consolidation</strong>: Replay and strengthening
-        mechanisms
-      </li>
-      <li><strong>Attention mechanisms</strong>: Selective synchronization</li>
-    </ul>
-
-    <h2>Future Research Directions</h2>
-
-    <h3>Emerging Questions</h3>
-    <ul>
-      <li>How do oscillations give rise to consciousness?</li>
-      <li>What is the minimal oscillatory complexity for awareness?</li>
-      <li>How do rhythms enable creativity and insight?</li>
-      <li>Can artificial oscillations support machine consciousness?</li>
-    </ul>
-
-    <h3>New Technologies</h3>
-    <ul>
-      <li>
-        <strong>High-density recording</strong>: Monitoring thousands of neurons
-        simultaneously
-      </li>
-      <li>
-        <strong>Closed-loop stimulation</strong>: Real-time rhythm modification
-      </li>
-      <li>
-        <strong>Multi-modal imaging</strong>: Combining different measurement
-        techniques
-      </li>
-      <li>
-        <strong>Computational models</strong>: Large-scale oscillatory network
-        simulations
-      </li>
-    </ul>
-
-    <h2>Key Takeaways</h2>
-    <ol>
-      <li>
-        Neural oscillations coordinate brain activity across time and space
-      </li>
-      <li>Different frequency bands serve distinct cognitive functions</li>
-      <li>Synchronization enables communication between brain areas</li>
-      <li>Cross-frequency coupling creates complex temporal organization</li>
-      <li>
-        Oscillations may be essential for consciousness and unified experience
-      </li>
-    </ol>
-
-    <h2>Reflection Questions</h2>
-    <ul>
-      <li>How might disrupting specific brain rhythms affect consciousness?</li>
-      <li>
-        What would artificial consciousness require in terms of oscillatory
-        dynamics?
-      </li>
-      <li>
-        How do oscillations relate to the "binding problem" of consciousness?
-      </li>
-      <li>Could we enhance human cognition by optimizing brain rhythms?</li>
-      <li>
-        What are the implications of rhythm-based communication for
-        brain-computer interfaces?
-      </li>
-    </ul>
-
-    <h2>Next Steps</h2>
     <p>
-      In <strong>Lesson 11</strong>, we'll explore how all these neural
-      principles - from individual spikes to large-scale oscillations - come
-      together in the grand challenge of whole brain emulation, examining the
-      technical requirements and current progress toward creating digital minds.
-    </p>
+      Continue to <em>Documentation 11 · Troubleshooting &amp; Verification</em>
+      for diagnostic tools and common issues.</p>
   </body>
 </html>
