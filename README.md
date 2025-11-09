@@ -31,7 +31,7 @@ An open, educational, and research-focused project for learning spiking neural n
 ### Phase 4: Brain Emulation Concepts (Lessons 11-12)
 
 - Whole brain emulation theory and challenges.
-- Ethics, consciousness, and future implications
+- Ethics, consciousness, and future implications.
 
 ## Features (current and planned)
 
