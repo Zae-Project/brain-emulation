@@ -35,7 +35,7 @@ An open, educational, and research-focused project for learning spiking neural n
 
 ## Features (current and planned)
 
-- **Current**: Interactive 3D SNN visualization with 4 foundational lessons
+- **Current**: Interactive 3D SNN visualization with 4 foundational lessons.
 - **Visual display**: Color-coded neural clusters with activity visualization
 - **Real-time interaction**: Adjustable parameters and spike injection
 - **Educational content**: Progressive lesson system with full HTML content
