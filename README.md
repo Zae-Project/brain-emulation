@@ -39,7 +39,7 @@ An open, educational, and research-focused project for learning spiking neural n
 - **Visual display**: Color-coded neural clusters with activity visualization.
 - **Real-time interaction**: Adjustable parameters and spike injection.
 - **Educational content**: Progressive lesson system with full HTML content.
-- **Planned**: Additional lessons 5-12, enhanced network features, multi-scale modeling
+- **Planned**: Additional lessons 5-12, enhanced network features, multi-scale modeling.
 
 ## Quickstart
 
