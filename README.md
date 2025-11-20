@@ -57,7 +57,7 @@ Based on current research in whole brain emulation (WBE), this project aims to:
 1. **Educate**: Build public understanding of neural computation and brain emulation.
 2. **Prepare**: Develop skills and intuition for future WBE challenges.
 3. **Research**: Contribute to open research on computational. neuroscience.
-4. **Bridge**: Connect theoretical concepts to practical implementation
+4. **Bridge**: Connect theoretical concepts to practical implementation.
 
 Our approach emphasizes responsible development, ethical consideration, and inclusive access to this transformative technology.
 
