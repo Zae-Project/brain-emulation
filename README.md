@@ -80,7 +80,7 @@ We welcome contributions and collaboration! This project uses GitHub Discussions
 
 - New ideas and feature proposals.
 - Questions about implementation or neuroscience concepts.
-- Research discussions and brainstorming
+- Research discussions and brainstorming.
 - Getting help with the codebase
 
 **📋 For formal contributions:**
