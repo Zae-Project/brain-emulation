@@ -86,7 +86,7 @@ We welcome contributions and collaboration! This project uses GitHub Discussions
 **📋 For formal contributions:**
 
 - All changes must go through pull requests (direct pushes to `main` are protected).
-- Use our issue templates for bugs and feature requests
+- Use our issue templates for bugs and feature requests.
 - Follow the guidelines in [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 See also: [docs/instructions.md](./docs/instructions.md) and [docs/lessons.md](./docs/lessons.md)
