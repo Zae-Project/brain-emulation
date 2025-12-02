@@ -97,7 +97,7 @@ This project builds on current research from leading institutions:
 
 - **Carboncopies Foundation**: WBE research coordination and roadmapping.
 - **Blue Brain Project**: Detailed cortical simulation and modeling.
-- **Human Brain Project**: European brain research initiative
+- **Human Brain Project**: European brain research initiative.
 - **OpenWorm**: Complete organism simulation (C. elegans).
 
 Our lesson progression follows established neuroscience principles while maintaining accessibility for learners at all levels.
