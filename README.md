@@ -89,7 +89,7 @@ We welcome contributions and collaboration! This project uses GitHub Discussions
 - Use our issue templates for bugs and feature requests.
 - Follow the guidelines in [CONTRIBUTING.md](./CONTRIBUTING.md)
 
-See also: [docs/instructions.md](./docs/instructions.md) and [docs/lessons.md](./docs/lessons.md)
+See also: [docs/instructions.md](./docs/instructions.md) and [docs/lessons.md](./docs/lessons.md).
 
 ## Research Foundation
 
