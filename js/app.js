@@ -467,54 +467,6 @@ class SNNVisualizer {
         statusBar.addEventListener("mouseleave", scheduleHide);
         navControls.addEventListener("mouseenter", handleEnter);
         navControls.addEventListener("mouseleave", scheduleHide);
-      }
-    }
-  }
-
-  initDOM() {
-    this.dom = {
-      canvas: document.getElementById("three-canvas"),
-      playBtn: document.getElementById("play"),
-      speedSlider: document.getElementById("speed"),
-      presetSelect: document.getElementById("presetSelect"),
-      presetSummary: document.getElementById("presetSummary"),
-      exportTemplateBtn: document.getElementById("exportTemplate"),
-      importTemplateBtn: document.getElementById("importTemplate"),
-      importTemplateInput: document.getElementById("templateImport"),
-      importHelpBtn: document.getElementById("importHelp"),
-      neuronMeta: document.getElementById("neuronMeta"),
-      networkSizeSlider: document.getElementById("networkSize"),
-      sizeValueLabel: document.getElementById("sizeValue"),
-      clusterCountSlider: document.getElementById("clusterCount"),
-      clustersValueLabel: document.getElementById("clustersValue"),
-      clusterSizeSlider: document.getElementById("clusterSize"),
-      clusterSizeValueLabel: document.getElementById("clusterSizeValue"),
-      interProbSlider: document.getElementById("interProb"),
-      interProbValueLabel: document.getElementById("interProbValue"),
-      interWeightSlider: document.getElementById("interWeight"),
-      interWeightValueLabel: document.getElementById("interWeightValue"),
-      excRatioSlider: document.getElementById("excRatio"),
-      excRatioValueLabel: document.getElementById("excValue"),
-      fogSlider: document.getElementById("fogStrength"),
-      fogValueLabel: document.getElementById("fogValue"),
-      connectionProbSlider: document.getElementById("connectionProb"),
-      probValueLabel: document.getElementById("probValue"),
-      firingRateSlider: document.getElementById("firingRate"),
-      firingValueLabel: document.getElementById("firingValue"),
-      pulseDecaySlider: document.getElementById("pulseDecay"),
-      decayValueLabel: document.getElementById("decayValue"),
-      thresholdSlider: document.getElementById("threshold"),
-      thresholdValueLabel: document.getElementById("thresholdValue"),
-      resetBtn: document.getElementById("resetNetwork"),
-      showWeightsBtn: document.getElementById("showWeights"),
-      pauseSpikesBtn: document.getElementById("pauseSpikes"),
-      injectSpikeBtn: document.getElementById("injectSpike"),
-      lessonSelect: document.getElementById("lessonSelect"),
-      voltageValue: document.getElementById("voltageValue"),
-      trace: document.getElementById("trace"),
-      errEl: document.getElementById("err"),
-    };
-
     // Initialize trace canvas
     if (this.dom.trace) {
       this.traceCtx = this.dom.trace.getContext("2d");
