@@ -23,7 +23,7 @@ An open, educational, and research focused project for learning spiking neural n
 - Multi-layer hierarchical processing.
 - Memory systems and information storage.
 
-### Phase 3: Brain-Scale Networks (Lessons 9-10)
+### Phase 3: Brain Scale Networks (Lessons 9-10)
 
 - Large scale integration and global workspace.
 - Neural oscillations and temporal coordination.
