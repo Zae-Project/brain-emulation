@@ -104,4 +104,4 @@ Our lesson progression follows established neuroscience principles while maintai
 
 ## License
 
-Open source—see [LICENSE](./LICENSE).
+Open source see [LICENSE](./LICENSE).
