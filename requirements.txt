@@ -1,0 +1,11 @@
+# Brain Emulation Project Dependencies
+# Python 3.10+ recommended
+
+# Core neural simulation
+brian2>=2.5.0
+
+# WebSocket server for real-time communication
+websockets>=10.0
+
+# Numerical operations (typically installed with brian2, but explicit for clarity)
+numpy>=1.21.0
