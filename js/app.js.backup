@@ -128,12 +128,12 @@ class SNNVisualizer {
     this.voltageHistory = [];
     this._simAccumulator = 0; // supports fractional speeds
 
-    this.guideConfig = this.createGuideConfig();
-    this.guideCache = new Map();
+    this.lessonConfig = this.createLessonConfig();
+    this.lessonCache = new Map();
     this.activeTemplate = null;
     this._atlasBootstrapPromise = null;
 
-    // Make this instance globally accessible for guide documentation
+    // Make this instance globally accessible for lesson buttons
     window.snnVisualizer = this;
 
     this.init();
@@ -145,7 +145,7 @@ class SNNVisualizer {
     this.initCanvas();
     this.createNetwork();
     this.bindUI();
-    this.initGuides();
+    this.initLessons();
     this.initTooltips();
     this.fixUIStyles(); // Add this line to fix the UI styles
 
@@ -383,7 +383,7 @@ class SNNVisualizer {
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
       }
 
-      .guide-modal {
+      .lesson-modal {
         position: fixed;
         top: 0;
         left: 0;
@@ -398,7 +398,7 @@ class SNNVisualizer {
         backdrop-filter: blur(8px);
       }
 
-      .guide-modal-content {
+      .lesson-modal-content {
         background: var(--surface-1);
         border: 1px solid var(--border);
         padding: 32px;
@@ -411,22 +411,22 @@ class SNNVisualizer {
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
       }
 
-      .guide-modal-content h1,
-      .guide-modal-content h2,
-      .guide-modal-content h3 {
+      .lesson-modal-content h1,
+      .lesson-modal-content h2,
+      .lesson-modal-content h3 {
         color: var(--text-accent);
       }
 
-      .guide-modal-content strong {
+      .lesson-modal-content strong {
         color: var(--accent-primary);
       }
     `;
     document.head.appendChild(styleElement);
 
     // Fix lesson panel
-    const guidePanel = document.getElementById("guidePanel");
-    if (guidePanel) {
-      guidePanel.style.zIndex = "10";
+    const lessonPanel = document.getElementById("lessonPanel");
+    if (lessonPanel) {
+      lessonPanel.style.zIndex = "10";
     }
 
     // Fix navigation controls
@@ -3079,7 +3079,7 @@ class SNNVisualizer {
       const style = document.createElement("style");
       style.id = "modal-styles";
       style.textContent = `
-        .guide-modal {
+        .lesson-modal {
           position: fixed;
           top: 0;
           left: 0;
@@ -3093,7 +3093,7 @@ class SNNVisualizer {
           padding: 20px;
           backdrop-filter: blur(8px);
         }
-        .guide-modal-content {
+        .lesson-modal-content {
           background: var(--surface-1);
           border: 1px solid var(--border);
           padding: 32px;
@@ -3106,11 +3106,11 @@ class SNNVisualizer {
           display: flex;
           flex-direction: column;
         }
-        .guide-modal-content h1,
-        .guide-modal-content h2 {
+        .lesson-modal-content h1,
+        .lesson-modal-content h2 {
           color: var(--text-accent);
         }
-        .guide-modal-content pre {
+        .lesson-modal-content pre {
           background: var(--surface-2);
           border: 1px solid var(--border);
           padding: 12px;
@@ -3162,109 +3162,109 @@ class SNNVisualizer {
     }, duration);
   }
 
-  createGuideConfig() {
+  createLessonConfig() {
     return {
       1: {
         title: "Documentation 1 · Project Overview & Goals",
         content:
           "Mission, architecture, and design principles that frame the brain emulation visualizer.",
-        file: "guides/guide1.html",
+        file: "lessons/lesson1.html",
       },
       2: {
         title: "Documentation 2 · Quick Start & Environment Setup",
         content:
           "Clone, install, and launch instructions plus a tour of the repository layout.",
-        file: "guides/guide2.html",
+        file: "lessons/lesson2.html",
       },
       3: {
         title: "Documentation 3 · Interface Tour",
         content:
           "Guided walkthrough of the orbit canvas, HUD controls, inspector, and status bar.",
-        file: "guides/guide3.html",
+        file: "lessons/lesson3.html",
       },
       4: {
         title: "Documentation 4 · Controls & Parameter Panel",
         content:
           "Detailed reference for every slider and toggle, including template locking behavior.",
-        file: "guides/guide4.html",
+        file: "lessons/lesson4.html",
       },
       5: {
         title: "Documentation 5 · Neuron Taxonomy & Glyph Dictionary",
         content:
           "Canonical mapping between neuron presets, biological names, and rendered glyphs.",
-        file: "guides/guide5.html",
+        file: "lessons/lesson5.html",
       },
       6: {
         title: "Documentation 6 · Brain Regions & Template Library",
         content:
           "Template schema, atlas data sources, and manifest workflow for managing presets.",
-        file: "guides/guide6.html",
+        file: "lessons/lesson6.html",
       },
       7: {
         title: "Documentation 7 · Simulation Pipeline & Runtime",
         content:
           "How templates become networks, covering neuron construction, connectivity, and frame updates.",
-        file: "guides/guide7.html",
+        file: "lessons/lesson7.html",
       },
       8: {
         title: "Documentation 8 · Importing & Exporting Atlas Data",
         content:
           "Round-tripping template JSON through the HUD with validation and provenance tips.",
-        file: "guides/guide8.html",
+        file: "lessons/lesson8.html",
       },
       9: {
         title: "Documentation 9 · Neuron Inspector & Analytics",
         content:
           "Understanding inspector cards, connectivity metrics, and the voltage trace display.",
-        file: "guides/guide9.html",
+        file: "lessons/lesson9.html",
       },
       10: {
         title: "Documentation 10 · Advanced Configuration & Manifest",
         content:
           "Environment variables, manifest extensions, and programmatic template registration.",
-        file: "guides/guide10.html",
+        file: "lessons/lesson10.html",
       },
       11: {
         title: "Documentation 11 · Troubleshooting & Verification",
         content:
           "Diagnostic workflow, common fixes, and the project’s verification checklist.",
-        file: "guides/guide11.html",
+        file: "lessons/lesson11.html",
       },
       12: {
         title: "Documentation 12 · Glossary & Further Resources",
         content:
           "Glossary of simulator terminology and curated links to atlases and reference material.",
-        file: "guides/guide12.html",
+        file: "lessons/lesson12.html",
       },
     };
   }
 
-  initGuides() {
-    if (!this.dom.guideSelect) return;
-    const select = this.dom.guideSelect;
+  initLessons() {
+    if (!this.dom.lessonSelect) return;
+    const select = this.dom.lessonSelect;
     select.addEventListener("change", (e) => {
       const value = e.target.value;
-      const guideNumber = Number.parseInt(value, 10);
-      if (!Number.isFinite(guideNumber)) {
+      const lessonNumber = Number.parseInt(value, 10);
+      if (!Number.isFinite(lessonNumber)) {
         return;
       }
-      this.showFullGuide(guideNumber);
+      this.showFullLesson(lessonNumber);
       // Reset to placeholder so users can re-open the same chapter without extra steps.
       select.value = "";
     });
   }
 
-  async showFullGuide(guideNumber) {
-    const guide = this.guideConfig[guideNumber];
+  async showFullLesson(lessonNumber) {
+    const lesson = this.lessonConfig[lessonNumber];
 
     if (!lesson) {
-      console.error(`No content found for documentation ${guideNumber}`);
+      console.error(`No content found for documentation ${lessonNumber}`);
       return;
     }
 
-    const lessonHtml = await this.getLessonHtml(guideNumber);
+    const lessonHtml = await this.getLessonHtml(lessonNumber);
     if (!lessonHtml) {
-      console.error(`Unable to load documentation ${guideNumber}`);
+      console.error(`Unable to load documentation ${lessonNumber}`);
       return;
     }
 
@@ -3282,7 +3282,7 @@ class SNNVisualizer {
 
     const iframe = document.createElement("iframe");
     iframe.className = "lesson-frame";
-    iframe.setAttribute("title", guide.title);
+    iframe.setAttribute("title", lesson.title);
     iframe.setAttribute("loading", "lazy");
     iframe.style.width = "100%";
     iframe.style.minHeight = "60vh";
@@ -3309,7 +3309,7 @@ class SNNVisualizer {
       const style = document.createElement("style");
       style.id = "modal-styles";
       style.textContent = `
-        .guide-modal {
+        .lesson-modal {
           position: fixed;
           top: 0;
           left: 0;
@@ -3323,7 +3323,7 @@ class SNNVisualizer {
           padding: 20px;
           backdrop-filter: blur(8px);
         }
-        .guide-modal-content {
+        .lesson-modal-content {
           background: var(--surface-1);
           border: 1px solid var(--border);
           padding: 32px;
@@ -3336,7 +3336,7 @@ class SNNVisualizer {
           display: flex;
           flex-direction: column;
         }
-        .guide-modal-content iframe {
+        .lesson-modal-content iframe {
           flex: 1 1 auto;
           width: 100%;
           min-height: 60vh;
@@ -3384,50 +3384,54 @@ class SNNVisualizer {
     document.addEventListener("keydown", onKeyDown);
   }
 
-  async getLessonHtml(guideNumber) {
-    const cached = this.guideCache.get(guideNumber);
+  async getLessonHtml(lessonNumber) {
+    const cached = this.lessonCache.get(lessonNumber);
     if (cached) {
       return cached;
     }
 
-    const guide = this.guideConfig[guideNumber];
+    const lesson = this.lessonConfig[lessonNumber];
     if (!lesson) {
       return null;
     }
 
-    if (guide.file) {
-      const fileHtml = await this.fetchGuideFile(lesson);
+    if (lesson.file) {
+      const fileHtml = await this.fetchLessonFile(lesson);
       if (fileHtml) {
         const themed = this.applyThemeColorsToMarkup(fileHtml);
-        this.guideCache.set(guideNumber, themed);
+        this.lessonCache.set(lessonNumber, themed);
         return themed;
       }
     }
 
+    const fallback = this.getFullLessonContent(lessonNumber);
+    if (fallback) {
+      return this.wrapLessonContent(lesson.title, fallback);
+    }
 
-    return this.wrapGuideContent(
-      guide.title || `Documentation ${guideNumber}`,
+    return this.wrapLessonContent(
+      lesson.title || `Documentation ${lessonNumber}`,
       '<p style="font-size: 16px;">Documentation content is currently unavailable.</p>'
     );
   }
 
-  async fetchGuideFile(guide) {
-    if (!guide || !guide.file) {
+  async fetchLessonFile(lesson) {
+    if (!lesson || !lesson.file) {
       return null;
     }
 
     try {
-      const response = await fetch(guide.file, { cache: "no-store" });
+      const response = await fetch(lesson.file, { cache: "no-store" });
       if (!response.ok) {
         console.warn(
-          `Documentation file not found: ${guide.file} (status ${response.status})`
+          `Documentation file not found: ${lesson.file} (status ${response.status})`
         );
         return null;
       }
       const htmlText = await response.text();
       return this.normalizeLessonHtml(htmlText, lesson);
     } catch (error) {
-      console.error(`Failed to load documentation file ${guide.file}:`, error);
+      console.error(`Failed to load documentation file ${lesson.file}:`, error);
       return null;
     }
   }
@@ -3440,8 +3444,8 @@ class SNNVisualizer {
     const trimmed = htmlText.trim();
     const hasHtmlTag = /<html[\s>]/i.test(trimmed);
     const baseHref =
-      lesson && guide.file
-        ? new URL(guide.file, window.location.href).href
+      lesson && lesson.file
+        ? new URL(lesson.file, window.location.href).href
         : window.location.href;
 
     if (hasHtmlTag) {
@@ -3462,10 +3466,10 @@ class SNNVisualizer {
       return this.applyThemeColorsToMarkup(injected);
     }
 
-    return this.wrapGuideContent(lesson ? guide.title : "Documentation", trimmed);
+    return this.wrapLessonContent(lesson ? lesson.title : "Documentation", trimmed);
   }
 
-  wrapGuideContent(title, bodyContent) {
+  wrapLessonContent(title, bodyContent) {
     const safeTitle = title || "Documentation";
     const safeBody =
       bodyContent ||
@@ -3517,18 +3521,237 @@ ${safeBody}
 </html>`;
     return this.applyThemeColorsToMarkup(themedHtml);
   }
-  /**
-   * @deprecated This function contained old inline educational lessons
-   * about basic neural concepts. It has been replaced by HTML documentation
-   * files in the guides/ folder that focus on the brain region template
-   * system. Archived lesson content can be found in docs/archive/
-   *
-   * @returns {null} Always returns null - use HTML guide files instead
-   */
-  getFullLessonContent(guideNumber) {
-    // Deprecated: Old inline lessons removed
-    // All documentation is now in guides/guide*.html files
-    return null;
+  getFullLessonContent(lessonNumber) {
+    const lessons = {
+      1: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 1: Basic Spike Dynamics</h1>
+        <p>Spiking Neural Networks (SNNs) use discrete spikes to communicate information, unlike traditional neural networks that use continuous values. This fundamental difference makes SNNs more biologically realistic and energy-efficient.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Key Concepts</h2>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Membrane Potential</h3>
+        <p>The voltage inside a neuron that accumulates over time. In our simulation, this is represented by the <code style="background: #1e293b; padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', monospace;">voltage</code> property of each neuron. As the neuron receives inputs from connected neurons, its membrane potential increases.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Threshold</h3>
+        <p>When the membrane potential reaches this critical level (typically 1.0 in our simulation), the neuron fires a spike. This is the fundamental mechanism that determines when information is transmitted.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Spike Generation</h3>
+        <p>A brief electrical pulse sent to all connected neurons when the threshold is reached. In our visualization, you can see this as the bright glow effect around firing neurons.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Reset Mechanism</h3>
+        <p>After firing, the membrane potential returns to 0, preparing the neuron for the next accumulation cycle. This prevents continuous firing and creates the discrete nature of spikes.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Interactive Exploration</h2>
+        <p>Try adjusting the following parameters to see how they affect spike dynamics:</p>
+        <ul style="margin-left: 20px;">
+          <li style="margin-bottom: 8px;"><strong style="color: #ff9bf0;">Network Size:</strong> More neurons create more complex spike patterns</li>
+          <li style="margin-bottom: 8px;"><strong style="color: #ff9bf0;">Connection Probability:</strong> Higher values create more interconnected networks</li>
+          <li style="margin-bottom: 8px;"><strong style="color: #ff9bf0;">Firing Rate:</strong> Controls how often neurons spontaneously fire</li>
+          <li style="margin-bottom: 8px;"><strong style="color: #ff9bf0;">Spike Threshold:</strong> Lower values make neurons fire more easily</li>
+        </ul>
+        <p>Watch how spikes propagate through the network and create cascading patterns of activity!</p>
+      `,
+      2: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 2: Synaptic Transmission</h1>
+        <p>Understanding how spikes travel between neurons and how synaptic weights affect signal transmission in spiking neural networks.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Synaptic Connections</h2>
+        <p>In our visualization, you can see synapses as the thin grey lines connecting neurons. These connections have different strengths (weights) that determine how much voltage is transmitted when a spike occurs.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Connection Weights</h3>
+        <p>Each synapse has a weight value between 0.1 and 1.0. Stronger connections (higher weights) transmit more voltage, making the receiving neuron more likely to fire.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Spike Propagation</h3>
+        <p>When a neuron fires, it sends its spike to all connected neurons simultaneously. The receiving neurons add the weighted input to their membrane potential.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Network Clustering</h2>
+        <p>Notice how neurons are organized into clusters with stronger internal connections and weaker connections between clusters. This creates interesting propagation patterns where activity tends to spread within clusters first.</p>
+        
+        <p><strong style="color: #ff9bf0;">Try this:</strong> Enable "Show Weights" to see detailed connection information for each neuron, and use "Inject Spike" to watch how activity propagates through the network.</p>
+      `,
+      3: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 3: Network Plasticity</h1>
+        <p>How neural networks adapt and learn by modifying their synaptic connections over time.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Hebbian Learning</h2>
+        <p>The fundamental principle "neurons that fire together, wire together" governs how connections strengthen when neurons are repeatedly active at the same time.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Synaptic Strengthening</h3>
+        <p>When two connected neurons fire within a short time window, their synaptic connection becomes stronger, making future co-activation more likely.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Synaptic Weakening</h3>
+        <p>Connections that are rarely used gradually weaken over time, allowing the network to forget unused patterns and focus on relevant information.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Homeostasis</h2>
+        <p>Networks maintain stability through homeostatic mechanisms that prevent runaway excitation or complete silence, balancing learning with stable operation.</p>
+        
+        <p><strong style="color: #ff9bf0;">Observe:</strong> Watch how repeated activation patterns in our network create stronger pathways between frequently co-active neurons.</p>
+      `,
+      4: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 4: Pattern Recognition</h1>
+        <p>How spiking neural networks excel at detecting and learning temporal patterns in spike trains.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Temporal Coding</h2>
+        <p>Unlike rate coding, temporal coding uses the precise timing of spikes to encode information, allowing for much faster and more efficient computation.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Spike Time Dependent Plasticity</h3>
+        <p>The timing between pre- and post-synaptic spikes determines whether connections strengthen or weaken, enabling learning of temporal sequences.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Feature Detection</h3>
+               <p>Specialized neurons can learn to respond to specific temporal patterns, acting as feature detectors for complex spatiotemporal inputs.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Competition and Selection</h2>
+        <p>Winner-take-all mechanisms ensure that only the most relevant patterns survive, creating selective responses to important features.</p>
+        
+        <p><strong style="color: #ff9bf0;">Experiment:</strong> Use the "Inject Spike" button to create different activation patterns and observe how they propagate through different clusters in unique ways.</p>
+      `,
+      5: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 5: Network Topology</h1>
+        <p>Understanding how the organization and structure of neural networks affects information processing and computational capabilities.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Small-World Networks</h2>
+        <p>Brain-like networks exhibit small-world properties: high local clustering combined with short path lengths between distant regions, optimizing both specialized processing and global integration.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Modularity</h3>
+        <p>Networks organize into modules (clusters) with dense internal connections and sparse connections between modules, enabling specialized processing while maintaining coordination.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Hub Neurons</h3>
+        <p>Highly connected neurons act as hubs, integrating information from multiple sources and facilitating communication across the network.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Hierarchical Structure</h2>
+        <p>Multiple scales of organization from local circuits to global networks enable complex information processing and emergent behaviors.</p>
+        
+        <p><strong style="color: #ff9bf0;">Notice:</strong> Our visualization shows clustered organization where neurons within clusters are more densely connected than those between clusters.</p>
+      `,
+      6: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 6: Inhibition & Competition</h1>
+        <p>How inhibitory mechanisms create selection, attention, and decision-making capabilities in neural networks.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Lateral Inhibition</h2>
+        <p>Neighboring neurons suppress each other's activity, creating competitive dynamics that enhance contrast and selectivity in neural responses.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Winner-Take-All</h3>
+        <p>Competition between neurons ensures that only the strongest signals survive, implementing selection and attention mechanisms crucial for focused processing.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Excitation-Inhibition Balance</h3>
+        <p>The critical ratio between excitatory and inhibitory connections determines network dynamics, stability, and computational capabilities.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Attention Mechanisms</h2>
+        <p>Inhibitory circuits can gate information flow, allowing networks to focus on relevant inputs while suppressing distracting information.</p>
+        
+        <p><strong style="color: #ff9bf0;">Experiment:</strong> Try adjusting the threshold parameter to see how it affects competitive dynamics between neurons and clusters.</p>
+      `,
+      7: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 7: Multi-layer Processing</h1>
+        <p>How hierarchical neural networks extract increasingly complex features through multiple processing stages.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Feature Hierarchy</h2>
+        <p>Each layer detects features of increasing complexity, from simple edges and patterns in early layers to complex objects and concepts in deeper layers.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Cortical Columns</h3>
+        <p>Functional units that process specific aspects of input, organized in columnar structures that work together to analyze complex patterns.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Feed-forward and Feedback</h3>
+        <p>Information flows both bottom-up (sensory input) and top-down (predictions and context), enabling sophisticated processing and learning.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Abstraction Levels</h2>
+        <p>Progressive abstraction from concrete sensory data to high-level concepts enables flexible and generalizable representations.</p>
+        
+        <p><strong style="color: #ff9bf0;">Observe:</strong> Notice how activity patterns in our network create hierarchical processing as signals propagate through connected clusters.</p>
+      `,
+      8: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 8: Memory Systems</h1>
+        <p>How different types of memory emerge from distinct neural network architectures and plasticity mechanisms.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Working Memory</h2>
+        <p>Temporary storage through persistent neural activity, maintaining information in active states for immediate use in cognitive tasks.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Long-term Memory</h3>
+        <p>Stable information storage through permanent changes in synaptic strengths, enabling retention of knowledge and experiences over time.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Episodic Memory</h3>
+        <p>Time-linked sequences of events stored as patterns of neural activity, enabling recall of specific experiences and their temporal context.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Associative Memory</h2>
+        <p>Pattern completion and recall mechanisms that retrieve complete memories from partial cues, enabling flexible and robust memory access.</p>
+        
+        <p><strong style="color: #ff9bf0;">Watch:</strong> Observe how persistent activity in our network clusters creates memory-like behavior where patterns can be sustained over time.</p>
+      `,
+      9: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 9: Large-Scale Networks</h1>
+        <p>How brain-wide coordination enables higher-order cognitive functions and potentially consciousness.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Global Workspace</h2>
+        <p>Conscious access through global broadcasting of information across brain networks, enabling integration and flexible cognitive control.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Default Mode Network</h3>
+        <p>Resting state activity patterns that maintain global connectivity and prepare the brain for future cognitive demands.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Information Integration</h3>
+        <p>Binding of distributed processing across brain regions to create unified perceptual and cognitive experiences.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Critical Dynamics</h2>
+        <p>Networks operating at the edge of chaos exhibit optimal information processing, flexibility, and computational capabilities.</p>
+        
+        <p><strong style="color: #ff9bf0;">Observe:</strong> Watch how activity spreads across the entire network, demonstrating global integration of distributed processing.</p>
+      `,
+      10: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 10: Neural Oscillations</h1>
+        <p>How rhythmic neural activity coordinates processing across brain regions and enables temporal organization.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Gamma Rhythms</h2>
+        <p>High-frequency oscillations (30-100 Hz) that coordinate local processing, attention, and conscious awareness within brain regions.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Alpha and Beta Rhythms</h3>
+        <p>Medium-frequency oscillations (8-30 Hz) that facilitate communication between brain regions and regulate information flow.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Theta Rhythms</h3>
+        <p>Low-frequency oscillations (4-8 Hz) crucial for memory formation, spatial navigation, and temporal sequence encoding.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Phase Coupling</h2>
+        <p>Synchronization of oscillations across brain regions enables temporal coordination and binding of distributed processing.</p>
+        
+        <p><strong style="color: #ff9bf0;">Look for:</strong> Rhythmic patterns in the voltage traces and synchronized activity between connected neurons in our simulation.</p>
+      `,
+      11: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 11: Brain Emulation Theory</h1>
+        <p>The ultimate goal of computational neuroscience: creating complete functional copies of biological brains.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Whole Brain Emulation</h2>
+        <p>Creating digital copies of specific brains that preserve individual personality, memories, and cognitive patterns through detailed neural simulation.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Scanning Technology</h3>
+        <p>Advanced imaging techniques needed to map every neuron, synapse, and molecular detail with sufficient resolution for functional reconstruction.</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Computational Requirements</h3>
+        <p>Enormous processing power and storage needed to simulate 86 billion neurons and 100 trillion synapses in real-time with biological accuracy.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Technical Challenges</h2>
+        <p>Scaling from current small-scale simulations to full brain complexity while maintaining speed, accuracy, and biological fidelity.</p>
+        
+        <p><strong style="color: #ff9bf0;">Foundation:</strong> Our simple network demonstrates the basic principles that must scale up millions of times for complete brain emulation.</p>
+      `,
+      12: `
+        <h1 style="color: #ff9bf0; font-size: 28px; margin-bottom: 16px;">Lesson 12: Ethics & Future</h1>
+        <p>The profound philosophical and ethical questions raised by the possibility of creating digital minds.</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Consciousness Questions</h2>
+        <p>Would a perfect neural simulation be conscious? How could we determine consciousness in digital minds, and what are the implications?</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Identity and Continuity</h3>
+        <p>What makes you "you" - is it the pattern of neural activity, the physical substrate, or something else? Could there be multiple copies of the same person?</p>
+        
+        <h3 style="color: #ff9bf0; margin-top: 24px;">Rights and Protections</h3>
+        <p>If digital minds are conscious, what rights should they have? Protection from suffering, deletion, unwanted modification, or forced labor?</p>
+        
+        <h2 style="color: #ff9bf0; font-size: 22px; margin-top: 24px; margin-bottom: 12px;">Our Responsibility</h2>
+        <p>As creators of potentially conscious digital minds, we have profound moral obligations to consider their wellbeing, rights, and place in society.</p>
+        
+        <p><strong style="color: #ff9bf0;">Critical Thinking:</strong> These questions require careful consideration as we advance toward more sophisticated neural simulations and potential digital consciousness.</p>
+      `,
+    };
+
+    return lessons[lessonNumber] || null;
   }
 
   animate() {
