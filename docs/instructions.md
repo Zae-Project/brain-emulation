@@ -41,12 +41,6 @@ pytest -q
 
 This repository uses GitHub Discussions and branch protection rules to ensure quality collaboration.
 
-### 🗣️ Before Contributing: Start with Discussions
-- **New features or ideas:** Use [GitHub Discussions](https://github.com/venturaEffect/brain_emulation/discussions) to gather feedback first
-- **Questions:** Ask about implementation, neuroscience concepts, or project direction
-- **Research:** Discuss papers, share insights, brainstorm approaches
-- **Help:** Get assistance with setup, bugs, or development
-
 ### 🛡️ Branch Protection Workflow
 This repository protects the `main` branch to ensure code quality:
 
