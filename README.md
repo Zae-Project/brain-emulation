@@ -1,8 +1,8 @@
 # Brain Emulation Project
 
-An open-source, research-focused platform for simulating and visualizing biologically realistic spiking neural networks (SNNs) based on anatomical brain region data from leading neuroscience atlases.
+An open source, research focused platform for simulating and visualizing biologically realistic spiking neural networks (SNNs) based on anatomical brain region data from leading neuroscience atlases.
 
-**Mission**: To create accessible, scientifically grounded tools for exploring brain emulation concepts through interactive visualization and atlas-based neural network templates.
+**Mission**: To create accessible, scientifically grounded tools for exploring brain emulation concepts through interactive visualization and atlas based neural network templates.
 
 ---
 
@@ -22,7 +22,7 @@ This project enables researchers, neuroengineers, cognitive scientists, and stud
 
 ### 🧠 Atlas-Based Brain Region Templates
 
-Pre-configured network templates based on real neuroscience data:
+Pre configured network templates based on real neuroscience data:
 
 - **Allen Motor Cortex** (BA4): Layer-specific cortical column with corticospinal Layer 5B neurons
 - **Allen Prefrontal Cortex** (BA10/46): Two-cluster abstraction with excitatory/inhibitory populations
@@ -239,7 +239,7 @@ Additional technical documentation:
 
 This project uses anatomical data from:
 
-- **[Allen Brain Atlas](https://portal.brain-map.org/)**: High-resolution brain maps with cell-type-specific data
+- **[Allen Brain Atlas](https://portal.brain-map.org/)**: High resolution brain maps with cell type specific data
 - **[BrainGlobe](https://brainglobe.info/)**: MNI152 atlas and standardized coordinate systems
 - **[Julich-Brain / EBRAINS siibra](https://siibra.eu/)**: Cytoarchitectonic brain region definitions
 - **Neuroscience Literature**: Research-backed neuron parameters and connectivity patterns
@@ -256,13 +256,6 @@ This project uses anatomical data from:
 ## Contributing
 
 We welcome contributions! This project uses **GitHub Discussions** and **branch protection** to ensure quality.
-
-### 🗣️ Start with [Discussions](https://github.com/venturaEffect/brain_emulation/discussions) for:
-
-- New ideas and feature proposals
-- Questions about implementation or neuroscience concepts
-- Research discussions and brainstorming
-- Getting help with the codebase
 
 ### 📋 For formal contributions:
 
@@ -328,13 +321,13 @@ python test_network_modes.py simple --both
 
 ### Backend (Python)
 
-- **Brian2**: High-performance SNN simulation framework
-- **WebSockets**: Real-time bidirectional communication
+- **Brian2**: High performance SNN simulation framework
+- **WebSockets**: Real time bidirectional communication
 - **NumPy**: Numerical operations
 
 ### Frontend (JavaScript)
 
-- **Three.js**: WebGL-based 3D rendering
+- **Three.js**: WebGL based 3D rendering
 - **Vanilla JS**: No framework dependencies (lightweight and fast)
 - **JSON Schema**: Template validation
 
@@ -369,7 +362,7 @@ This project builds on research from:
 
 - **Issues**: [GitHub Issues](https://github.com/venturaEffect/brain_emulation/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/venturaEffect/brain_emulation/discussions)
-- **Documentation**: See `guides/` folder or in-app documentation dropdown
+- **Documentation**: See `guides/` folder or in app documentation dropdown
 
 ---
 
