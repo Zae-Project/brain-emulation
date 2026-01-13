@@ -1,9 +1,9 @@
-Short answer: yes—you can get JSON for human brain region maps and related “neuron cluster” data, but there isn’t a single, complete human-neuron-level connectome database. What exists splits into four tiers:
+Short answer: yes, you can get JSON for human brain region maps and related “neuron cluster” data, but there isn’t a single, complete human-neuron-level connectome database. What exists splits into four tiers:
 
 **1 Region maps & ontologies (JSON)**
 
 - **Allen Brain Map** lets you download the full brain-region hierarchy (“structure graph”) directly as JSON; it’s the cleanest way to get a labeled region tree. ([Allen Brain Map Community Forum][1])
-- **EBRAINS / siibra-api** exposes the Julich/Multilevel Human Brain Atlas over HTTP (JSON)—atlases, parcellations, regions, coordinates, and linked datasets. Swagger docs are public. ([siibra-api-stable.apps.hbp.eu][2])
+- **EBRAINS / siibra-api** exposes the Julich/Multilevel Human Brain Atlas over HTTP (JSON), atlases, parcellations, regions, coordinates, and linked datasets. Swagger docs are public. ([siibra-api-stable.apps.hbp.eu][2])
 - **BrainGlobe atlas API** distributes atlases with a region-value→name mapping and structure hierarchy in JSON alongside label volumes/meshes. ([brainglobe.info][3])
 
 **2 Cell-type “neuron clusters” (human)**
@@ -110,4 +110,4 @@ Curated, ready-to-import templates derived from the pipelines above live in `dat
 | `brainglobe_visual_cortex.json` | BrainGlobe MNI152 | Feedforward V1→V2 stream complemented by deep-layer feedback. |
 | `julich_thalamocortical_loop.json` | EBRAINS Julich-Brain | Mediodorsal thalamus ↔ PFC loop with reticular inhibition. |
 
-The HUD now reads `data/brain_region_maps/manifest.json` at startup to auto-register every template listed there. Run `node scripts/refresh_brain_region_manifest.mjs` whenever you drop new template files so the manifest stays in sync. Any manifest entry is lifted into `SNN_REGISTRY` automatically—no manual wiring required beyond the JSON itself.
+The HUD now reads `data/brain_region_maps/manifest.json` at startup to auto-register every template listed there. Run `node scripts/refresh_brain_region_manifest.mjs` whenever you drop new template files so the manifest stays in sync. Any manifest entry is lifted into `SNN_REGISTRY` automatically, no manual wiring required beyond the JSON itself.

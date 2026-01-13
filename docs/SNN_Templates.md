@@ -50,7 +50,7 @@ These JSON-like structures can live in `js/templates/registry.js` (exporting map
 
 2) UI Changes
    - Add a dropdown “Preset” listing regions (None, Frontal Cortex, Amygdala, Thalamus, etc.).
-   - Add a dropdown “Cluster Archetype” to apply per-cluster (when not using a preset) — optional but useful.
+   - Add a dropdown “Cluster Archetype” to apply per-cluster (when not using a preset) ,  optional but useful.
    - Keep existing sliders; when a preset is selected, sync derived values (clusters × size), intra/inter parameters, and neuron mixes; gray out conflicting controls if “locked by preset”.
 
 3) Network Construction
