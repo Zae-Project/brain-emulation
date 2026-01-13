@@ -1,6 +1,6 @@
 # Instructions
 
-Use this guide to install, run, and contribute. Details will evolve—when in doubt, open an issue or discussion.
+Use this guide to install, run, and contribute. Details will evolve. When in doubt, open an issue or discussion.
 
 Prerequisites
 - Git
