@@ -251,6 +251,24 @@ This project uses anatomical data from:
 - Blue Brain Project: Detailed cortical simulation and modeling
 - Human Brain Project: European brain research initiative
 
+### Comprehensive Research Resources
+
+For the complete bibliography supporting this and related projects, see the **[Zae Project Bibliography](https://github.com/Zae-Project/zae-docs/blob/main/reference/bibliography.md)** - a centralized repository containing:
+
+- **100+ Key Researchers** - Leading scientists in consciousness, BCIs, neuromorphic computing, and computational neuroscience
+- **50+ Foundational Papers** - Seminal publications with full citations including BCI pioneers
+- **35+ Essential Books** - Organized by topic with reading recommendations
+- **Research Institutions & Labs** - Major centers advancing BCI and neural interface research
+- **Industry Leaders** - Companies working on BCIs (Neuralink, Kernel, Paradromics, Synchron, Blackrock)
+
+**Relevant Sections for Brain Emulation:**
+- Brain-Computer Interfaces (Nicolelis, Donoghue, Rao, Shenoy, Chang)
+- Computational Neuroscience (Sejnowski, Gerstner, Izhikevich, Markram)
+- Consciousness Studies (Chalmers, Koch, Tononi, Dehaene, Seth)
+- Whole Brain Emulation (Sandberg, Bostrom, Koene, Hayworth)
+
+Also see the **[Researchers Directory](https://github.com/Zae-Project/zae-docs/blob/main/reference/researchers-directory.md)** for detailed profiles and contact information.
+
 ---
 
 ## Contributing
