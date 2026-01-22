@@ -1,0 +1,72 @@
+# Brain Emulation Development Dependencies
+# ==========================================
+# Install with: pip install -r requirements-dev.txt
+
+# First, install production dependencies
+-r requirements.txt
+
+# ============================================================================
+# Testing Framework
+# ============================================================================
+
+# Pytest - Testing framework
+pytest>=7.4.0,<8.0.0
+
+# Pytest plugins
+pytest-cov>=4.1.0,<5.0.0           # Code coverage reporting
+pytest-asyncio>=0.21.0,<1.0.0      # Async test support
+pytest-mock>=3.12.0,<4.0.0         # Mocking utilities
+pytest-timeout>=2.2.0,<3.0.0       # Test timeout enforcement
+
+# ============================================================================
+# Code Quality Tools
+# ============================================================================
+
+# Black - Code formatter
+black>=23.12.0,<24.0.0
+
+# Flake8 - Linting
+flake8>=6.1.0,<7.0.0
+flake8-docstrings>=1.7.0,<2.0.0    # Docstring linting
+flake8-bugbear>=23.12.0,<24.0.0    # Additional bug checks
+
+# MyPy - Type checking (optional but recommended)
+mypy>=1.7.0,<2.0.0
+
+# isort - Import sorting
+isort>=5.13.0,<6.0.0
+
+# ============================================================================
+# Security Scanning
+# ============================================================================
+
+# Bandit - Security vulnerability scanner
+bandit>=1.7.5,<2.0.0
+
+# Safety - Dependency vulnerability checker
+safety>=2.3.5,<3.0.0
+
+# ============================================================================
+# Documentation
+# ============================================================================
+
+# Sphinx - Documentation generator (if needed)
+# sphinx>=7.2.0,<8.0.0
+# sphinx-rtd-theme>=2.0.0,<3.0.0
+
+# ============================================================================
+# Validation & Schemas
+# ============================================================================
+
+# JSON Schema validation for WebSocket messages
+jsonschema>=4.20.0,<5.0.0
+
+# ============================================================================
+# Development Utilities
+# ============================================================================
+
+# IPython - Enhanced Python shell for debugging
+ipython>=8.19.0,<9.0.0
+
+# Pre-commit - Git hook management
+pre-commit>=3.6.0,<4.0.0
