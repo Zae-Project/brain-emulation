@@ -1,11 +1,33 @@
 # Brain Emulation Project Dependencies
-# Python 3.10+ recommended
+# ========================================
+# Python 3.8+ required, 3.10+ recommended
+#
+# Installation:
+#   pip install -r requirements.txt           # Production dependencies
+#   pip install -r requirements-dev.txt       # Development dependencies
 
-# Core neural simulation
-brian2>=2.5.0
+# ============================================================================
+# Core Dependencies (Production)
+# ============================================================================
 
-# WebSocket server for real-time communication
-websockets>=10.0
+# Core neural simulation framework
+# Brian2 implements spiking neural networks with biophysical realism
+brian2>=2.5.4,<3.0.0
 
-# Numerical operations (typically installed with brian2, but explicit for clarity)
-numpy>=1.21.0
+# WebSocket server for real-time communication with frontend
+# Provides async server for streaming spike data
+websockets>=12.0,<13.0
+
+# Numerical operations
+# Required for Brian2 and spike data manipulation
+numpy>=1.24.0,<2.0.0
+
+# ============================================================================
+# Optional Dependencies
+# ============================================================================
+
+# Matplotlib for plotting (optional, used in debug mode)
+# matplotlib>=3.7.0,<4.0.0
+
+# Scipy for advanced signal processing (optional)
+# scipy>=1.10.0,<2.0.0
