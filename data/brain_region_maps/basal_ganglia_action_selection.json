@@ -1,0 +1,158 @@
+{
+  "id": "Basal_Ganglia_Action_Selection",
+  "regionName": "Basal Ganglia Action Selection Circuit",
+  "metadata": {
+    "atlas": "Functional Architecture based on Gurney et al. (2001) & Elieasmith",
+    "release": "2026-02",
+    "references": [
+      "Gurney, K., Prescott, T. J., & Redgrave, P. (2001). A computational model of action selection in the basal ganglia.",
+      "Eliasmith, C. (2013). How to Build a Brain.",
+      "NotebookLM: Brain-Mind: Semantic Pointers and the Neural Architecture of Thought"
+    ],
+    "notes": [
+      "Implements the 'Action Selection' mechanism using Semantic Pointers.",
+      "Includes Direct (Go) and Indirect (No-Go) pathways.",
+      "Parameters tuned for interaction with Semantic Pointer vectors."
+    ]
+  },
+  "clusters": [
+    {
+      "id": "Striatum_D1",
+      "name": "Striatum (Direct Pathway)",
+      "neuronGroups": [
+        { "preset": "medium_spiny", "count": 150 }
+      ],
+      "internalConnectivity": [
+        { "from": "medium_spiny", "to": "medium_spiny", "probability": 0.1, "type": "inhibitory", "weight": 0.2 }
+      ],
+      "metadata": {
+        "function": "Facilitate selected actions",
+        "neurotransmitter": "GABA"
+      }
+    },
+    {
+      "id": "Striatum_D2",
+      "name": "Striatum (Indirect Pathway)",
+      "neuronGroups": [
+        { "preset": "medium_spiny", "count": 150 }
+      ],
+      "internalConnectivity": [
+        { "from": "medium_spiny", "to": "medium_spiny", "probability": 0.1, "type": "inhibitory", "weight": 0.2 }
+      ],
+      "metadata": {
+        "function": "Suppress competing actions",
+        "neurotransmitter": "GABA"
+      }
+    },
+    {
+      "id": "STN",
+      "name": "Subthalamic Nucleus",
+      "neuronGroups": [
+        { "preset": "pyramidal", "count": 100 }
+      ],
+      "internalConnectivity": [
+        { "from": "pyramidal", "to": "pyramidal", "probability": 0.05, "type": "excitatory", "weight": 0.1 }
+      ],
+      "metadata": {
+        "function": "Excitatory drive (Hyper-direct pathway)",
+        "neurotransmitter": "Glutamate"
+      }
+    },
+    {
+      "id": "GPe",
+      "name": "Globus Pallidus externus",
+      "neuronGroups": [
+        { "preset": "pallidal", "count": 80 }
+      ],
+      "internalConnectivity": [
+        { "from": "pallidal", "to": "pallidal", "probability": 0.1, "type": "inhibitory", "weight": 0.2 }
+      ],
+      "metadata": {
+        "function": "Disinhibition control",
+        "neurotransmitter": "GABA"
+      }
+    },
+    {
+      "id": "GPi_SNr",
+      "name": "GPi / SNr (Output)",
+      "neuronGroups": [
+        { "preset": "pallidal", "count": 80 }
+      ],
+      "internalConnectivity": [],
+      "metadata": {
+        "function": "Tonic inhibition of Thalamus",
+        "neurotransmitter": "GABA"
+      }
+    },
+    {
+      "id": "Thalamus",
+      "name": "Thalamus (Ventral Lateral)",
+      "neuronGroups": [
+        { "preset": "thalamic_relay", "count": 100 }
+      ],
+      "internalConnectivity": [],
+      "metadata": {
+        "function": "Action gating to Cortex",
+        "neurotransmitter": "Glutamate"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromCluster": "Striatum_D1",
+      "toCluster": "GPi_SNr",
+      "connectivity": [
+        { "from": "medium_spiny", "to": "pallidal", "probability": 0.4, "type": "inhibitory", "weight": 1.5, "delay": 4.0 }
+      ],
+      "metadata": { "projection": "Direct Pathway (Inhibition of GPi)" }
+    },
+    {
+      "fromCluster": "Striatum_D2",
+      "toCluster": "GPe",
+      "connectivity": [
+        { "from": "medium_spiny", "to": "pallidal", "probability": 0.4, "type": "inhibitory", "weight": 1.2, "delay": 4.0 }
+      ],
+      "metadata": { "projection": "Indirect Pathway (Inhibition of GPe)" }
+    },
+    {
+      "fromCluster": "STN",
+      "toCluster": "GPi_SNr",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pallidal", "probability": 0.3, "type": "excitatory", "weight": 0.8, "delay": 2.5 }
+      ],
+      "metadata": { "projection": "STN Excitation of GPi" }
+    },
+    {
+      "fromCluster": "STN",
+      "toCluster": "GPe",
+      "connectivity": [
+        { "from": "pyramidal", "to": "pallidal", "probability": 0.3, "type": "excitatory", "weight": 0.8, "delay": 2.5 }
+      ],
+      "metadata": { "projection": "STN Excitation of GPe" }
+    },
+    {
+      "fromCluster": "GPe",
+      "toCluster": "STN",
+      "connectivity": [
+        { "from": "pallidal", "to": "pyramidal", "probability": 0.3, "type": "inhibitory", "weight": 1.0, "delay": 3.0 }
+      ],
+      "metadata": { "projection": "GPe Inhibition of STN" }
+    },
+    {
+      "fromCluster": "GPe",
+      "toCluster": "GPi_SNr",
+      "connectivity": [
+        { "from": "pallidal", "to": "pallidal", "probability": 0.2, "type": "inhibitory", "weight": 0.5, "delay": 3.0 }
+      ],
+      "metadata": { "projection": "GPe Inhibition of GPi" }
+    },
+    {
+      "fromCluster": "GPi_SNr",
+      "toCluster": "Thalamus",
+      "connectivity": [
+        { "from": "pallidal", "to": "thalamic_relay", "probability": 0.5, "type": "inhibitory", "weight": 3.0, "delay": 5.0 }
+      ],
+      "metadata": { "projection": "Tonic Inhibition of Thalamus (Action Selection Output)" }
+    }
+  ]
+}
