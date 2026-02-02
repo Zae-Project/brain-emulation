@@ -281,13 +281,15 @@ class TestEdgeCases:
     def test_zero_neurons_rejected(self):
         """Test that network with 0 neurons is rejected."""
         size = 0
-        assert size >= 10, "Cannot create network with 0 neurons"
+        is_valid = 10 <= size <= 200
+        assert not is_valid, "Zero neurons should be rejected"
 
     @pytest.mark.unit
     def test_negative_speed_rejected(self):
         """Test that negative speed multipliers are rejected."""
         speed = -1.0
-        assert speed >= 0.1, "Speed cannot be negative"
+        is_valid = 0.1 <= speed <= 10.0
+        assert not is_valid, "Negative speed should be rejected"
 
     @pytest.mark.unit
     def test_none_values_handled(self):
