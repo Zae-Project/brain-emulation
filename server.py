@@ -20,7 +20,8 @@ from brian2 import (
 # Semantic Pointer imports
 from scripts.semantic_algebra import (
     SemanticVocabulary, NeuralEncoder, SemanticWeightGenerator,
-    circular_convolution, circular_correlation, superposition
+    circular_convolution, circular_correlation, superposition,
+    CleanupMemory, cosine_similarity
 )
 
 prefs.codegen.target = "numpy"
@@ -130,6 +131,7 @@ class SemanticPointer:
         self.encoders = {}  # pool_name -> NeuralEncoder
         self.dim = dim
         self.n_neurons = n_neurons_per_pool
+        self.cleanup_memory = None  # CleanupMemory (initialized on first use)
 
     def create_pool(self, name):
         """
@@ -211,6 +213,28 @@ class SemanticPointer:
             raise ValueError(f"Unknown operation: {operation}")
 
         return W
+
+    def initialize_cleanup(self):
+        """
+        Initialize cleanup memory from current vocabulary.
+
+        Returns:
+            dict: Status information about initialized cleanup
+
+        Raises:
+            ValueError: If vocabulary is empty
+        """
+        if len(self.vocab.vectors) == 0:
+            raise ValueError("Cannot initialize cleanup with empty vocabulary")
+
+        self.cleanup_memory = CleanupMemory(self.vocab)
+        print(f"✓ Initialized cleanup memory with {len(self.vocab.vectors)} concepts")
+
+        return {
+            "status": "initialized",
+            "vocab_size": len(self.vocab.vectors),
+            "dimension": self.dim
+        }
 
 
 def recreate_network():
@@ -592,6 +616,97 @@ async def handler(ws, path):
                             "vectors": vector_names,
                             "count": len(vector_names)
                         }))
+
+                elif d.get("cmd") == "spAddNoise":
+                    if sp is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "SP mode not enabled"
+                        }))
+                    else:
+                        vector_name = d.get("vectorName")
+                        noise_level = d.get("noiseLevel", 0.5)
+                        result_name = d.get("resultName", f"{vector_name}_noisy")
+                        try:
+                            # Get vector and add noise
+                            vec = sp.vocab.get(vector_name)
+                            noise = np.random.randn(len(vec)) * noise_level
+                            noisy_vec = vec + noise
+                            noisy_vec = noisy_vec / np.linalg.norm(noisy_vec)
+
+                            # Store noisy vector
+                            sp.vocab.add(result_name, noisy_vec)
+
+                            # Calculate similarity degradation
+                            original_sim = 1.0  # cosine_similarity(vec, vec)
+                            noisy_sim = cosine_similarity(vec, noisy_vec)
+
+                            print(f"✓ Added noise to {vector_name} → {result_name} (similarity: {noisy_sim:.2%})")
+                            await ws.send(json.dumps({
+                                "cmd": "spAddNoise",
+                                "result": {
+                                    "noisyVector": result_name,
+                                    "originalSimilarity": float(original_sim),
+                                    "noisySimilarity": float(noisy_sim),
+                                    "degradation": float(original_sim - noisy_sim)
+                                }
+                            }))
+                        except KeyError as e:
+                            await ws.send(json.dumps({
+                                "cmd": "error",
+                                "message": str(e)
+                            }))
+
+                elif d.get("cmd") == "spCleanup":
+                    if sp is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "SP mode not enabled"
+                        }))
+                    else:
+                        noisy_name = d.get("noisyVector")
+                        result_name = d.get("resultName", f"{noisy_name}_cleaned")
+                        max_iterations = d.get("maxIterations", 100)
+
+                        try:
+                            # Validate vector exists
+                            if noisy_name not in sp.vocab:
+                                raise KeyError(f"Vector '{noisy_name}' not found")
+
+                            # Initialize cleanup if not already done
+                            if sp.cleanup_memory is None:
+                                sp.initialize_cleanup()
+
+                            # Get noisy vector and clean it
+                            noisy_vec = sp.vocab.get(noisy_name)
+                            cleaned_vec, trajectory, n_iters = sp.cleanup_memory.cleanup(
+                                noisy_vec,
+                                max_iterations=max_iterations,
+                                return_trajectory=True
+                            )
+
+                            # Store result in vocabulary
+                            sp.vocab.add(result_name, cleaned_vec)
+
+                            # Find nearest match
+                            nearest_name, similarity = sp.cleanup_memory.find_nearest_match(cleaned_vec)
+
+                            print(f"✓ Cleaned {noisy_name} → {result_name} (nearest: {nearest_name}, similarity: {similarity:.2%}, {n_iters} iterations)")
+                            await ws.send(json.dumps({
+                                "cmd": "spCleanup",
+                                "result": {
+                                    "cleanedVector": result_name,
+                                    "iterations": int(n_iters),
+                                    "nearestMatch": nearest_name,
+                                    "similarity": float(similarity),
+                                    "trajectoryLength": len(trajectory)
+                                }
+                            }))
+                        except (KeyError, ValueError) as e:
+                            await ws.send(json.dumps({
+                                "cmd": "error",
+                                "message": str(e)
+                            }))
 
             except Exception as e:
                 print(f"Command error: {e}")
