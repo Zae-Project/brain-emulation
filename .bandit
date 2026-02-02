@@ -1,0 +1,6 @@
+[bandit]
+# Exclude test directories - assert statements are expected in tests
+exclude_dirs = /tests/,/.venv/,/venv/,/env/,/.tox/,/__pycache__/
+
+# Skip B101 (assert_used) globally since it's a false positive in test code
+skips = B101
