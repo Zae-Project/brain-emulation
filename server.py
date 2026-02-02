@@ -10,10 +10,17 @@ import queue
 import threading
 import time
 
+import numpy as np
 import websockets
 from brian2 import (
     Network, NeuronGroup, PoissonInput, SpikeMonitor, StateMonitor,
     Synapses, collect, defaultclock, ms, prefs, start_scope, Hz
+)
+
+# Semantic Pointer imports
+from scripts.semantic_algebra import (
+    SemanticVocabulary, NeuralEncoder, SemanticWeightGenerator,
+    circular_convolution, circular_correlation, superposition
 )
 
 prefs.codegen.target = "numpy"
@@ -38,7 +45,11 @@ PARAMS = {
     "tau": 20,  # Longer time constant (20ms) - more realistic
     "inhibition_strength": 0.15,  # Inhibitory connections
     "refractory_period": 5,  # 5ms refractory period
-    "noise_level": 0.01  # Low background noise
+    "noise_level": 0.01,  # Low background noise
+    # Semantic Pointer parameters
+    "sp_enabled": False,  # Toggle SP mode
+    "sp_dimensionality": 50,  # Vector dimensionality (per Eliasmith 2013)
+    "sp_neurons_per_pool": 40,  # Neurons per SP population
 }
 
 def get_neuron_count():
@@ -87,6 +98,119 @@ def get_voltage_monitor():
     """
     global vm, NETWORK_MODE
     return vm
+
+
+# =============================================================================
+# Semantic Pointer Management
+# =============================================================================
+
+class SemanticPointer:
+    """
+    Manages semantic pointer operations for the network.
+
+    Provides high-level interface for creating SP-enabled neural populations,
+    setting inputs, and connecting pools with SP-derived weight matrices.
+
+    Attributes:
+        vocab: SemanticVocabulary for managing named vectors
+        encoders: Dict mapping pool names to NeuralEncoder instances
+        dim: Semantic pointer dimensionality
+        n_neurons: Neurons per pool
+    """
+
+    def __init__(self, dim=50, n_neurons_per_pool=40):
+        """
+        Initialize semantic pointer system.
+
+        Args:
+            dim: Vector dimensionality (default 50)
+            n_neurons_per_pool: Neurons per population (default 40)
+        """
+        self.vocab = SemanticVocabulary(dimensionality=dim)
+        self.encoders = {}  # pool_name -> NeuralEncoder
+        self.dim = dim
+        self.n_neurons = n_neurons_per_pool
+
+    def create_pool(self, name):
+        """
+        Create a neural population that can represent semantic pointers.
+
+        Args:
+            name: Identifier for this pool
+
+        Returns:
+            NeuralEncoder: Encoder for this pool
+        """
+        if name in self.encoders:
+            print(f"⚠ Pool '{name}' already exists")
+            return self.encoders[name]
+
+        self.encoders[name] = NeuralEncoder(
+            n_neurons=self.n_neurons,
+            sp_dimensionality=self.dim
+        )
+        print(f"✓ Created SP pool '{name}' ({self.n_neurons} neurons, {self.dim}D)")
+        return self.encoders[name]
+
+    def set_input(self, pool_name, sp_vector, neuron_group):
+        """
+        Set neuron group inputs to represent a semantic pointer.
+
+        Args:
+            pool_name: Name of the pool
+            sp_vector: Semantic pointer vector to encode
+            neuron_group: Brian2 NeuronGroup to set inputs for
+        """
+        if pool_name not in self.encoders:
+            raise ValueError(f"Pool '{pool_name}' not found. Create it first.")
+
+        encoder = self.encoders[pool_name]
+        firing_rates = encoder.encode(sp_vector)
+
+        # Scale to match Brian2 input current range
+        neuron_group.I_input = firing_rates * PARAMS["input_current"] * 10
+        print(f"✓ Set input for pool '{pool_name}' (mean rate: {firing_rates.mean():.2f})")
+
+    def connect_pools(self, from_pool, to_pool, operation="identity", bind_vector=None):
+        """
+        Generate connection weights between pools implementing SP operations.
+
+        Args:
+            from_pool: Source pool name
+            to_pool: Target pool name
+            operation: "identity", "bind", or "unbind"
+            bind_vector: Vector to bind/unbind with (required for bind/unbind)
+
+        Returns:
+            np.ndarray: Weight matrix (n_tgt × n_src)
+        """
+        if from_pool not in self.encoders:
+            raise ValueError(f"Source pool '{from_pool}' not found")
+        if to_pool not in self.encoders:
+            raise ValueError(f"Target pool '{to_pool}' not found")
+
+        enc_from = self.encoders[from_pool]
+        enc_to = self.encoders[to_pool]
+
+        weight_gen = SemanticWeightGenerator(enc_from, enc_to)
+
+        if operation == "identity":
+            W = weight_gen.identity_weights()
+            print(f"✓ Generated identity weights: {from_pool} → {to_pool}")
+        elif operation == "bind":
+            if bind_vector is None:
+                raise ValueError("bind_vector required for bind operation")
+            W = weight_gen.binding_weights(bind_vector)
+            print(f"✓ Generated binding weights: {from_pool} → {to_pool}")
+        elif operation == "unbind":
+            if bind_vector is None:
+                raise ValueError("bind_vector required for unbind operation")
+            W = weight_gen.unbinding_weights(bind_vector)
+            print(f"✓ Generated unbinding weights: {from_pool} → {to_pool}")
+        else:
+            raise ValueError(f"Unknown operation: {operation}")
+
+        return W
 
 
 def recreate_network():
@@ -159,6 +283,9 @@ vm = StateMonitor(G, 'v', record=True)
 net = Network(collect())
 
 q = queue.Queue()
+
+# Global semantic pointer instance (initialized when SP mode is enabled)
+sp = None
 
 
 def brain_loop():
@@ -350,6 +477,121 @@ async def handler(ws, path):
                         if neuron_id < NUM:
                             G.v[neuron_id] = 0.9
                     print("Memory test initiated")
+
+                # ===== Semantic Pointer Commands =====
+                elif d.get("cmd") == "enableSP":
+                    PARAMS["sp_enabled"] = True
+                    global sp
+                    sp = SemanticPointer(
+                        dim=PARAMS["sp_dimensionality"],
+                        n_neurons_per_pool=PARAMS["sp_neurons_per_pool"]
+                    )
+                    print("✓ Semantic Pointer mode enabled")
+                    await ws.send(json.dumps({
+                        "cmd": "spEnabled",
+                        "dimensionality": PARAMS["sp_dimensionality"],
+                        "neurons_per_pool": PARAMS["sp_neurons_per_pool"]
+                    }))
+
+                elif d.get("cmd") == "spAddVector":
+                    if sp is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "SP mode not enabled. Call enableSP first."
+                        }))
+                    else:
+                        name = d.get("name")
+                        if name:
+                            sp.vocab.add(name)
+                            print(f"✓ Added semantic pointer '{name}'")
+                            await ws.send(json.dumps({
+                                "cmd": "spVectorAdded",
+                                "name": name
+                            }))
+
+                elif d.get("cmd") == "spBind":
+                    if sp is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "SP mode not enabled"
+                        }))
+                    else:
+                        a_name = d.get("vectorA")
+                        b_name = d.get("vectorB")
+                        result_name = d.get("resultName", f"{a_name}_BIND_{b_name}")
+                        try:
+                            sp.vocab.bind(a_name, b_name, result_name)
+                            print(f"✓ Bound {a_name} ⊛ {b_name} = {result_name}")
+                            await ws.send(json.dumps({
+                                "cmd": "spBindComplete",
+                                "resultName": result_name
+                            }))
+                        except KeyError as e:
+                            await ws.send(json.dumps({
+                                "cmd": "error",
+                                "message": str(e)
+                            }))
+
+                elif d.get("cmd") == "spUnbind":
+                    if sp is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "SP mode not enabled"
+                        }))
+                    else:
+                        bound_name = d.get("boundVector")
+                        key_name = d.get("keyVector")
+                        result_name = d.get("resultName", f"{bound_name}_UNBIND_{key_name}")
+                        try:
+                            sp.vocab.unbind(bound_name, key_name, result_name)
+                            print(f"✓ Unbound {bound_name} ⊛ {key_name}' = {result_name}")
+                            await ws.send(json.dumps({
+                                "cmd": "spUnbindComplete",
+                                "resultName": result_name
+                            }))
+                        except KeyError as e:
+                            await ws.send(json.dumps({
+                                "cmd": "error",
+                                "message": str(e)
+                            }))
+
+                elif d.get("cmd") == "spSimilarity":
+                    if sp is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "SP mode not enabled"
+                        }))
+                    else:
+                        a_name = d.get("vectorA")
+                        b_name = d.get("vectorB")
+                        try:
+                            similarity = sp.vocab.similarity(a_name, b_name)
+                            print(f"✓ Similarity({a_name}, {b_name}) = {similarity:.3f}")
+                            await ws.send(json.dumps({
+                                "cmd": "spSimilarity",
+                                "vectorA": a_name,
+                                "vectorB": b_name,
+                                "similarity": float(similarity)
+                            }))
+                        except KeyError as e:
+                            await ws.send(json.dumps({
+                                "cmd": "error",
+                                "message": str(e)
+                            }))
+
+                elif d.get("cmd") == "spListVectors":
+                    if sp is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "SP mode not enabled"
+                        }))
+                    else:
+                        vector_names = list(sp.vocab.vectors.keys())
+                        await ws.send(json.dumps({
+                            "cmd": "spVectorList",
+                            "vectors": vector_names,
+                            "count": len(vector_names)
+                        }))
 
             except Exception as e:
                 print(f"Command error: {e}")
