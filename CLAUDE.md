@@ -6,6 +6,7 @@
 - **Commit and Push**: Always use the following credentials for committing and pushing to the remote repository:
   - **Username**: `tlcdv`
   - **Email**: `zae@todosloscobardesdelvalle.com`
+  - **IMPORTANT**: NEVER use "Co-Authored-By: Claude" or similar attribution in commit messages. All commits should be attributed solely to the configured user.
 
 ### CI/CD Guidelines (IMPORTANT - Read Before Modifying Code)
 
