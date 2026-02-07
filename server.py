@@ -24,6 +24,9 @@ from scripts.semantic_algebra import (
     CleanupMemory, cosine_similarity
 )
 
+# Basal Ganglia imports
+from scripts.basal_ganglia import BasalGangliaActionSelection
+
 prefs.codegen.target = "numpy"
 
 # Server configuration
@@ -51,6 +54,8 @@ PARAMS = {
     "sp_enabled": False,  # Toggle SP mode
     "sp_dimensionality": 50,  # Vector dimensionality (per Eliasmith 2013)
     "sp_neurons_per_pool": 40,  # Neurons per SP population
+    # Basal Ganglia parameters
+    "bg_enabled": False,  # Toggle basal ganglia mode
 }
 
 def get_neuron_count():
@@ -310,6 +315,9 @@ q = queue.Queue()
 
 # Global semantic pointer instance (initialized when SP mode is enabled)
 sp = None
+
+# Global basal ganglia instance (initialized when BG mode is enabled)
+bg = None
 
 
 def brain_loop():
@@ -707,6 +715,132 @@ async def handler(ws, path):
                                 "cmd": "error",
                                 "message": str(e)
                             }))
+
+                # ===== Basal Ganglia Commands =====
+                elif d.get("cmd") == "enableBG":
+                    PARAMS["bg_enabled"] = True
+                    global bg
+                    import os
+                    template_path = os.path.join(
+                        os.path.dirname(__file__),
+                        "data", "brain_region_maps", "basal_ganglia_action_selection.json"
+                    )
+                    try:
+                        bg = BasalGangliaActionSelection(template_path)
+                        print("✓ Basal Ganglia mode enabled")
+                        await ws.send(json.dumps({
+                            "cmd": "bgEnabled",
+                            "message": "Basal ganglia action selection initialized"
+                        }))
+                    except Exception as e:
+                        print(f"Error initializing basal ganglia: {e}")
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": f"Failed to initialize basal ganglia: {str(e)}"
+                        }))
+
+                elif d.get("cmd") == "bgRegisterAction":
+                    if bg is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "BG mode not enabled. Call enableBG first."
+                        }))
+                    else:
+                        action_name = d.get("actionName")
+                        n_d1 = d.get("nNeuronsD1", 30)
+                        n_d2 = d.get("nNeuronsD2", 30)
+                        
+                        if action_name:
+                            # Assign non-overlapping neuron indices
+                            n_actions = len(bg.action_pools)
+                            d1_start = n_actions * n_d1
+                            d2_start = n_actions * n_d2
+                            
+                            d1_indices = list(range(d1_start, d1_start + n_d1))
+                            d2_indices = list(range(d2_start, d2_start + n_d2))
+                            
+                            bg.register_action(action_name, d1_indices, d2_indices)
+                            await ws.send(json.dumps({
+                                "cmd": "bgActionRegistered",
+                                "actionName": action_name,
+                                "nActions": len(bg.action_pools)
+                            }))
+
+                elif d.get("cmd") == "bgSetUtility":
+                    if bg is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "BG mode not enabled"
+                        }))
+                    else:
+                        action_name = d.get("actionName")
+                        utility = float(d.get("utility", 0.5))
+                        
+                        try:
+                            bg.set_action_utility(action_name, utility)
+                            print(f"✓ Set utility for '{action_name}' = {utility:.2f}")
+                            await ws.send(json.dumps({
+                                "cmd": "bgUtilitySet",
+                                "actionName": action_name,
+                                "utility": utility
+                            }))
+                        except KeyError as e:
+                            await ws.send(json.dumps({
+                                "cmd": "error",
+                                "message": str(e)
+                            }))
+
+                elif d.get("cmd") == "bgGetSelected":
+                    if bg is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "BG mode not enabled"
+                        }))
+                    else:
+                        selected_action, confidence = bg.get_selected_action()
+                        await ws.send(json.dumps({
+                            "cmd": "bgSelectedAction",
+                            "action": selected_action,
+                            "confidence": float(confidence) if selected_action else 0.0
+                        }))
+
+                elif d.get("cmd") == "bgRun":
+                    if bg is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "BG mode not enabled"
+                        }))
+                    else:
+                        duration_ms = d.get("durationMs", 100)
+                        try:
+                            from brian2 import ms as brian_ms
+                            bg.network.run(duration_ms * brian_ms)
+                            selected, conf = bg.get_selected_action()
+                            print(f"✓ BG ran for {duration_ms}ms, selected: {selected} (conf: {conf:.2f})")
+                            await ws.send(json.dumps({
+                                "cmd": "bgRunComplete",
+                                "durationMs": duration_ms,
+                                "selectedAction": selected,
+                                "confidence": float(conf) if selected else 0.0
+                            }))
+                        except Exception as e:
+                            await ws.send(json.dumps({
+                                "cmd": "error",
+                                "message": f"Error running BG network: {str(e)}"
+                            }))
+
+                elif d.get("cmd") == "bgReset":
+                    if bg is None:
+                        await ws.send(json.dumps({
+                            "cmd": "error",
+                            "message": "BG mode not enabled"
+                        }))
+                    else:
+                        bg.reset()
+                        await ws.send(json.dumps({
+                            "cmd": "bgReset",
+                            "message": "Basal ganglia state reset"
+                        }))
 
             except Exception as e:
                 print(f"Command error: {e}")
