@@ -134,8 +134,27 @@ gh run view <RUN_ID> --repo Zae-Project/brain-emulation --log 2>&1 | grep -A 50 
 
 **Status**: Complete (2026-02-01). Ready for Phase 2.
 
-### Phase 2: The "Clean-up" Memory (NEXT PRIORITY)
-**Status**: Not started. Ready to begin.
+### Phase 2: The "Clean-up" Memory
+**Status**: Complete (2026-02-02).
+
+**Implementation**:
+- Auto-associative memory network using Hopfield-like learning rule
+- Attractor dynamics for stabilizing noisy semantic pointers
+- Weight matrix: W = Σ(vᵢ ⊗ vᵢ) across vocabulary
+- WebSocket commands: `spCleanup`, `spAddNoise`
+- Full test coverage in `test_semantic_algebra.py`
+
+### Phase 3: Basal Ganglia Action Selection
+**Status**: Complete (2026-02-07).
+
+**Implementation**:
+- Template-based brain region loader (`BrainRegionTemplate`)
+- Action selection via direct (Go) and indirect (No-Go) pathways
+- Components: Striatum D1/D2, STN, GPe, GPi/SNr, Thalamus
+- Winner-take-all selection mechanism
+- WebSocket API: `enableBG`, `bgRegisterAction`, `bgSetUtility`, `bgGetSelected`, `bgRun`, `bgReset`
+- Tests: `tests/unit/test_basal_ganglia.py`
+- Demo: `examples/basal_ganglia_demo.py`
 
 **What**: Implement an auto-associative memory network (attractor network).
 
@@ -309,18 +328,50 @@ Server runs on `ws://localhost:8766`
   - **Performance:**
     - Cleanup convergence: typically 10-60 iterations
     - Noise reduction: Works best with moderate noise (0.3-0.5)
-    - Weight matrix: O(vocab_size × dim²) computation (~1ms for 10 vectors)
-    - Cleanup iteration: ~0.1ms per iteration (50D space)
 
-**🔄 IN PROGRESS**:
-- Nothing currently in progress
+- **Phase 3: Basal Ganglia Action Selection (2026-02-07)**
+  - ✓ BrainRegionTemplate class for JSON → Brian2 conversion
+  - ✓ BasalGangliaActionSelection class with winner-take-all dynamics
+  - ✓ Anatomically accurate template (Gurney et al. 2001)
+  - ✓ Direct pathway (Striatum D1 → GPi) and indirect pathway (Striatum D2 → GPe → GPi)
+  - ✓ Hyperdirect pathway (STN → GPi)
+  - ✓ Unit tests (15 tests covering template loading, action registration, competition)
+  - ✓ WebSocket integration: enableBG, bgRegisterAction, bgSetUtility, bgGetSelected, bgRun, bgReset
+  - ✓ Demonstration script: examples/basal_ganglia_demo.py
+  - **Files Created:**
+    - [scripts/basal_ganglia.py](scripts/basal_ganglia.py) - Core module (~400 lines)
+    - [tests/unit/test_basal_ganglia.py](tests/unit/test_basal_ganglia.py) - Test suite (~195 lines)
+    - [examples/basal_ganglia_demo.py](examples/basal_ganglia_demo.py) - Demo script (~175 lines)
+  - **Files Modified:**
+    - [server.py](server.py) - Added BG WebSocket commands (~140 lines)
+  - **Architecture:**
+    - Striatum D1: 150 neurons (direct pathway)
+    - Striatum D2: 150 neurons (indirect pathway)
+## STATUS
 
-**📋 NEXT STEPS**:
-1. **Phase 3: Basal Ganglia Integration** (NEXT PRIORITY)
-   - Load basal_ganglia_action_selection.json template
-   - Implement action selection mechanism
-   - Connect to Thalamus for routing
-   - Integrate with working memory maintenance
+**Current Phase**: Phase 3 Complete (2026-02-07)
+**Next Phase**: Phase 4 - Integration & Cortical Working Memory
+
+### NEXT STEPS
+
+1. **Integrate Basal Ganglia with Semantic Pointers**
+   - Connect action utilities to semantic pointer representations
+   - Use cleanup memory to stabilize action representations
+   - Implement cortical working memory pools gated by thalamus
+
+2. **Cortical Routing & Gating**
+   - Create cortical pools representing working memory slots
+   - Connect thalamus output to cortical input (disinhibition)
+   - Implement read/write operations gated by action selection
+
+3. **End-to-End Workflow**
+   - Demonstrate: Semantic binding in cortex → Cleanup → Action selection → Gated memory update
+   - Example: Store (APPLE * RED) in working memory slot 1 via basal ganglia gating
+
+4. **Performance Optimization**
+   - Profile basal ganglia network for latency
+   - Consider Izhikevich neurons for realistic firing patterns (optional)
+   - Benchmark action selection speed vs. biological timescales (100-200ms)
 
 ### Performance Benchmarks
 - **Circular Convolution**: <1ms (50D vectors, FFT-based)
@@ -368,6 +419,5 @@ Server runs on `ws://localhost:8766`
 
 ---
 
-**Last Updated**: 2026-02-02
-**Status**: Phase 2 Complete, CI/CD Fixed, Ready for Phase 3
-**Next Session**: Begin Basal Ganglia integration (action selection)
+**Last Updated**: 2026-02-07  
+**Status**: Phase 3 Complete (Basal Ganglia Action Selection) | Ready for Phase 4 (Integration & Cortical Working Memory)
