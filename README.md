@@ -20,7 +20,7 @@ This project enables researchers, neuroengineers, cognitive scientists, and stud
 
 ## Key Features
 
-### 🧠 Atlas-Based Brain Region Templates
+### 🧠 Atlas based Brain Region Templates
 
 Pre configured network templates based on real neuroscience data:
 
