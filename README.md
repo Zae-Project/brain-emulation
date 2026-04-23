@@ -6,6 +6,20 @@ An open source, research focused platform for simulating and visualizing biologi
 
 ---
 
+## Role in the Zae Project
+
+This repository is the **Interface** pillar of the [Zae Project](https://github.com/Zae-Project) 4-pillar stack. It provides the biological-fidelity reference (atlas-based Brian2 SNNs, 30+ neuron types, 3D visualizer) that the synthetic pillars validate against.
+
+| Pillar | Repo | Role |
+|---|---|---|
+| 🛰️ Infrastructure | [arkspace-core](https://github.com/Zae-Project/arkspace-core) | LEO satellite constellation hosting the synthetic hemisphere. |
+| 🧠 **Interface** | **brain-emulation** (this repo) | **Atlas-based Brian2 SNN simulation and 3D visualization. Biological-fidelity reference.** |
+| ⚡ Engine | [neutral-consciousness-engine](https://github.com/Zae-Project/neutral-consciousness-engine) | Nengo + ROS 2 SNN runtime. Consumes atlas topologies from this repo. |
+| 🌡️ Substrate | [thermodynamic-core](https://github.com/Zae-Project/thermodynamic-core) | Physical computing paradigm. Phase 2 target: Brian2 connectivity → TC energy landscape $(J, b)$ translator. |
+| 📚 Docs | [zae-docs](https://github.com/Zae-Project/zae-docs) | Unified architecture, bibliography, researcher directory. |
+
+---
+
 ## Overview
 
 This project enables researchers, neuroengineers, cognitive scientists, and students to:
