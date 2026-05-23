@@ -10,8 +10,8 @@ Prerequisites
 Setup
 1) Clone the repository
 ```bash
-git clone https://github.com/venturaEffect/brain_emulation.git
-cd brain_emulation
+git clone https://github.com/Zae-Project/brain-emulation.git
+cd brain-emulation
 ```
 2) Create a virtual environment (example using venv)
 ```bash
