@@ -86,8 +86,8 @@ Accurately modeled neuron types with distinct morphologies and firing patterns:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/venturaEffect/brain_emulation.git
-   cd brain_emulation
+   git clone https://github.com/Zae-Project/brain-emulation.git
+   cd brain-emulation
    ```
 
 2. **Install Python dependencies**:
@@ -392,8 +392,8 @@ This project builds on research from:
 
 ## Support & Contact
 
-- **Issues**: [GitHub Issues](https://github.com/venturaEffect/brain_emulation/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/venturaEffect/brain_emulation/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Zae-Project/brain-emulation/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Zae-Project/brain-emulation/discussions)
 - **Documentation**: See `guides/` folder or in app documentation dropdown
 
 ---

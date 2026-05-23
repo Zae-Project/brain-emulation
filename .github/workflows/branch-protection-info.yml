@@ -29,7 +29,7 @@ jobs:
             - Submit pull requests for review before merging
             - Follow the contributing guidelines in \`docs/instructions.md\`
             
-            💬 **Questions?** Please use [GitHub Discussions](https://github.com/venturaEffect/brain_emulation/discussions) for questions about contributing or the development process.
+            💬 **Questions?** Please use [GitHub Discussions](https://github.com/Zae-Project/brain-emulation/discussions) for questions about contributing or the development process.
             
             Thank you for contributing to brain_emulation! 🧠
             `;

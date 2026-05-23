@@ -8,7 +8,7 @@ This project aims to create an educational and research-focused platform for lea
 
 ## 🗣️ Before You Start: Use Discussions
 
-**Please start with [GitHub Discussions](https://github.com/venturaEffect/brain_emulation/discussions)** for:
+**Please start with [GitHub Discussions](https://github.com/Zae-Project/brain-emulation/discussions)** for:
 
 - 💡 **New ideas and features** - Get community feedback before implementation
 - ❓ **Questions** - Ask about the codebase, neuroscience concepts, or implementation approaches  
@@ -70,7 +70,7 @@ We welcome various types of contributions:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/venturaEffect/brain_emulation.git
+   git clone https://github.com/Zae-Project/brain-emulation.git
    cd brain_emulation
    ```
 
