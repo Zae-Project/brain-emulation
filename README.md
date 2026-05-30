@@ -265,7 +265,7 @@ This project uses anatomical data from:
 - Blue Brain Project: Detailed cortical simulation and modeling
 - Human Brain Project: European brain research initiative
 
-### Comprehensive Research Resources
+### Research Resources
 
 For the complete bibliography supporting this and related projects, see the **[Zae Project Bibliography](https://github.com/Zae-Project/zae-docs/blob/main/reference/bibliography.md)** - a centralized repository containing:
 
@@ -287,7 +287,7 @@ Also see the **[Researchers Directory](https://github.com/Zae-Project/zae-docs/b
 
 ## Contributing
 
-We welcome contributions! This project uses **GitHub Discussions** and **branch protection** to ensure quality.
+We welcome contributions! This project uses **GitHub Discussions** and **branch protection** to maintain quality.
 
 ### 📋 For formal contributions:
 
