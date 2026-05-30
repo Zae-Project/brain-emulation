@@ -209,7 +209,7 @@ Planned security improvements for future versions:
 - [ ] WSS (TLS/SSL) support
 - [ ] Session management
 - [ ] Role-based access control (RBAC)
-- [ ] Comprehensive input sanitization
+- [ ] Full input sanitization
 - [ ] Security documentation and threat modeling
 
 ### v1.5 (Advanced security)
