@@ -15,7 +15,7 @@ This project aims to create an educational and research-focused platform for lea
 - 🔬 **Research discussions** - Share papers, discuss neural network concepts
 - 🤝 **Getting help** - Stuck on implementation? The community is here to help
 
-This helps ensure your contributions align with project goals and prevents duplicate work.
+This helps keep your contributions aligned with project goals and prevents duplicate work.
 
 ## 🛡️ Branch Protection and Workflow
 
@@ -97,7 +97,7 @@ We welcome various types of contributions:
 
 ## 🧪 Testing Your Changes
 
-- **Manual testing:** Ensure the WebSocket server starts and the UI loads
+- **Manual testing:** Confirm the WebSocket server starts and the UI loads
 - **Code quality:** Follow existing code style and patterns
 - **Documentation:** Update docs for any user-facing changes
 - **Backwards compatibility:** Avoid breaking existing functionality
@@ -130,7 +130,7 @@ When submitting a pull request:
 When contributing scientific content:
 
 - **Cite sources** - Include references to papers and research
-- **Accuracy first** - Ensure scientific correctness
+- **Accuracy first** - Verify scientific correctness
 - **Educational focus** - Make complex concepts accessible
 - **Open discussion** - Use Discussions for research questions
 

@@ -11,7 +11,7 @@ This folder contains the core documentation for the brain_emulation project:
 - Frequently asked questions: [faq.md](./faq.md)
 - Ethical guidelines: [ethics.md](./ethics.md)
 - Project status: [honest_status.md](./honest_status.md) - **Current completion status**
-- Project analysis: [project_analysis.md](./project_analysis.md) - **Comprehensive analysis**
+- Project analysis: [project_analysis.md](./project_analysis.md) - **Full analysis**
 
 ## Lesson Files Status
 
