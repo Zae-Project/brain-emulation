@@ -4,7 +4,7 @@ This document summarizes how the implemented changes address the requirements in
 
 ## Problem Statement Requirements
 
-> "The repository is public from brain_emulation and anyone can fork it and write issues but we should include a discussion side on the project and also avoid of other users create changes on the main branch of the repository."
+> "The repository is public from brain-emulation and anyone can fork it and write issues but we should include a discussion side on the project and also avoid of other users create changes on the main branch of the repository."
 
 ## ✅ Solution Implemented
 
@@ -110,4 +110,4 @@ The repository now has a complete governance structure that:
 - ✅ **Provides clear contribution paths** for all types of users
 - ✅ **Protects code quality** while remaining welcoming
 
-This implementation balances open collaboration with quality control, ensuring the brain_emulation project can grow safely while maintaining its educational and research mission.
+This implementation balances open collaboration with quality control, ensuring the brain-emulation project can grow safely while maintaining its educational and research mission.

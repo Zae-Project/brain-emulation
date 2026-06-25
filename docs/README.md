@@ -1,6 +1,6 @@
-# brain_emulation Documentation
+# brain-emulation Documentation
 
-This folder contains the core documentation for the brain_emulation project:
+This folder contains the core documentation for the brain-emulation project:
 
 - Mission: [mission.md](./mission.md)
 - Goals and audience: [goals.md](./goals.md)

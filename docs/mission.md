@@ -1,6 +1,6 @@
 # Mission
 
-brain_emulation exists to make computational neuroscience, especially spiking neural networks (SNNs), approachable, interactive, and rigorous for learners and researchers.
+brain-emulation exists to make computational neuroscience, especially spiking neural networks (SNNs), approachable, interactive, and rigorous for learners and researchers.
 
 We aim to:
 - Lower the barrier to understanding core SNN concepts through interactive visualizations and guided lessons.

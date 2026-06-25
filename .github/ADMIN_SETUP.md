@@ -128,4 +128,4 @@ As the project grows, consider:
 
 ---
 
-This governance structure balances open collaboration with quality control, ensuring the brain_emulation project remains welcoming while maintaining high standards.
+This governance structure balances open collaboration with quality control, ensuring the brain-emulation project remains welcoming while maintaining high standards.

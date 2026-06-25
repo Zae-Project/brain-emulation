@@ -151,7 +151,7 @@ Available controls (when template is unlocked):
 ## Project Structure
 
 ```
-brain_emulation/
+brain-emulation/
 ├── server.py                 # Brian2 backend simulation server
 ├── test_network_modes.py     # Testing script for simple/realistic modes
 ├── index.html                # Main web interface

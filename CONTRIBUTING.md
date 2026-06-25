@@ -71,7 +71,7 @@ We welcome various types of contributions:
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/Zae-Project/brain-emulation.git
-   cd brain_emulation
+   cd brain-emulation
    ```
 
 2. **Set up your environment:**
